@@ -1,4 +1,4 @@
-import { createCampaignPlan, type CampaignStep } from './scheduler';
+import { createCampaignPlan, currentWeekNeedsFocus, selectCurrentFocusWord, type CampaignStep } from './scheduler';
 import { loadSpellingData, type SpellingData } from './store';
 
 const STORAGE_KEY = 'robot-bunnies.campaign.v1';
@@ -76,6 +76,32 @@ export function getOrStartCampaign(data = loadSpellingData()): SavedCampaign {
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
   return current;
+}
+
+/**
+ * Enforce active-list priority again at level entry: if a current word became
+ * weak during the run, convert the next planned older-week reinforcement
+ * stage into a current-week practice stage. Preserve all completed stages.
+ */
+export function prioritizeCurrentWeek(campaign: SavedCampaign, levelIndex: number): SavedCampaign {
+  const data = loadSpellingData();
+  const saved = loadSaved(data);
+  if (!saved || saved.runNumber !== campaign.runNumber ||
+      saved.wordListSignature !== campaign.wordListSignature ||
+      saved.nextLevelIndex !== levelIndex) {
+    throw new Error('The active spelling adventure changed. Return to the game menu.');
+  }
+  const step = saved.steps[levelIndex];
+  const current = data.weeks.find(week => week.id === saved.activeWeekId);
+  if (!step || step.source !== 'previous' || !current || !currentWeekNeedsFocus(current)) {
+    return saved;
+  }
+  const word = selectCurrentFocusWord(current, levelIndex);
+  const steps = [...saved.steps];
+  steps[levelIndex] = { levelId: levelIndex + 1, weekId: current.id, word, source: 'current' };
+  const updated = { ...saved, steps };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  return updated;
 }
 
 /**

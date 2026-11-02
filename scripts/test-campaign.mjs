@@ -17,9 +17,9 @@ const campaignUrl = url(
     .replace(/from ['"]\.\/scheduler['"]/g, `from '${schedulerUrl}'`)
     .replace(/from ['"]\.\/store['"]/g, `from '${storeUrl}'`)
 );
-const { createCampaignPlan } = await import(schedulerUrl);
+const { createCampaignPlan, currentWeekNeedsFocus } = await import(schedulerUrl);
 const { persistSpellingData, saveWeek } = await import(storeUrl);
-const { getOrStartCampaign, markCampaignLevelComplete, clearCampaign } = await import(campaignUrl);
+const { getOrStartCampaign, markCampaignLevelComplete, prioritizeCurrentWeek, clearCampaign } = await import(campaignUrl);
 
 const memory = new Map();
 globalThis.localStorage = {
@@ -31,12 +31,12 @@ globalThis.localStorage = {
 function fixture(count, previousCount) {
   const current = {
     id: 'current', label: 'This week',
-    words: Array.from({ length: count }, (_, i) => `currentword${i}`),
+    words: Array.from({ length: count }, (_, i) => `currentword${String.fromCharCode(97+i)}`),
     progress: {}, createdAt: '2026-11-01T00:00:00.000Z'
   };
   const earlier = {
     id: 'earlier', label: 'Last week',
-    words: Array.from({ length: previousCount }, (_, i) => `olderword${i}`),
+    words: Array.from({ length: previousCount }, (_, i) => `olderword${String.fromCharCode(97+i)}`),
     progress: {}, createdAt: '2026-10-25T00:00:00.000Z'
   };
   return { schemaVersion: 1, activeWeekId: 'current', weeks: previousCount ? [current, earlier] : [current] };
@@ -52,6 +52,7 @@ for (const count of [1, 2, 10, 11, 15, 19, 20]) {
       const currentWords = new Set(plan.filter(step => step.source === 'current').map(step => step.word));
       for (const word of data.weeks[0].words) assert.ok(currentWords.has(word), `missing ${word}`);
       const old = plan.filter(step => step.source === 'previous');
+      assert.equal(old.length, 0, 'untested current words block previous-week reviews');
       assert.ok(old.length <= 4, 'prior weeks should not dominate');
       assert.ok(old.length <= 22 - count, 'prior weeks use only spare slots');
       assert.ok(old.every(step => step.weekId === 'earlier'), 'review words must use original history');
@@ -60,6 +61,39 @@ for (const count of [1, 2, 10, 11, 15, 19, 20]) {
     }
   }
 }
+
+function confidentFixture(count = 10, oldCount = 10) {
+  const data = fixture(count, oldCount);
+  for (const word of data.weeks[0].words) {
+    data.weeks[0].progress[word] = {
+      attempts: 2, misses: 0, correct: 2, firstTryCorrect: 2, assistedCorrect: 0
+    };
+  }
+  return data;
+}
+const confident = confidentFixture();
+assert.equal(currentWeekNeedsFocus(confident.weeks[0]), false);
+assert.ok(createCampaignPlan(confident).some(step => step.source === 'previous'),
+  'older words appear only when active list is comfortable');
+
+const needsWork = confidentFixture();
+needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].misses = 2;
+needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].firstTryCorrect = 0;
+assert.equal(currentWeekNeedsFocus(needsWork.weeks[0]), true);
+assert.equal(createCampaignPlan(needsWork).filter(step => step.source === 'previous').length, 0);
+
+persistSpellingData(confident);
+clearCampaign();
+let prioritized = getOrStartCampaign();
+const firstOldIndex = prioritized.steps.findIndex(step => step.source === 'previous');
+assert.ok(firstOldIndex >= 0);
+for (let i = 0; i < firstOldIndex; i++) prioritized = markCampaignLevelComplete(prioritized, i);
+persistSpellingData(needsWork);
+prioritized = prioritizeCurrentWeek(prioritized, firstOldIndex);
+assert.equal(prioritized.steps[firstOldIndex].source, 'current',
+  'new misses redirect an upcoming old-week stage');
+assert.equal(getOrStartCampaign().steps[firstOldIndex].source, 'current',
+  'redirected word survives a reload');
 
 const realData = {
   schemaVersion: 1,

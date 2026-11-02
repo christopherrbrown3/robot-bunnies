@@ -6,7 +6,7 @@ import {
   selectPracticeWords, type CampaignStep, type PracticeMode
 } from '../spelling/scheduler';
 import {
-  getOrStartCampaign, markCampaignLevelComplete, type SavedCampaign
+  getOrStartCampaign, markCampaignLevelComplete, prioritizeCurrentWeek, type SavedCampaign
 } from '../spelling/campaign';
 import levels from '../content/levels.json';
 
@@ -181,6 +181,15 @@ export function initializeSpellingQuest(): void {
   }
 
   function showItem(): void {
+    if (mode === 'campaign' && currentCampaign) {
+      try {
+        currentCampaign = prioritizeCurrentWeek(currentCampaign, index);
+        steps = currentCampaign.steps;
+      } catch (error) {
+        showError(error instanceof Error ? error.message : 'Could not load this stage.');
+        return;
+      }
+    }
     currentStep = steps[index] ?? null;
     if (!currentStep) { finish(); return; }
     hadMiss = false;

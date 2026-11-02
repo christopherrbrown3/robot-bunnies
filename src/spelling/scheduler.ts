@@ -45,15 +45,31 @@ export function reviewCount(week: SpellingWeek): number {
   return week.words.filter(word => needsReview(week.progress[word])).length;
 }
 
+/** Untested, missed or helped current-week words require priority practice. */
+export function currentWeekNeedsFocus(week: SpellingWeek): boolean {
+  return week.words.some(word => {
+    const stats = week.progress[word];
+    return (stats?.firstTryCorrect ?? 0) < 1 || needsReview(stats);
+  });
+}
+
+/** Pick an active-week weak word; first-priority words get extra repetitions. */
+export function selectCurrentFocusWord(week: SpellingWeek, levelIndex: number): string {
+  const struggling = week.words.filter(word =>
+    (week.progress[word]?.firstTryCorrect ?? 0) < 1 || needsReview(week.progress[word])
+  ).sort((a, b) => wordPriority(a, b, week.progress));
+  if (!struggling.length) throw new Error('No current-week words need extra practice.');
+  return struggling[levelIndex % Math.min(struggling.length, 3)];
+}
+
 /**
  * Assign ONE spelling opportunity to each of 22 story levels.
  *
  * Each school word appears at least once, regardless of whether a list has
  * 1, 10, 15 or 20 words. Spare levels repeat current tricky/less-practiced
- * words and include a few earlier-week words when available. No time limit.
- *
- * Caller persists this plan at the start of a playthrough. Do not regenerate
- * it when progress/stats change halfway through an adventure.
+ * words. Earlier-week words appear only after ALL current words have at
+ * least one independent success and no unresolved miss/assistance signals.
+ * The persisted plan adjusts future older-week slots when new misses occur.
  */
 export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignStep[] {
   const current = data.weeks.find(w => w.id === data.activeWeekId);
@@ -100,7 +116,8 @@ export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignS
   }
   // Current-week words are always the priority; older weeks reinforce only
   // spare levels, at most four of the 22.
-  const previousQuota = Math.min(previous.length, 4, Math.ceil(spareIndices.length / 3));
+  const previousQuota = currentWeekNeedsFocus(current)
+    ? 0 : Math.min(previous.length, 4, Math.ceil(spareIndices.length / 3));
   const repeatedCurrent = [...currentWords];
   let previousUsed = 0;
   let repeatUsed = 0;
