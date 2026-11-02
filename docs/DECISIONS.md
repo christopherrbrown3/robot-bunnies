@@ -63,3 +63,11 @@ When Zoey answers, update this log, [STORY_BIBLE.md](STORY_BIBLE.md), [LEVEL_OUT
 - The 22-level adventure and characters remain, but educational challenges **must practice the active weekly list**; math and broad reading-curriculum goals are cancelled.
 - Short oral/visual word-to-memory-spelling prompts, corrections, later review, and a low-pressure full-list spelling test replace general quizzes.
 - Implemented in the source: parent editor, local data, backup/restore, word statistics, five-word practice quest and spelling test. Phaser story levels are still planned.
+
+## Latest clarification — full-playthrough spelling coverage
+
+- The **main game is the complete 22-level playthrough**; there is no 5-word or 5-minute session cap.
+- Each playthrough must cover **all words on the current week’s list**, regardless of list length (usually 10–20).
+- Any remaining levels may repeat difficult current words and draw on **previous weeks for reinforcement**, never replacing current-list coverage.
+- Zoey decides when she is done playing: leaving and returning should resume the campaign at the next unfinished stage.
+- Game stages and word lists are separate: 22 story locations persist across weeks; the scheduler picks words and retains the plan for the duration of an active run.

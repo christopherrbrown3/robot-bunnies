@@ -1,6 +1,6 @@
 # 22 story levels: spelling-first concept
 
-Zoey specified exactly **22 levels**. The levels are **not fixed educational stages or school weeks**: whichever weekly list (up to 20 words) is active is used across the adventure. Replays and short spelling sessions practice that same list.
+Zoey specified exactly **22 levels**. The levels are **not fixed educational stages or school weeks**: whichever weekly list (up to 20 words) is active is used across the adventure. **Every full 22-level playthrough must visit every word** on the current week's list at least once; extra levels revisit current tricky words and may present words from previous weeks. Zoey may stop and resume anywhere without an artificial duration limit.
 
 - **Confirmed:** Level 1 hot pink castle (cage, key from Bunny Police, evil king reveal, tiger, automatic Ridensee rescue); Level 2 inside rainbow; Level 22 giant monster faced with bow/arrows.
 - **Confirmed ideas, unassigned level:** zoo animals jump down to catch flower-carrying bunnies, beads must be picked up to avoid tripping, cartoon hand obstacle, colorful rainbow paint doors.
@@ -30,6 +30,10 @@ Zoey specified exactly **22 levels**. The levels are **not fixed educational sta
 | 20 | The King's Phone | Control room | Spell a word to jam the king's phone |
 | 21 | The Monster's Garden | Giant flower garden | Spell tricky words to prepare for the final monster |
 | 22 | The Giant Monster | Final flower clearing | Spell a set of words to help Lyla hit large boss targets |
+
+## Word allocation rules
+
+A saved campaign creates a fixed, 22-entry word assignment using the active weekly list and up to four prior-week review words in spare slots. Each level has one spelling opportunity in the current scaffold, with current-list words spread across the whole adventure. Future gameplay may have optional extra practice, but should **never skip an active school word** during a completed run. Changes to word lists create a new campaign assignment. No timer or five-word cutoff.
 
 ## Story gameplay integration targets
 

@@ -5,12 +5,12 @@
 ## Game structure
 
 - Parent adds, edits, activates and archives a dated/named weekly list directly on Zoey's iPad, up to 20 unique words per list.
-- Zoey chooses a quick 5-word spelling adventure (or a targeted tricky-word review; a parent can open a full practice test).
-- Every flower, gate, bridge, magical key, bow target and purple/blue portal can use a word from **the current weekly list**. Do not invent or substitute arbitrary curriculum words.
-- A story level is a **place in the adventure**; progress across 22 levels is independent of calendar weeks. Replaying levels with the current weekly list is encouraged.
+- Zoey plays a **22-level campaign** with one word-based challenge at each level. All 10–20 current-week words (or any smaller list) are guaranteed at least one appearance over the full playthrough. Extra opportunities reinforce current tricky words and optionally earlier-week words. A parent can open a separate full-list practice test.
+- Flowers, gates, bridges, magical keys, bow targets and portals use **the current weekly list first**. Additional level slots can review past-week words, clearly identified as bonus reinforcement. No arbitrary curriculum words.
+- The 22 story levels are fixed **locations**, not 22 separate school weeks. Each full run spans all 22 locations. Changing the active list prepares a new 22-stage word assignment; replaying with the same list rotates and reviews the words.
 - Puzzles and action segments must remain easy; **correct spelling**, not twitch reflexes, should determine the challenge.
 - Flowers are recovered when spelling is checked successfully; mistakes provide feedback, not lost lives.
-- A word once missed or completed with hints is presented again in later short sessions. A mistake does not stop the player from continuing the story.
+- A word once missed or completed with hints is prioritized for reinforcement on replay. A mistake does not stop the player from continuing the story.
 - Parents can see which words Zoey spells without help on her first attempt, which she struggles with, and which she skips.
 
 ## The core learning interaction
@@ -19,7 +19,7 @@
 2. Zoey types the word using a real on-screen iPad keyboard. Future versions can add assistive letter tiles; an independent full-word response stays the primary goal.
 3. If correct, Lyla gains a flower. Keep first-attempt success separate from assisted or corrected success.
 4. If incorrect, immediately reveal the *correct spelling*, invite Zoey to study it, then hide it before she retries. Keep the word in future practice rotation.
-5. Every short set ends with a gentle success animation and a purple-and-blue portal. No time penalty, shame, or score punishment.
+5. Each spelling challenge advances to the next story level; after Level 22, celebrate the purple-and-blue portal and full campaign completion. No time penalty, shame, or score punishment.
 
 See [SPELLING_RESEARCH.md](SPELLING_RESEARCH.md) for sources, evidence strength and implementation limits.
 
@@ -33,8 +33,8 @@ Exactly **22 levels** with some recurring and some new areas. Level 1 starts in 
 
 ## Child-friendly accessibility
 
-No mandatory read-the-story challenge, timed spelling, lives, game-overs, or punishing platform action. Short sessions, large buttons, portrait recovery and landscape iPad support. Immediate correctness feedback and assisted retries. Provide a visible way to pause/leave without destroying the saved word progress.
+No mandatory read-the-story challenge, timed spelling, lives, game-overs, or punishing platform action. No artificial session-time ceiling: Zoey may play all 22 stages in one sitting or return later. Large buttons, portrait recovery and landscape iPad support. Immediate correctness feedback and assisted retries. Provide a visible way to pause/leave without destroying the saved word progress.
 
 ## Current MVP status
 
-The **spelling practice interface and Parent Corner** are functional in the scaffold, pending deployment and iPad testing. The 22 level outline is browseable but not yet a playable side-scroller. Upcoming work integrates the same spelling engine into Phaser platform scenes with cartoon art and narrative cutscenes.
+The **resumable 22-stage spelling-question flow and Parent Corner** are functional in the scaffold, pending deployment and iPad testing. Each stage displays its story location, but this is **not yet a playable side-scroller**. Upcoming work integrates the same spelling engine into Phaser platform scenes with cartoon art and narrative cutscenes.

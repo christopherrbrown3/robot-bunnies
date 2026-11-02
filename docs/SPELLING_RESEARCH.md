@@ -10,7 +10,7 @@ Research reviewed November 2026. This document guides the actual game loop, not 
 
 3. **Strengthen sound-to-letter mappings.** The What Works Clearinghouse recommends linking segments of spoken words to written letters and explicitly teaching children to decode, analyze, write and recognize words (strong evidence for recommendations 2 and 3). Source: [IES Foundational Skills Practice Guide (2016, updated 2019)](https://ies.ed.gov/ncee/wwc/PracticeGuide/21/). **Implementation:** prompt children to say the word slowly, attend to sounds and spelling patterns, and offer simple letter/sound hints. Avoid auto-generated syllable/sound segmentation that might be incorrect.
 
-4. **Review words across days, not just once.** Research-based spelling-teaching advice includes periodically reviewing previously taught words to promote retention. Source: [Reading Rockets, Tips for Teaching Spelling](https://www.readingrockets.org/sites/default/files/migrated/pdfs/Tips%20for%20Teaching%20Spelling.pdf). **Implementation:** short daily sessions, prioritize missed/assisted/unpracticed words, and include a no-hints recall check before the school test. The particular scheduling thresholds are heuristic, not scientifically validated.
+4. **Review words across days, not just once.** Research-based spelling-teaching advice includes periodically reviewing previously taught words to promote retention. Source: [Reading Rockets, Tips for Teaching Spelling](https://www.readingrockets.org/sites/default/files/migrated/pdfs/Tips%20for%20Teaching%20Spelling.pdf). **Implementation:** review over multiple visits and days when it naturally happens, prioritize missed/assisted/unpracticed words, and include a no-hints recall check before the school test. Do not impose a time cap. The particular scheduling thresholds are heuristic, not scientifically validated.
 
 5. **Mix patterns thoughtfully.** A 2025 preregistered classroom study of German third-graders found that interleaving spelling-rule examples reduced errors relative to blocked practice. This is supportive, not direct evidence for U.S. first-grade weekly word lists. Source: [Klimovich & Richter (2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12511507/). **Implementation:** mix practiced word order and revisit confusable patterns, without forcing an overly complex rules curriculum.
 
@@ -26,18 +26,18 @@ Research reviewed November 2026. This document guides the actual game loop, not 
 ## Game mapping
 
 - Lyla remains a white bunny with a pink fanny pack. Correct spelling retrieves flowers, reveals clues, frees companions, opens gates and moves toward the purple/blue portal.
-- Over 22 story levels, give 3–5 **weekly-word spelling opportunities** in each gentle quest (unless fewer words are supplied); the 22 levels are *storybook geography*, not 22 separate fixed word lists or 22 weeks of homework.
+- **One spelling prompt per level**, across all 22 levels in a playthrough. Guarantee every current-list word appears at least once (10–20 words, or fewer if school assigns fewer), fill remaining stages by reinforcing harder words and optionally earlier-week words. These 22 levels are *storybook geography*, not 22 school weeks.
 - A week list can be practiced repeatedly. New lists can be loaded whenever a teacher issues them. Previously saved weeks remain available.
-- Make each session optional and short; avoid punishing errors, speed bonuses, mastery fireworks for a single correct attempt, or character distress.
+- Make breaks optional and allow seamless resumption, rather than ending after a fixed number of words or minutes. Avoid punishing errors, speed bonuses, mastery fireworks for a single correct attempt, or character distress.
 - Use the tiger/Ridensee rescue story and skippable cutscenes; no academic quizzes involving math.
 
 ## Evidence caveats
 
-Evidence for a particular touch interface, five-word daily dose, automatic mastery threshold, or iPad modality is not established by the cited studies. Treat these as hypotheses to improve through observation. Actual school tests may be written by hand, and typing accuracy is not identical to handwriting-based spelling transfer; periodically have Zoey say or write words on paper too.
+Evidence for a particular touch interface, 22-question campaign, automatic mastery threshold, or iPad modality is not established by the cited studies. Treat these as hypotheses to improve through observation. Actual school tests may be written by hand, and typing accuracy is not identical to handwriting-based spelling transfer; periodically have Zoey say or write words on paper too.
 
 ## Current implementation vs future work
 
-**Built:** weekly list editor (1–20 words), local history, backup/import, short five-word quests, optional spoken prompts via browser speech synthesis, timed peek fallback, first-letter/length hints, immediate correction and retry, missed-word prioritization, full-list practice test, flower rewards.
+**Built:** weekly list editor (1–20 words), local history, backup/import, 22-stage resumable campaigns that cover all current words and some prior-week words, optional spoken prompts via browser speech synthesis, untimed peek-and-hide fallback, first-letter/length hints, immediate correction and retry, missed-word prioritization, full-list practice test, flower rewards.
 
 **Not yet built:** word-level phoneme-grapheme teaching, well-designed sound pattern explanations, actual 22 playable platform scenes, automatically scheduled daily reminders, child-friendly letter tile mode, real hand-writing mode, guaranteed offline TTS, rule-based mastery proof, and progress visualization integrated in story world.
 

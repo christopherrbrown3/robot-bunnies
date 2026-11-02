@@ -11,8 +11,10 @@
 - [x] Parent Corner with adult UX gate.
 - [x] Weekly list input, edit, activate, and archive: **1–20 unique words**.
 - [x] Local word-level stats, JSON export/import, erase with confirmation.
-- [x] Five-word quick quests, tricky-word review, full-word-list mock test.
-- [x] Browser spoken word via direct tap, brief Peek fallback, first-letter/length hint.
+- [x] Full 22-stage spelling campaign; every weekly word guaranteed at least once, flexible list lengths, spare levels for repeats/prior weeks.
+- [x] Save campaign after each completed challenge; resume after app close and replay a fresh 22-stage campaign.
+- [x] Separate tricky-word review and full-word-list mock test (no fixed five-word main quest).
+- [x] Browser spoken word via direct tap, untimed Peek/Hide fallback, first-letter/length hint.
 - [x] Spell from memory with on-screen keyboard; immediate answer correction and retry.
 - [x] Distinguish independent first try from assisted/corrected attempts.
 - [x] Flower rewards and game-themed practice screen.
@@ -27,7 +29,7 @@
 - [ ] Implement Level 1 hot-pink-castle cage, Bunny Police, king reveal, tiger and automatic Ridensee rescue.
 - [ ] Implement Level 2 inside a rainbow.
 - [ ] Add skippable storybook cutscenes and offline-safe narration approach.
-- [ ] Make story level progression independent of the current week's spelling list: replay with any active week.
+- [ ] Reuse the existing 22-stage word scheduler and checkpointed progress within the playable side-scrolling scenes. New active lists start a new 22-stage assignment; world identities stay fixed.
 - [ ] No mandatory math or general reading quizzes.
 
 ## M3 — Stronger spelling instruction
@@ -36,7 +38,7 @@
 - [ ] Optional word-family hints and letter-sound pattern assistance **only when correct** (avoid guessing wrong phoneme splits).
 - [ ] Optional letter tiles for guided practice, tracked as assisted.
 - [ ] Optional on-paper spelling check mode for alignment with handwritten school tests.
-- [ ] Cross-day spaced review with transparent scheduling and mastery based on independent success on multiple days.
+- [ ] Cross-day cross-day review with transparent scheduling and mastery based on independent success on multiple days.
 - [ ] Gentle mini cutscenes, word-specific flower rewards and persistent bunny satchel progress.
 
 ## M4 — Remaining world and polish
@@ -44,6 +46,6 @@
 - [ ] Implement and test all 22 story levels using current weekly words.
 - [ ] Zoo animals, bead hazards, hand obstacles, rainbow paint doors, find bow, final giant monster.
 - [ ] Add warm original art, readable screens, captions, reduced motion, and 180px/192px/512px PWA PNG icons.
-- [ ] QA: intermittent/no network, older iPad home-screen mode, storage export/import, school spelling changes, a list with 1 word, a list with 20 words, missed words and interrupted sessions.
+- [ ] QA: intermittent/no network, older iPad home-screen mode, storage export/import, school spelling changes, lists with 10, 15 and 20 words, no previous weeks, many previous weeks, missed words, changed active lists, complete campaign replay and interrupted sessions.
 
 **Important:** M1 is a working browser practice loop; do not describe M2–M4 as already playable.

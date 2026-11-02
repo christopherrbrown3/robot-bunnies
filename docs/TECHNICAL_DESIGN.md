@@ -6,7 +6,7 @@
 - **Devices:** older iPads, touch first, landscape 4:3/16:9 screens, aim for acceptable performance on iPadOS 15+ (actual minimum TBD after device testing).
 - **Stack:** Phaser 3, TypeScript, Vite, vite-plugin-pwa/Workbox.
 - **No backend:** no authentication, child account, remote telemetry or externally stored learning history. No mandatory network after first app cache.
-- **Scope now:** working title screen, browseable outline, Parent Corner with 20-word weekly lists, and a short retrieval-based spelling quiz. Story platforming, scripted cutscenes, and final art are future work.
+- **Scope now:** working title screen, browseable outline, Parent Corner with 20-word weekly lists, and a **22-stage resumable weekly-word spelling campaign**. The story platformer, scripted cutscenes, and final art are future work. Story platforming, scripted cutscenes, and final art are future work.
 
 ## Source layout
 
@@ -17,6 +17,13 @@ src/
     BootScene.ts          # startup scene
     TitleScene.ts         # title/menu, handoff to outline
     OutlineScene.ts       # 22-level browser; not gameplay
+  spelling/
+    store.ts            # 1–20 words/week and local spelling stats
+    scheduler.ts        # coverage of all active words + past-week reinforcement
+    campaign.ts         # stable 22-stage assignments and saved resume state
+  ui/
+    ParentCorner.ts     # weekly list editor
+    SpellingQuest.ts    # spelling prompts and 22-stage campaign
   content/
     levels.json           # 22 story locations; spellingChallenge metadata
     types.ts              # static level shape
@@ -46,11 +53,11 @@ Production architecture **target**, to implement incrementally: `GameScene`, `HU
 
 Pause/cutscene/puzzle states stop movement and disable conflicting input. A tap on the on-screen Jump button must not bubble through into the shrink-tap handler. Explicitly test single-touch, accidental second taps, resume after backgrounding, orientation changes, and audio unlock gestures.
 
-## Save system (future)
+## Save system (implemented / future)
 
-Use a versioned local JSON record for current level, completed levels, flower achievements, checkpoint snapshots, hints and accommodations. Small records can use `localStorage`; use IndexedDB if skill-event history grows. Never persist individual user identities by default. Provide backup/export and explicit reset controls. Treat browser data deletion as potential progress loss; don't promise perpetual storage.
+**Implemented:** versioned `localStorage` for weekly lists and word stats; a distinct versioned campaign record holds the **frozen** 22-stage word assignment, run number and `nextLevelIndex`. Save immediately after a correctly spelled or skipped word, so the player can leave and resume. Progress statistics can change without reshuffling an in-progress campaign. Editing lists, switching active weeks or importing a backup resets the word assignment. A completed 22-stage run starts a fresh run on the next play.
 
-A settings namespace might be `robot-bunnies.settings.v1`; a progress namespace `robot-bunnies.progress.v1`. Design migrations before adding persisted schema.
+**Future:** checkpoint positions for real platform scenes, sound preferences, all cutscene flags, and a backup including full in-progress campaign state (today's word-list JSON backup does **not** include campaign cursor). If history expands significantly, consider IndexedDB. Local Safari data deletion can lose progress; nothing is synced to a server.
 
 ## PWA / GitHub Pages
 

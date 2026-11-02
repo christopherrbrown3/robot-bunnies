@@ -4,12 +4,14 @@ An iPad spelling-test adventure designed around **Zoey's actual weekly spelling 
 
 ## Current status
 
-**A playable spelling-practice MVP is in the code.** The Parent Corner, five-word flower quest, targeted missed-word practice, and up-to-20-word mock spelling test are implemented; the full Phaser platform game and its 22 story levels are still **planned**.
+**A playable spelling-practice MVP is in the code.** The Parent Corner, a **resumable 22-stage spelling campaign**, targeted missed-word review, and up-to-20-word mock spelling test are implemented; playable Phaser side-scrolling, cutscenes and finished 22 story levels are still **planned**.
 
 - **Parent Corner:** enter or edit 1–20 words per week; activate earlier weeks; see attempts, misses and first-try successes. A grown-up math gate discourages accidental edits but is **not a security control**.
 - **Spelling Quest:** listen to a word and spell it from memory using the iPad keyboard, with optional hints/peek, immediate corrective feedback, and another hidden attempt.
 - **Flower reward:** each correctly spelled word earns Lyla a flower and opens the way toward a purple-and-blue portal. No time limits or punished mistakes.
-- **Review:** five-word quick sessions prefer unpracticed and missed words; targeted tricky-word review; full mock test drills all words on the active list.
+- **Full playthrough:** one spelling prompt on each of 22 stages. **Every active weekly word appears at least once**; spare stages reinforce current tricky words and, when available, selected past weeks' words. A 10-word list and a 20-word list both use all 22 stages. **No timer, fixed session duration, or forced stopping.**
+- **Resume:** automatically save the next level after a successful or skipped challenge. Zoey can leave at any point and continue; on completing all 22, starting again makes another full playthrough.
+- **Review:** optional targeted tricky-word review; full mock test drills all active words. These are extra tools, not a shortened main quest.
 - **Privacy:** lists and progress stored only on that iPad in browser storage. JSON backup/export/import and permanent erasure are available. No backend, sign-in, tracking, ads or purchases.
 - **Story:** keep Zoey's fluffy white bunny Lyla, Ridensee, secret king, tiger, magical flowers, rainbow, hot pink castle, and the giant monster in a 22-level adventure.
 
@@ -32,7 +34,7 @@ Phaser 3, TypeScript, Vite, vite-plugin-pwa, GitHub Pages. Home screen PWA; land
 
 ```bash
 npm install
-npm run validate
+npm test
 npm run dev
 npm run build
 ```
