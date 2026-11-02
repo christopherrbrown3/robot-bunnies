@@ -1,60 +1,89 @@
 import Phaser from 'phaser';
+import { makeBubble, makeButton, textStyle } from '../game/ui';
+import { PARENT_EVENT, hasActiveList, levels, refreshOnDataChange, startAdventure } from '../game/flow';
+import { peekCampaign } from '../spelling/campaign';
+import { loadPrefs, savePrefs } from '../audio/prefs';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
     super('Title');
   }
 
-  private button(x: number, y: number, width: number, label: string, event: string, color = 0x6942c9): void {
-    const surface = this.add.rectangle(x, y, width, 63, color).setStrokeStyle(3, 0xffffff);
-    surface.setInteractive({ useHandCursor: true });
-    this.add.text(x, y, label, {
-      fontFamily: 'Arial, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#ffffff'
-    }).setOrigin(0.5);
-    surface.on('pointerdown', () => {
-      if (event === 'Outline') this.scene.start('Outline');
-      else window.dispatchEvent(new CustomEvent(event, { detail: { mode: 'campaign' } }));
-    });
+  create(): void {
+    refreshOnDataChange(this);
+    const g = this.add.graphics();
+    // Sky, rainbow and the hot pink castle.
+    const bands = 24;
+    for (let i = 0; i < bands; i++) {
+      const c = Phaser.Display.Color.Interpolate.ColorWithColor(
+        Phaser.Display.Color.ValueToColor(0xa8dcff), Phaser.Display.Color.ValueToColor(0xffe0f4), bands, i);
+      g.fillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b)).fillRect(0, (540 / bands) * i, 960, 540 / bands + 1);
+    }
+    const rainbow = [0xff5a5a, 0xff9f43, 0xffd84d, 0x4fd17a, 0x4fb3ff, 0x9b6bff];
+    rainbow.forEach((c, i) => { g.lineStyle(16, c, 0.75).beginPath(); g.arc(480, 520, 430 - i * 16, Math.PI, 0); g.strokePath(); });
+    g.fillStyle(0xffffff, 0.9);
+    for (const [x, y, s] of [[120, 110, 1], [800, 90, 1.2], [640, 170, 0.8]] as const) {
+      g.fillCircle(x, y, 26 * s).fillCircle(x + 30 * s, y - 12 * s, 32 * s).fillCircle(x + 62 * s, y, 26 * s);
+    }
+    // Castle.
+    g.fillStyle(0xff7cc0).fillRect(40, 250, 230, 230);
+    g.fillStyle(0xff9fd2).fillRect(30, 190, 60, 290).fillRect(220, 190, 60, 290);
+    g.fillStyle(0xf25aa9).fillTriangle(22, 196, 60, 130, 98, 196).fillTriangle(212, 196, 250, 130, 288, 196);
+    g.fillStyle(0x9a2f6c).fillRoundedRect(128, 380, 56, 100, { tl: 28, tr: 28, bl: 0, br: 0 });
+    g.fillStyle(0xffe066).fillRect(52, 230, 16, 22).fillRect(242, 230, 16, 22);
+    // Ground.
+    g.fillStyle(0x58b96a).fillRect(0, 478, 960, 62);
+    g.fillStyle(0x7fd08a);
+    for (let x = 0; x < 960; x += 24) g.fillCircle(x + 12, 480, 12);
+
+    for (const [x, key] of [[330, 'flower'], [372, 'flower-b'], [612, 'flower-c'], [890, 'flower'], [930, 'flower-b']] as const) {
+      const f = this.add.image(x, 466, key);
+      this.tweens.add({ targets: f, y: 460, duration: 800 + x, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    const lyla = this.add.image(760, 480, 'lyla-cheer').setOrigin(0.5, 1).setScale(1.5);
+    this.tweens.add({ targets: lyla, y: 450, duration: 420, yoyo: true, repeat: -1, ease: 'Quad.easeOut', repeatDelay: 600 });
+
+    this.add.text(480, 66, 'ROBOT BUNNIES', textStyle(68, '#ffffff', true, { stroke: '#7a2fb0', strokeThickness: 12 })).setOrigin(0.5);
+    this.add.text(480, 128, "Lyla's Spelling Quest", textStyle(32, '#7a2fb0', true, { stroke: '#ffffff', strokeThickness: 8 })).setOrigin(0.5);
+    this.add.text(480, 168, 'Story and characters by Zoey', textStyle(18, '#6a387c', true, { stroke: '#ffffff', strokeThickness: 5 })).setOrigin(0.5);
+
+    const ready = hasActiveList();
+    let playLabel = '▶  PLAY';
+    if (ready) {
+      const saved = peekCampaign();
+      if (saved && saved.nextLevelIndex > 0 && saved.nextLevelIndex < 22) {
+        playLabel = `▶  CONTINUE · Level ${saved.nextLevelIndex + 1}`;
+      } else if (saved?.level) {
+        playLabel = '▶  CONTINUE · Level 1';
+      }
+    }
+    makeButton(this, 480, 262, 420, 78, playLabel, () => {
+      if (!ready) { this.needWords(); return; }
+      startAdventure(this);
+    }, { color: 0x7445c5, fontSize: 30 });
+    makeButton(this, 375, 352, 200, 60, '🗺 Map', () => {
+      if (!ready) { this.needWords(); return; }
+      this.scene.start('Map');
+    }, { color: 0x8f53b5, fontSize: 23 });
+    makeButton(this, 585, 352, 200, 60, 'Grown-ups', () => window.dispatchEvent(new Event(PARENT_EVENT)), { color: 0x8f53b5, fontSize: 23 });
+
+    const soundBtn = makeButton(this, 905, 500, 80, 56, loadPrefs().sound ? '🔊' : '🔇', () => {
+      const next = savePrefs({ sound: !loadPrefs().sound });
+      (soundBtn.list[1] as Phaser.GameObjects.Text).setText(next.sound ? '🔊' : '🔇');
+    }, { color: 0x6a5080, fontSize: 26 });
+
+    if (!ready) {
+      this.add.text(480, 418, 'A grown-up adds this week\'s spelling words in Grown-ups first.', textStyle(19, '#5a2a7a', true, { stroke: '#ffffff', strokeThickness: 5 })).setOrigin(0.5);
+    } else {
+      this.add.text(480, 418, `${levels.length} levels · this week's spelling words · no timers`, textStyle(19, '#5a2a7a', true, { stroke: '#ffffff', strokeThickness: 5 })).setOrigin(0.5);
+    }
   }
 
-  create(): void {
-    this.cameras.main.setBackgroundColor('#f9ecff');
-    const art = this.add.graphics();
-    art.fillStyle(0x9ddaf8).fillRect(0, 0, 960, 300);
-    art.fillStyle(0xe8c4ff).fillRect(0, 300, 960, 240);
-    art.fillStyle(0xf985c8).fillRoundedRect(75, 130, 220, 200, 14);
-    art.fillStyle(0xffb9df).fillRect(105, 90, 55, 70).fillRect(210, 90, 55, 70);
-    art.fillStyle(0xf4d8ff).fillTriangle(95, 92, 133, 45, 170, 92);
-    art.fillTriangle(199, 92, 237, 45, 276, 92);
-    art.fillStyle(0x7536a6).fillRoundedRect(161, 245, 50, 85, 14);
-    // Zoey's Lyla is a fluffy white bunny. She must not visibly look robotic.
-    art.fillStyle(0xffffff);
-    art.fillEllipse(740, 321, 125, 110);
-    art.fillEllipse(706, 237, 36, 105);
-    art.fillEllipse(763, 235, 36, 105);
-    art.fillStyle(0xffb8d8);
-    art.fillEllipse(706, 238, 14, 68);
-    art.fillEllipse(763, 236, 14, 68);
-    art.fillStyle(0xffffff).fillCircle(734, 298, 61);
-    art.fillStyle(0x39244b).fillCircle(717, 299, 5).fillCircle(750, 299, 5);
-    art.fillStyle(0xf98dbd).fillCircle(735, 314, 7);
-    art.fillStyle(0xff73b8).fillRoundedRect(710, 344, 67, 30, 8);
-
-    this.add.text(480, 64, 'ROBOT BUNNIES', {
-      fontFamily: 'Arial, sans-serif', fontSize: '60px', color: '#632d93', fontStyle: 'bold'
-    }).setOrigin(0.5);
-    this.add.text(480, 113, "Lyla's Spelling Quest", {
-      fontFamily: 'Arial, sans-serif', fontSize: '30px', color: '#6a387c', fontStyle: 'bold'
-    }).setOrigin(0.5);
-    this.add.text(480, 350, 'Designed by Zoey · 22 story levels · weekly spelling words', {
-      fontFamily: 'Arial, sans-serif', fontSize: '21px', color: '#473053'
-    }).setOrigin(0.5);
-
-    this.button(480, 422, 475, '🌸 PLAY 22-LEVEL ADVENTURE', 'robot-bunnies:open-spelling');
-    this.button(326, 498, 295, 'PARENT CORNER', 'robot-bunnies:open-parent', 0x8f53b5);
-    this.button(670, 498, 295, '22-LEVEL PLAN', 'Outline', 0x8f53b5);
-    this.add.text(12, 531, 'The 22-stage spelling adventure works; platformer gameplay is still planned.', {
-      fontFamily: 'Arial, sans-serif', fontSize: '15px', color: '#5e4671'
-    }).setOrigin(0, 1);
+  private needWords(): void {
+    const bubble = makeBubble(this, 480, 200, "Ask a grown-up to add this week's spelling words!", 460, false).setDepth(50);
+    this.time.delayedCall(1600, () => {
+      bubble.destroy();
+      window.dispatchEvent(new Event(PARENT_EVENT));
+    });
   }
 }

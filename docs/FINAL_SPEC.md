@@ -119,10 +119,25 @@ The current adult arithmetic gate is only a UX discouragement, **not authenticat
 9. **Story:** Lyla's confirmed appearance, Ridensee rescue, castle, rainbow, magic portal, 22 levels and final boss are preserved. No general math/reading curriculum is introduced.
 10. **Device QA:** older iPad Safari/home-screen PWA tested with touch interaction, offline launch after caching, local save, orientation changes, no external fonts/telemetry and acceptable performance.
 
-## 10. Honest status as of this spec
+## 10. Honest status (updated November 2, 2026)
 
-**Already coded:** Parent Corner for weekly words, 22-stage spelling-question preview, audio via browser TTS, keyboard-based answer entry, corrective feedback, skip/retry, on-device stats/backups, current-week-priority scheduler and resume logic.
+**Built in code and checked in desktop Chromium (automated playthrough of all 22 levels):**
 
-**Must still be built to satisfy v1:** actual Phaser platform gameplay and 22 story worlds; **tile-based answer composer replacing the keyboard**; optional parent recordings; two-independent-correct secure/regression tracking with date evidence; freeze-and-resume spelling triggers; cutscenes and asset/audio polish; actual iPad QA and Pages deployment verification.
+- The 22 Phaser side-scrolling levels, with auto-run, one high jump, tap-Lyla-to-shrink during danger, bounce-back obstacles with automatic helper hops, flowers that collect on contact, checkpoints, and the purple-and-blue portal.
+- Zoey's canon: the Level 1 cage with the Bunny Police key and king reveal, the tiger ambush with the automatic Ridensee rescue back to the capture point, Level 2 inside a rainbow, the zoo animal ambushes, beads to tap, the hand obstacle, rainbow paint doors, the bow found in Level 18, and the Level 22 giant monster faced with bow and arrows.
+- Freeze-and-resume spelling triggers (§2). Physics, tweens, animations and hazards stop while the panel is open. The trigger is saved as resolved before any celebration, and play resumes once with a short grace period. A resolved prompt is never shown again after a reload.
+- The tile composer (§3). Full a–z reusable bank, punctuation tiles when lists need them, tap-to-remove letters, Back, Clear, Hear, Peek, Hint and Check. Errors reveal the spelling with the missed letters highlighted, then the child can retry hidden, retry with a hint, or skip. The keyboard is only a desktop/adult fallback.
+- Audio priority (§4). The parent's local IndexedDB recording plays first, then TTS, then the Peek fallback. Parent Corner has Record (MediaRecorder, with audio-file import when that isn't available), Play and Delete, and a separate recordings backup, import and erase.
+- The two-independent-success mastery model with regression and distinct-date tracking (§5), with a v1 → v2 save migration. Spare levels re-target weak current words and fall back to old weeks only while every current word is secure.
+- Campaign saves for checkpoints, collected objects, level flags, per-level outcomes and the run's flowers. Resume returns to the saved checkpoint. A changed word list starts a new 22-level plan, and Parent Corner says so.
+- Parent Corner summary: covered in this run, needs practice, secure, and secure across multiple days.
+- Skippable storybook cutscenes with captions and optional narration, replayable from the map's Storybook. Pause menu with sound and story-voice toggles. PNG home-screen icons.
 
-Do not label the placeholder prototype as a finished 22-level game.
+**Still to do before calling v1 done:**
+
+- Real iPad QA (§9.10): touch feel, performance on the oldest target iPad, Safari TTS voices, MediaRecorder or file-import recording, offline launch after caching, orientation changes and home-screen mode. Nothing has been tested on real hardware yet.
+- Confirm the GitHub Pages deployment works.
+- Zoey's review of the invented story details listed in [DECISIONS.md](DECISIONS.md). These include the zoo animals as monkeys, how the hand behaves, what the monster looks like and its friendly ending, the king's look, cutscene wording, and why Lyla keeps collecting flowers.
+- Art is original vector-style drawing made in code. It may be replaced with hand-drawn final art later.
+
+Do not describe the game as "tested on iPad" until that QA has actually been done.

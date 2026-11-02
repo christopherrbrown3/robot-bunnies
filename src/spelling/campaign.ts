@@ -1,17 +1,41 @@
 import { createCampaignPlan, currentWeekNeedsFocus, selectCurrentFocusWord, selectPreviousReviewWord, type CampaignStep } from './scheduler';
-import { loadSpellingData, type SpellingData } from './store';
+import { CAMPAIGN_STORAGE_KEYS, loadSpellingData, type SpellingData } from './store';
 
-const STORAGE_KEY = 'robot-bunnies.campaign.v1';
+const STORAGE_KEY = 'robot-bunnies.campaign.v2';
 export const CAMPAIGN_LEVEL_COUNT = 22;
 
+export type PromptResult = 'independent' | 'assisted' | 'skipped';
+
+/** In-level save: checkpoint and the level's single spelling prompt. */
+export interface LevelProgress {
+  levelIndex: number;
+  /** The level's spelling prompt was answered or skipped; never present it again on resume. */
+  promptResolved: boolean;
+  /** World x of the last checkpoint passed, or null for the level start. */
+  checkpointX: number | null;
+  /** Flowers collected so far in this level (kept across checkpoint resumes). */
+  flowers: number;
+  /** IDs of collected one-off objects (flowers, beads) so a resume never double-counts them. */
+  collected: string[];
+  /** Level-local story state, e.g. 'tiger-gone'. */
+  flags: string[];
+}
+
 export interface SavedCampaign {
-  schemaVersion: 1;
+  schemaVersion: 2;
   activeWeekId: string;
   wordListSignature: string;
   runNumber: number;
+  /** The level being played (or next to play). 22 means the run is complete. */
   nextLevelIndex: number;
   steps: CampaignStep[];
   startedAt: string;
+  /** Outcome of each level's prompt in this run. */
+  results: Array<PromptResult | null>;
+  totalFlowers: number;
+  level: LevelProgress | null;
+  /** Run-wide story state, e.g. 'bow' once Lyla finds her bow. */
+  flags: string[];
 }
 
 export function campaignSignature(data: SpellingData): string {
@@ -22,15 +46,33 @@ export function campaignSignature(data: SpellingData): string {
   });
 }
 
+const isStringArray = (value: unknown, max: number): value is string[] =>
+  Array.isArray(value) && value.length <= max && value.every(x => typeof x === 'string' && x.length <= 64);
+const isCount = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+
+function validLevel(value: unknown, nextLevelIndex: number): value is LevelProgress {
+  if (value === null) return true;
+  if (typeof value !== 'object') return false;
+  const level = value as Partial<LevelProgress>;
+  return level.levelIndex === nextLevelIndex && typeof level.promptResolved === 'boolean' &&
+    (level.checkpointX === null || (typeof level.checkpointX === 'number' && Number.isFinite(level.checkpointX) && level.checkpointX >= 0)) &&
+    isCount(level.flowers) && isStringArray(level.collected, 500) && isStringArray(level.flags, 50);
+}
+
 function validSavedPlan(input: unknown, data: SpellingData): input is SavedCampaign {
   if (input === null || typeof input !== 'object') return false;
   const value = input as Partial<SavedCampaign>;
-  if (value.schemaVersion !== 1 || value.activeWeekId !== data.activeWeekId ||
+  if (value.schemaVersion !== 2 || value.activeWeekId !== data.activeWeekId ||
       value.wordListSignature !== campaignSignature(data) ||
       !Number.isInteger(value.nextLevelIndex) || (value.nextLevelIndex ?? -1) < 0 ||
       (value.nextLevelIndex ?? 23) > CAMPAIGN_LEVEL_COUNT ||
       !Number.isSafeInteger(value.runNumber) || (value.runNumber ?? -1) < 0 ||
-      !Array.isArray(value.steps) || value.steps.length !== CAMPAIGN_LEVEL_COUNT) return false;
+      !Array.isArray(value.steps) || value.steps.length !== CAMPAIGN_LEVEL_COUNT ||
+      !Array.isArray(value.results) || value.results.length !== CAMPAIGN_LEVEL_COUNT ||
+      !value.results.every(r => r === null || r === 'independent' || r === 'assisted' || r === 'skipped') ||
+      !isCount(value.totalFlowers) || !isStringArray(value.flags, 50) ||
+      !validLevel(value.level ?? null, value.nextLevelIndex as number)) return false;
   const current = data.weeks.find(week => week.id === data.activeWeekId);
   if (!current) return false;
   const encountered = new Set<string>();
@@ -53,11 +95,23 @@ function validSavedPlan(input: unknown, data: SpellingData): input is SavedCampa
 function loadSaved(data: SpellingData): SavedCampaign | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw && validSavedPlan(JSON.parse(raw) as unknown, data)
-      ? JSON.parse(raw) as SavedCampaign : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!validSavedPlan(parsed, data)) return null;
+    return { ...parsed, level: parsed.level ?? null };
   } catch {
     return null;
   }
+}
+
+function store(campaign: SavedCampaign): SavedCampaign {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(campaign));
+  return campaign;
+}
+
+/** The saved run for the active list, without starting one (for menus and Parent Corner). */
+export function peekCampaign(data = loadSpellingData()): SavedCampaign | null {
+  return data.activeWeekId ? loadSaved(data) : null;
 }
 
 /** Continue from the last completed level, or begin a new 22-level run. */
@@ -66,24 +120,40 @@ export function getOrStartCampaign(data = loadSpellingData()): SavedCampaign {
   const existing = loadSaved(data);
   if (existing && existing.nextLevelIndex < CAMPAIGN_LEVEL_COUNT) return existing;
   const runNumber = existing ? existing.runNumber + 1 : 0;
-  const current: SavedCampaign = {
-    schemaVersion: 1,
+  return store({
+    schemaVersion: 2,
     activeWeekId: data.activeWeekId,
     wordListSignature: campaignSignature(data),
     runNumber,
     nextLevelIndex: 0,
     steps: createCampaignPlan(data, runNumber),
-    startedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-  return current;
+    startedAt: new Date().toISOString(),
+    results: Array(CAMPAIGN_LEVEL_COUNT).fill(null),
+    totalFlowers: 0,
+    level: null,
+    flags: []
+  });
+}
+
+/** Load the stored run and confirm it is the same run and level the caller holds. */
+function loadMatching(campaign: SavedCampaign, levelIndex: number, data = loadSpellingData()): SavedCampaign {
+  const saved = loadSaved(data);
+  if (!saved || saved.wordListSignature !== campaign.wordListSignature ||
+      saved.runNumber !== campaign.runNumber || saved.nextLevelIndex !== levelIndex) {
+    throw new Error('The active word list changed. Return to the game menu to continue.');
+  }
+  return saved;
+}
+
+function freshLevel(levelIndex: number): LevelProgress {
+  return { levelIndex, promptResolved: false, checkpointX: null, flowers: 0, collected: [], flags: [] };
 }
 
 /**
  * At every spare stage, choose current-week practice if ANY current-week word
- * is weak/untried. Only if all are comfortable may a spare stage review an
- * older week's word. Previously visited stages never change, and every active
- * word's guaranteed scheduled stage is preserved.
+ * is not secure. Only if all are secure may a spare stage review an older
+ * week's word. Previously visited stages never change, every active word's
+ * guaranteed stage is preserved, and an already-resolved prompt is frozen.
  */
 export function prioritizeCurrentWeek(campaign: SavedCampaign, levelIndex: number): SavedCampaign {
   const data = loadSpellingData();
@@ -95,7 +165,7 @@ export function prioritizeCurrentWeek(campaign: SavedCampaign, levelIndex: numbe
   }
   const step = saved.steps[levelIndex];
   const current = data.weeks.find(week => week.id === saved.activeWeekId);
-  if (!step || !step.optional || !current) return saved;
+  if (!step || !step.optional || !current || saved.level?.promptResolved) return saved;
 
   let replacement: CampaignStep;
   if (currentWeekNeedsFocus(current)) {
@@ -122,27 +192,70 @@ export function prioritizeCurrentWeek(campaign: SavedCampaign, levelIndex: numbe
   if (step.word === replacement.word && step.weekId === replacement.weekId) return saved;
   const steps = [...saved.steps];
   steps[levelIndex] = replacement;
-  const updated = { ...saved, steps };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
+  return store({ ...saved, steps });
 }
 
 /**
- * Save the completed prompt before showing the Next button. Leaving the app
- * immediately after answering correctly does not replay that cleared level.
+ * Save the level's spelling outcome immediately when it is resolved, before
+ * any celebration. Idempotent: resolving twice keeps the first result, so a
+ * reload can never double-score or re-present the prompt.
  */
-export function markCampaignLevelComplete(campaign: SavedCampaign, levelIndex: number): SavedCampaign {
-  const data = loadSpellingData();
-  const saved = loadSaved(data);
-  if (!saved || saved.wordListSignature !== campaign.wordListSignature ||
-      saved.runNumber !== campaign.runNumber || saved.nextLevelIndex !== levelIndex) {
-    throw new Error('The active word list changed. Return to the game menu to continue.');
-  }
-  const updated = { ...saved, nextLevelIndex: Math.min(CAMPAIGN_LEVEL_COUNT, levelIndex + 1) };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
+export function resolveCampaignPrompt(campaign: SavedCampaign, levelIndex: number, result: PromptResult): SavedCampaign {
+  const saved = loadMatching(campaign, levelIndex);
+  if (saved.level?.promptResolved) return saved;
+  const results = [...saved.results];
+  results[levelIndex] = result;
+  const level = { ...(saved.level ?? freshLevel(levelIndex)), promptResolved: true };
+  return store({ ...saved, results, level });
+}
+
+/** Save a checkpoint / collected objects / level flags for the current level. */
+export function saveLevelProgress(
+  campaign: SavedCampaign,
+  levelIndex: number,
+  patch: Partial<Pick<LevelProgress, 'checkpointX' | 'flowers' | 'collected' | 'flags'>>
+): SavedCampaign {
+  const saved = loadMatching(campaign, levelIndex);
+  const base = saved.level ?? freshLevel(levelIndex);
+  const level: LevelProgress = {
+    ...base,
+    ...patch,
+    collected: [...new Set(patch.collected ?? base.collected)].slice(-500),
+    flags: [...new Set(patch.flags ?? base.flags)].slice(-50)
+  };
+  return store({ ...saved, level });
+}
+
+export function addCampaignFlag(campaign: SavedCampaign, levelIndex: number, flag: string): SavedCampaign {
+  const saved = loadMatching(campaign, levelIndex);
+  if (saved.flags.includes(flag)) return saved;
+  return store({ ...saved, flags: [...saved.flags, flag] });
+}
+
+/**
+ * Finish the level at its portal. Leaving immediately afterwards resumes at
+ * the next level; finishing all 22 lets the next play start a fresh run.
+ */
+export function markCampaignLevelComplete(campaign: SavedCampaign, levelIndex: number, levelFlowers?: number): SavedCampaign {
+  const saved = loadMatching(campaign, levelIndex);
+  const flowers = Math.max(0, Math.floor(levelFlowers ?? saved.level?.flowers ?? 0));
+  return store({
+    ...saved,
+    nextLevelIndex: Math.min(CAMPAIGN_LEVEL_COUNT, levelIndex + 1),
+    totalFlowers: saved.totalFlowers + flowers,
+    level: null
+  });
+}
+
+/** Current-week words whose level prompt has been resolved in this run. */
+export function coveredCurrentWords(campaign: SavedCampaign): string[] {
+  const covered = new Set<string>();
+  campaign.steps.forEach((step, i) => {
+    if (step.source === 'current' && campaign.results[i] !== null) covered.add(step.word);
+  });
+  return [...covered];
 }
 
 export function clearCampaign(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  for (const key of CAMPAIGN_STORAGE_KEYS) localStorage.removeItem(key);
 }

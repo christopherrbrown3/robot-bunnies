@@ -1,6 +1,6 @@
 # Spelling-only learning design
 
-> **Binding product rules live in [Final Game Specification v1.0](FINAL_SPEC.md).** Any description of the keyboard/TTS-only prototype is not a final-design decision.
+> **Binding product rules live in [Final Game Specification v1.0](FINAL_SPEC.md).** The rules below are implemented in `src/spelling/` and `src/ui/SpellingPanel.ts`.
 
 **Scope change:** Zoey's spelling tests are the entire learning goal. Do **not** reintroduce general reading, sentence comprehension, addition, counting, money arithmetic, or other unrelated educational objectives.
 
@@ -22,7 +22,7 @@ On an error, show exact correct spelling immediately, encourage a new response w
 
 **No timer or session cap.** Zoey can complete the entire 22-level run at once, pause in the middle, or return on another day. Save after each completed challenge. The scheduler guarantees full active-list coverage, uses dynamic spare stages to prioritize active words with unresolved difficulty; after all current words demonstrate independent success, a few older words may return. This decision is rechecked throughout the same run and may switch back if she misses a current word. Repeated sessions across days may strengthen retention, but the interface must never force a break. A true review-interval scheduler using separate-day independent retrieval is a future refinement; current priorities are transparent heuristics.
 
-**Approved secure-word rule:** two independent correct presentations **since the last miss, hint, Peek or Skip**. A successful prompted retry after an error is assisted, not independent. Two successes on separate days are preferred and separately tracked, but a child is **never forced to wait for tomorrow** to continue or to become secure. One independent success is still weak; an error or hint after security makes it weak again until two new independent successes. A word's stage and calendar date must be tracked so repeated taps on one attempt cannot count twice. This is a practical game heuristic, **not a scientific diagnostic or educational assessment**. Current code tracks first-try counts but needs a new streak/regression model to meet this spec.
+**Approved secure-word rule:** two independent correct presentations **since the last miss, hint, Peek or Skip**. A successful prompted retry after an error is assisted, not independent. Two successes on separate days are preferred and separately tracked, but a child is **never forced to wait for tomorrow** to continue or to become secure. One independent success is still weak; an error or hint after security makes it weak again until two new independent successes. A word's stage and calendar date must be tracked so repeated taps on one attempt cannot count twice. This is a practical game heuristic, **not a scientific diagnostic or educational assessment**. Implemented in `src/spelling/mastery.ts` and covered by `scripts/test-mastery.mjs`.
 
 ## Interaction & motor-skills considerations
 
@@ -30,7 +30,7 @@ On an error, show exact correct spelling immediately, encourage a new response w
 
 ## Speech and pronunciation
 
-**Approved audio behavior:** try an optional local **parent recording for the exact word first**, otherwise browser/on-device **text-to-speech**, and use an explicit Peek → Hide → Spell fallback when audio fails (counted as assistance). Parent Corner must offer Record/Play/Replace/Delete per word; store blobs locally in IndexedDB and document backup/restore limits. The current prototype has **TTS only**; recording and audio priority have **not yet been implemented**. Audio may be unreliable offline on some older iPads; do not claim otherwise until tested.
+**Approved audio behavior:** try an optional local **parent recording for the exact word first**, otherwise browser/on-device **text-to-speech**, and use an explicit Peek → Hide → Spell fallback when audio fails (counted as assistance). Parent Corner must offer Record/Play/Replace/Delete per word; store blobs locally in IndexedDB and document backup/restore limits. Recording and audio priority are implemented: MediaRecorder where available, audio-file import otherwise, and a separate recordings backup. Audio may be unreliable offline on some older iPads; do not claim otherwise until tested on the device.
 
 ## Reports and privacy
 

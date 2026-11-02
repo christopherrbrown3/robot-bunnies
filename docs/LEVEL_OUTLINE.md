@@ -31,6 +31,10 @@ Zoey specified exactly **22 levels**. The levels are **not fixed educational sta
 | 21 | The Monster's Garden | Giant flower garden | Spell tricky words to prepare for the final monster |
 | 22 | The Giant Monster | Final flower clearing | Spell a set of words to help Lyla hit large boss targets |
 
+## As built
+
+Each level's gameplay settings are in `src/content/levels.json` under `play`: visual theme, length, obstacles, platforms, hazards, beads, practice targets, paint door, cutscene, and the story object with its spelling text. Layouts are generated the same way every time from those settings (`src/game/levelPlan.ts`). Hazards in the game: the tiger (Levels 1, 19, 20), zoo monkeys (Levels 8, 9, 21), the hand (Levels 12, 16, 20, 21) and beads (Levels 5, 11, 15, 17). Paint doors are in Levels 3 and 14, the bow is found in Level 18, and the boss is Level 22. Details invented for the build are listed in [DECISIONS.md](DECISIONS.md#proposals-made-while-building-the-playable-game-november-2-2026--not-canon).
+
 ## Word allocation rules
 
 A saved campaign creates a fixed, 22-entry word assignment using the active weekly list and up to four prior-week review words in spare slots. Each level has one spelling opportunity in the current scaffold, with current-list words spread across the whole adventure. Future gameplay may have optional extra practice, but should **never skip an active school word** during a completed run. Changes to word lists create a new campaign assignment. No timer or five-word cutoff.
