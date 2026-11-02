@@ -5,11 +5,21 @@ export class TitleScene extends Phaser.Scene {
     super('Title');
   }
 
+  private button(x: number, y: number, width: number, label: string, event: string, color = 0x6942c9): void {
+    const surface = this.add.rectangle(x, y, width, 63, color).setStrokeStyle(3, 0xffffff);
+    surface.setInteractive({ useHandCursor: true });
+    this.add.text(x, y, label, {
+      fontFamily: 'Arial, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#ffffff'
+    }).setOrigin(0.5);
+    surface.on('pointerdown', () => {
+      if (event === 'Outline') this.scene.start('Outline');
+      else window.dispatchEvent(new CustomEvent(event, { detail: { mode: 'quick' } }));
+    });
+  }
+
   create(): void {
     this.cameras.main.setBackgroundColor('#f9ecff');
-
     const art = this.add.graphics();
-    // Temporary vector scenery keeps the design scaffold lightweight.
     art.fillStyle(0x9ddaf8).fillRect(0, 0, 960, 300);
     art.fillStyle(0xe8c4ff).fillRect(0, 300, 960, 240);
     art.fillStyle(0xf985c8).fillRoundedRect(75, 130, 220, 200, 14);
@@ -17,8 +27,7 @@ export class TitleScene extends Phaser.Scene {
     art.fillStyle(0xf4d8ff).fillTriangle(95, 92, 133, 45, 170, 92);
     art.fillTriangle(199, 92, 237, 45, 276, 92);
     art.fillStyle(0x7536a6).fillRoundedRect(161, 245, 50, 85, 14);
-
-    // Lyla must look like an ordinary fluffy white bunny, not a robot.
+    // Zoey's Lyla is a fluffy white bunny. She must not visibly look robotic.
     art.fillStyle(0xffffff);
     art.fillEllipse(740, 321, 125, 110);
     art.fillEllipse(706, 237, 36, 105);
@@ -31,23 +40,20 @@ export class TitleScene extends Phaser.Scene {
     art.fillStyle(0xf98dbd).fillCircle(735, 314, 7);
     art.fillStyle(0xff73b8).fillRoundedRect(710, 344, 67, 30, 8);
 
-    this.add.text(480, 62, 'ROBOT BUNNIES', {
+    this.add.text(480, 64, 'ROBOT BUNNIES', {
       fontFamily: 'Arial, sans-serif', fontSize: '60px', color: '#632d93', fontStyle: 'bold'
     }).setOrigin(0.5);
-    this.add.text(480, 113, "Lyla's Flower Quest", {
-      fontFamily: 'Arial, sans-serif', fontSize: '31px', color: '#6a387c', fontStyle: 'bold'
+    this.add.text(480, 113, "Lyla's Spelling Quest", {
+      fontFamily: 'Arial, sans-serif', fontSize: '30px', color: '#6a387c', fontStyle: 'bold'
     }).setOrigin(0.5);
-    this.add.text(480, 402, 'Designed by Zoey  •  22-level adventure', {
-      fontFamily: 'Arial, sans-serif', fontSize: '23px', color: '#473053'
+    this.add.text(480, 350, 'Designed by Zoey · 22 story levels · weekly spelling words', {
+      fontFamily: 'Arial, sans-serif', fontSize: '21px', color: '#473053'
     }).setOrigin(0.5);
 
-    const start = this.add.rectangle(480, 471, 430, 72, 0x6942c9).setStrokeStyle(4, 0xffffff);
-    start.setInteractive({ useHandCursor: true });
-    this.add.text(480, 471, 'VIEW THE 22-LEVEL PLAN', {
-      fontFamily: 'Arial, sans-serif', fontSize: '25px', fontStyle: 'bold', color: '#ffffff'
-    }).setOrigin(0.5);
-    start.on('pointerdown', () => this.scene.start('Outline'));
-    this.add.text(12, 520, 'Design preview only — playable levels are not built yet', {
+    this.button(480, 422, 475, '🌸 PLAY SPELLING QUEST', 'robot-bunnies:open-spelling');
+    this.button(326, 498, 295, 'PARENT CORNER', 'robot-bunnies:open-parent', 0x8f53b5);
+    this.button(670, 498, 295, '22-LEVEL PLAN', 'Outline', 0x8f53b5);
+    this.add.text(12, 531, 'Spelling practice is playable. Story platform levels are still planned.', {
       fontFamily: 'Arial, sans-serif', fontSize: '15px', color: '#5e4671'
     }).setOrigin(0, 1);
   }

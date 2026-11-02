@@ -3,10 +3,14 @@ import { registerSW } from 'virtual:pwa-register';
 import { BootScene } from './scenes/BootScene';
 import { TitleScene } from './scenes/TitleScene';
 import { OutlineScene } from './scenes/OutlineScene';
+import { initializeParentCorner } from './ui/ParentCorner';
+import { initializeSpellingQuest } from './ui/SpellingQuest';
 import './style.css';
 
-// This milestone intentionally has no playable levels: title + level-outline preview only.
-// Future implementation will add an accessible platform controller and educational gameplay.
+// The home screen and weekly spelling practice are playable.
+// The 22 platform/story levels remain planned, not implemented.
+initializeParentCorner();
+initializeSpellingQuest();
 registerSW({ immediate: true });
 
 new Phaser.Game({
