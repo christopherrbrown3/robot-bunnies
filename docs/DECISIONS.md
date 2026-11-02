@@ -90,3 +90,34 @@ These choices **supersede** earlier suggestions or prototype behaviors where the
 5. **Misspelled word:** immediately show correct spelling, then hide for a retry; allow hints and Skip as necessary. Record error; never punish or block story progress.
 
 This is now a **complete enough implementation spec**; remaining story dialogue, art details and exact staging are creative tasks, not blockers. `FINAL_SPEC.md` is the canonical authority, and working-prototype implementation differences are documented rather than misrepresented as completed features.
+
+## Proposals made while building the playable game (November 2, 2026) — NOT canon
+
+These came from the builder (an AI assistant working with Dad), not from Zoey. They are in the game so it is playable end to end, and each one can change once Zoey reviews it.
+
+**Characters and look**
+
+- Lyla, Ridensee and the Bunny Police are side-view cartoon bunnies drawn in code. The Bunny Police officer is a tan bunny with a navy cap and a gold star badge.
+- The king is a round, smiling figure with a crown, a purple cape, a mustache and a phone. His species isn't decided.
+- The tiger hides in a flowering bush. The "zoo animals" are **monkeys** that drop from trees.
+- The **hand** is a big white cartoon glove that slowly presses down and lifts up. Tiny (shrunk) Lyla can run under its fingers.
+- The **giant monster** is a big purple fuzzy creature with horns and grumpy eyebrows. When it's hit by the rainbow arrow, it shrinks into a small, smiling, friendly monster and wanders off.
+
+**Story beats and wording**
+
+- All cutscene captions and in-game lines, including the Bunny Police line at the cage: "Here is a key! The king is secretly EVIL. He controls robot bunnies with his phone!"
+- Why Lyla keeps collecting flowers: "Now that she knows the king is evil, Lyla will keep the magic flowers safe from him."
+- In the Level 16 workshop, the secret message says the king's phone controls the robot bunnies. Level 20 jams the phone.
+- Ending: the monster becomes friendly, the king's phone stops working so the robot bunnies are free, and Lyla brings the flowers home for everyone.
+- The bow and arrows are found on a stand in Level 18 (Finding the Bow). Levels 18 and 21 have tap-to-shoot practice targets.
+- Level 22 boss: tap two glowing star targets to shoot arrows at them, then spell a word to power a "rainbow arrow" at the monster's rainbow heart. There's no damage, and "Hee hee! That tickles!" plays instead.
+- Ridensee appears **only** in automatic rescues: never in cutscenes, never as a playable character.
+
+**Mechanics**
+
+- **What can catch Lyla:** the tiger and the monkeys. If either catches her, Ridensee rescues her back to the same spot, and that animal is gone for the rest of the level. **What bounces her back:** the hand, low obstacles and untapped beads.
+- **Shrinking:** tapping Lyla only shrinks her while a danger warning is showing (a pink ring and "Tap Lyla to shrink!"). At other times, a tap anywhere is a jump.
+- **Paint doors (Levels 3 and 14):** tap six paint pots in rainbow order (red, orange, yellow, green, blue, purple) to open a door with bonus flowers. After two wrong taps, the next correct pot glows.
+- **Flower bonuses:** +3 for each spelling object, +6 for each paint door, +10 when the monster is befriended, +2 for each practice target. The portal opens once the level's story object is resolved. Not every flower is needed.
+- **Helper hop:** after Lyla bumps the same obstacle twice, she hops over it automatically. After three bumps, the hand lifts and waits for her.
+- **Visual themes** for the proposed levels: sky, night meadow, woodland, zoo, river, orchard, town and control room.

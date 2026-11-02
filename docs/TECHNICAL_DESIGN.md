@@ -1,6 +1,6 @@
 # Technical architecture (initial)
 
-> **Authority:** [Final Game Specification v1.0](FINAL_SPEC.md). The current browser UI still uses a keyboard text input; letter tiles and parent-recorded audio are required **next implementation work**, not present yet.
+> **Authority:** [Final Game Specification v1.0](FINAL_SPEC.md). The game described below is implemented. Real-iPad QA is still pending.
 
 ## Constraints and goals
 
@@ -8,36 +8,52 @@
 - **Devices:** older iPads, touch first, landscape 4:3/16:9 screens, aim for acceptable performance on iPadOS 15+ (actual minimum TBD after device testing).
 - **Stack:** Phaser 3, TypeScript, Vite, vite-plugin-pwa/Workbox.
 - **No backend:** no authentication, child account, remote telemetry or externally stored learning history. No mandatory network after first app cache.
-- **Scope now:** working title screen, browseable outline, Parent Corner with 20-word weekly lists, and a **22-stage resumable weekly-word spelling campaign**, with dynamic priority given to current-week weak or untested words. The story platformer, scripted cutscenes, and final art are future work. Story platforming, scripted cutscenes, and final art are future work.
+- **Scope now:** the full 22-level platformer with in-world spelling triggers, a letter-tile composer, parent recordings, two-success mastery, storybook cutscenes, an adventure map and Parent Corner. All art and sound are generated in code (Canvas 2D and Web Audio), so there are no asset files to license or download.
 
 ## Source layout
 
 ```text
 src/
-  main.ts                 # Phaser configuration
+  main.ts                 # Phaser config (960×540 FIT, Arcade physics, windowEvents off), audio unlock
   scenes/
-    BootScene.ts          # startup scene
-    TitleScene.ts         # title/menu, handoff to outline
-    OutlineScene.ts       # 22-level browser; not gameplay
+    BootScene.ts          # generates all character/object textures
+    TitleScene.ts         # Play/Continue, Map, Grown-ups, sound toggle
+    MapScene.ts           # 22-node adventure map, level info, Storybook replays
+    CutsceneScene.ts      # captioned, narrated, skippable storybook panels
+    GameScene.ts          # one level: run/jump/shrink, hazards, rescue, paint door, spelling trigger, boss, portal
+    FinaleScene.ts        # end-of-run celebration and gentle word summary
+  game/
+    art.ts                # Canvas 2D drawings: Lyla, Ridensee, Bunny Police, king, tiger, monkey, hand, monster, objects
+    themes.ts             # 13 visual themes; parallax backgrounds generated lazily per level
+    levelPlan.ts          # deterministic layout generator from levels.json `play` parameters
+    cutscenes.ts          # storybook panel captions
+    flow.ts / ui.ts       # navigation helpers, buttons, bubbles, screen-pinned overlays
   spelling/
-    store.ts            # 1–20 words/week and local spelling stats
-    scheduler.ts        # all active words first; past-week review only when current is secure
-    campaign.ts         # stable 22-stage assignments and saved resume state
+    mastery.ts            # two-independent-success model, regression, distinct dates (pure functions)
+    store.ts              # schema v2 weekly lists + per-word history (migrates v1)
+    scheduler.ts          # all active words first; weak current words in spare slots; old weeks only when all secure
+    campaign.ts           # 22-stage assignment, cursor, per-level checkpoint/flags/outcome, run flowers
+  audio/
+    sfx.ts                # synthesized Web Audio sound effects
+    speech.ts             # TTS with failure detection
+    recordings.ts         # IndexedDB parent clips (ArrayBuffer storage), separate backup format
+    wordAudio.ts          # Hear priority: recording → TTS → none (Peek fallback)
+    prefs.ts              # sound / story voice / seen cutscenes
   ui/
-    ParentCorner.ts     # weekly list editor
-    SpellingQuest.ts    # CURRENT keyboard-based prompts and 22-stage campaign
+    SpellingPanel.ts      # the tile composer and LISTEN→BUILD→CHECK→STUDY→RETRY state machine (DOM overlay)
+    PracticeSession.ts    # optional tricky-word review and full mock test
+    ParentCorner.ts       # lists, mastery summary, recordings, backups
   content/
-    levels.json           # 22 story locations; spellingChallenge metadata
-    types.ts              # static level shape
-public/
-  icons/bunny.svg         # simple placeholder graphic; replace with final art
-docs/                       # design and implementation specifications
+    levels.json           # 22 story locations + gameplay parameters and trigger text
+    types.ts
+public/icons/             # SVG + 180/192/512 PNG icons
 scripts/
-  validate-content.mjs    # structural verification; no dependencies
-.github/workflows/deploy.yml
+  validate-content.mjs    # 22 levels, canon anchors, play config
+  test-campaign.mjs       # coverage for 1–20 words, priority, resume, in-level saves
+  test-mastery.mjs        # §9 criteria 2 and 4, migration, source-week recording
+  test-layouts.mjs        # every layout jumpable, deterministic, hazard/trigger zones clear
+  e2e-playthrough.cjs     # optional Playwright run of all 22 levels (`npm run e2e`)
 ```
-
-Production architecture **target**, to implement incrementally: `LetterTileComposer` (full alphabet bank, repeats, punctuation), `WordAudioRepository` (IndexedDB parent clips → TTS fallback), `SpellingMastery` (independent 2-success streak and date evidence), `SpellingPauseController` (freeze physics/hazards and resume safely), plus `GameScene`, `HUDScene`, `CutsceneScene`, `LearningScene`, `RescueScene`, `ParentScene`, `AudioManager`, `ProgressStore`, `ContentRepository`, `InputRouter`. Do not create empty classes for functionality that doesn't yet exist.
 
 ## Game engine approach
 
@@ -49,17 +65,19 @@ Production architecture **target**, to implement incrementally: `LetterTileCompo
 - Separate content/progression data from physics scene code, so new levels aren't 22 copies of a script.
 - Prefer very large hit targets and forgiving physics. Prioritize predictable feeling over precise simulation.
 
-## Input state machine (future)
+## Input state machine
 
 `RUNNING` (auto-run / high single jump) ↔ `SHRUNK` (only after tap on Lyla in DANGER_WINDOW) → `RECOVERING` (automatic regrowth), and `CAPTURED` → `RIDENSEE_RESCUE` → `RUNNING`.
 
 Spelling triggers pause physics, character velocity, enemy movement, timers and game input; restore the saved world and resume after success, error-corrected success or skip, with short collision grace. The tile composer must be touch-first and accessible. Pause/cutscene/puzzle states stop movement and disable conflicting input. A tap on the on-screen Jump button must not bubble through into the shrink-tap handler. Explicitly test single-touch, accidental second taps, resume after backgrounding, orientation changes, and audio unlock gestures.
 
-## Save system (implemented / future)
+## Save system
 
-**Implemented:** versioned `localStorage` for weekly lists and word stats; a distinct versioned campaign record holds the **frozen** 22-stage word assignment, run number and `nextLevelIndex`. Save immediately after a correctly spelled or skipped word, so the player can leave and resume. Progress statistics can change without reshuffling mandatory active-week stages. Optional spare stages are reassessed before each prompt: an active-week word needing practice always supersedes a previous-week review word. Editing lists, switching active weeks or importing a backup resets the word assignment. A completed 22-stage run starts a fresh run on the next play.
-
-**Future:** two-independent-success security and regression events with distinct dates, locally stored parent audio clips in IndexedDB, the letter tile answer state, checkpoint positions for real platform scenes, sound preferences, cutscene flags, and a backup including full in-progress campaign state (today's word-list JSON backup does **not** include campaign cursor). If history expands significantly, consider IndexedDB. Local Safari data deletion can lose progress; nothing is synced to a server.
+- `robot-bunnies.spelling.v1` (localStorage, schema v2; v1 data migrates on load): weekly lists and per-word history. Each word records attempts, misses, independent and assisted successes, skips, independent streak, streak dates and success dates. Results are recorded against the word's **source week**.
+- `robot-bunnies.campaign.v2`: the frozen 22-stage word assignment, run number, `nextLevelIndex`, each level's outcome, the run's flowers, run flags (`bow`), and the current level's progress: `promptResolved`, `checkpointX`, flowers, collected object IDs and level flags (such as `tiger-gone` or `paint-door`). The prompt is saved as resolved before any celebration, and resolving twice keeps the first result. Spare stages are re-evaluated just before each prompt, never after it is resolved. Editing lists, switching weeks or importing a backup starts a new assignment.
+- `robot-bunnies.prefs.v1`: sound, story voice, and which cutscenes have been seen.
+- IndexedDB `robot-bunnies-audio`: parent recordings keyed by exact word, stored as ArrayBuffers because old Safari can't reliably store Blobs. They have their own JSON backup format.
+- The word-list backup does **not** include the in-progress campaign position or recordings. Clearing Safari data loses everything that hasn't been backed up, and nothing syncs to a server.
 
 ## PWA / GitHub Pages
 

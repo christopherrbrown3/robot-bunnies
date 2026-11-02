@@ -2,18 +2,33 @@ import Phaser from 'phaser';
 import { registerSW } from 'virtual:pwa-register';
 import { BootScene } from './scenes/BootScene';
 import { TitleScene } from './scenes/TitleScene';
-import { OutlineScene } from './scenes/OutlineScene';
+import { MapScene } from './scenes/MapScene';
+import { CutsceneScene } from './scenes/CutsceneScene';
+import { GameScene } from './scenes/GameScene';
+import { FinaleScene } from './scenes/FinaleScene';
 import { initializeParentCorner } from './ui/ParentCorner';
-import { initializeSpellingQuest } from './ui/SpellingQuest';
+import { initializePracticeSession } from './ui/PracticeSession';
+import { unlockAudio } from './audio/sfx';
+import { unlockSpeech } from './audio/speech';
+import { unlockWordAudio } from './audio/wordAudio';
 import './style.css';
 
-// The home screen and weekly spelling practice are playable.
-// The 22 platform/story levels remain planned, not implemented.
 initializeParentCorner();
-initializeSpellingQuest();
+initializePracticeSession();
 registerSW({ immediate: true });
 
-new Phaser.Game({
+// iPad Safari only allows sound after a tap: prime every audio path on the first gestures.
+let unlocks = 0;
+const unlock = (): void => {
+  unlockAudio();
+  if (unlocks === 0) { unlockSpeech(); unlockWordAudio(); }
+  if (++unlocks >= 3) {
+    for (const type of ['touchend', 'click', 'keydown']) document.removeEventListener(type, unlock, true);
+  }
+};
+for (const type of ['touchend', 'click', 'keydown']) document.addEventListener(type, unlock, true);
+
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'app',
   width: 960,
@@ -24,6 +39,21 @@ new Phaser.Game({
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
   render: { pixelArt: false, antialias: true },
-  input: { activePointers: 2 },
-  scene: [BootScene, TitleScene, OutlineScene]
+  // windowEvents off: taps on DOM overlays (Parent Corner, letter tiles) must never reach game objects underneath.
+  input: { activePointers: 2, windowEvents: false },
+  audio: { noAudio: true },
+  disableContextMenu: true,
+  physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 1500 }, debug: false } },
+  scene: [BootScene, TitleScene, MapScene, CutsceneScene, GameScene, FinaleScene]
+});
+
+// Automated playtesting hook (only with ?debug in the URL).
+if (new URLSearchParams(location.search).has('debug')) {
+  (window as unknown as { __rbGame: Phaser.Game }).__rbGame = game;
+}
+
+// Parent Corner's "Play" button opens the adventure map from wherever the game is.
+window.addEventListener('robot-bunnies:play', () => {
+  const active = game.scene.getScenes(true)[0];
+  if (active) active.scene.start('Map');
 });

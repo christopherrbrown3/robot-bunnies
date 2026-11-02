@@ -8,8 +8,11 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "validate": "node scripts/validate-content.mjs",
-    "test": "npm run validate && npm run test:campaign",
-    "test:campaign": "node scripts/test-campaign.mjs"
+    "test": "npm run validate && npm run test:campaign && npm run test:mastery && npm run test:layouts",
+    "test:campaign": "node scripts/test-campaign.mjs",
+    "test:mastery": "node scripts/test-mastery.mjs",
+    "test:layouts": "node scripts/test-layouts.mjs",
+    "e2e": "node scripts/e2e-playthrough.cjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"

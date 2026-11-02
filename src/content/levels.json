@@ -8,8 +8,30 @@
     "provenance": "confirmed-setting",
     "story": "Bunny Police hand Lyla a key and reveal the king is evil. Escape the cage; an evil tiger can jump out and catch her. Ridensee automatically rescues her if needed.",
     "mechanic": "Key, cage, jumping and auto-collection tutorial",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Listen, look if needed, then spell the key word to free Lyla"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Listen, look if needed, then spell the key word to free Lyla",
+    "play": {
+      "scene": "castle",
+      "length": 5200,
+      "obstacles": 4,
+      "platforms": 1,
+      "hazards": [
+        {
+          "type": "tiger",
+          "at": 0.62
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "cage",
+        "at": "start",
+        "title": "Unlock the cage!",
+        "story": "The Bunny Police gave Lyla a key. Spell the word to open the lock!",
+        "success": "Click! The cage door swings open!"
+      },
+      "cutscene": "intro"
+    }
   },
   {
     "id": 2,
@@ -20,8 +42,25 @@
     "provenance": "confirmed-setting",
     "story": "Lyla enters a giant rainbow; how the rainbow is traversed is a proposed design choice.",
     "mechanic": "Easy rainbow pathways and a purple-blue exit portal",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a rainbow flower word to open the portal"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a rainbow flower word to open the portal",
+    "play": {
+      "scene": "rainbow",
+      "length": 5600,
+      "obstacles": 5,
+      "platforms": 4,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "flower",
+        "at": 0.55,
+        "title": "Pick the rainbow flower!",
+        "story": "A sparkly rainbow flower is in Lyla's way. Spell its secret word to collect it!",
+        "success": "The rainbow flower hops into Lyla's fanny pack!"
+      },
+      "cutscene": "rainbow"
+    }
   },
   {
     "id": 3,
@@ -32,8 +71,25 @@
     "provenance": "proposed",
     "story": "Find colorful door panels and place paint splatters in rainbow order to reveal flowers.",
     "mechanic": "Simple drag/tap-to-place color puzzle",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a color word to unlock the rainbow paint door"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a color word to unlock the rainbow paint door",
+    "play": {
+      "scene": "rainbow",
+      "length": 6000,
+      "obstacles": 5,
+      "platforms": 2,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.66,
+        "title": "Open the rainbow door!",
+        "story": "This rainbow door has a word lock. Spell the word to open it!",
+        "success": "The rainbow door slides open!"
+      },
+      "paintDoor": 0.3
+    }
   },
   {
     "id": 4,
@@ -44,8 +100,24 @@
     "provenance": "proposed",
     "story": "Lyla hops across generous floating clouds on her way to the next portal.",
     "mechanic": "Wide, low-stakes platforms",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a secret word to build a cloud bridge"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a secret word to build a cloud bridge",
+    "play": {
+      "scene": "sky",
+      "length": 6200,
+      "obstacles": 6,
+      "platforms": 2,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Build a cloud bridge!",
+        "story": "Spell the secret word and the clouds will puff into a path.",
+        "success": "Fluffy clouds make a bridge for Lyla!"
+      }
+    }
   },
   {
     "id": 5,
@@ -56,8 +128,24 @@
     "provenance": "proposed",
     "story": "Beads are scattered across the ground; pick up the beads so no bunny trips.",
     "mechanic": "Collect beads and flowers; gentle bounce on missed beads",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to clean up the bead path"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to clean up the bead path",
+    "play": {
+      "scene": "garden",
+      "length": 6400,
+      "obstacles": 5,
+      "platforms": 3,
+      "hazards": [],
+      "beads": 6,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.62,
+        "title": "Clean up the bead path!",
+        "story": "Tap the beads so no bunny trips. Spell the word to open the garden gate!",
+        "success": "The garden gate swings open!"
+      }
+    }
   },
   {
     "id": 6,
@@ -68,8 +156,24 @@
     "provenance": "proposed",
     "story": "A friendly moonlit meadow has glowing flowers and a sleepy gatekeeper.",
     "mechanic": "Timing-free collecting and sign clues",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a flower word to fill Lyla's pack"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a flower word to fill Lyla's pack",
+    "play": {
+      "scene": "night",
+      "length": 6600,
+      "obstacles": 6,
+      "platforms": 3,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "flower",
+        "at": 0.6,
+        "title": "Fill Lyla's pack!",
+        "story": "A glowing moon flower shines in the meadow. Spell its word to collect it!",
+        "success": "The moon flower glows in Lyla's fanny pack!"
+      }
+    }
   },
   {
     "id": 7,
@@ -80,8 +184,24 @@
     "provenance": "proposed",
     "story": "Repair a little bridge made of numbered stepping stones.",
     "mechanic": "Choose correct stepping stones",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to repair the woodland bridge"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to repair the woodland bridge",
+    "play": {
+      "scene": "woodland",
+      "length": 6800,
+      "obstacles": 7,
+      "platforms": 4,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Fix the woodland bridge!",
+        "story": "The bridge gate is locked. Spell the word to fix it!",
+        "success": "The woodland bridge is fixed!"
+      }
+    }
   },
   {
     "id": 8,
@@ -92,8 +212,34 @@
     "provenance": "proposed",
     "story": "Zoo animals jump down trying to catch bunnies carrying flowers, as Zoey specified.",
     "mechanic": "Telegraphed animal ambushes, safe hiding spots",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a zoo warning word before animals jump"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a zoo warning word before animals jump",
+    "play": {
+      "scene": "zoo",
+      "length": 7000,
+      "obstacles": 6,
+      "platforms": 1,
+      "hazards": [
+        {
+          "type": "monkey",
+          "at": 0.36
+        },
+        {
+          "type": "monkey",
+          "at": 0.8
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.58,
+        "title": "Open the zoo gate!",
+        "story": "A zoo gate blocks the path. Spell the word to open it!",
+        "success": "The zoo gate opens. Watch for jumping animals!"
+      },
+      "cutscene": "zoo"
+    }
   },
   {
     "id": 9,
@@ -104,8 +250,37 @@
     "provenance": "proposed",
     "story": "Lyla escapes to wide treetop walkways while playful animals look on.",
     "mechanic": "Repeat zoo theme with gentle higher paths",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to find a safe treetop route"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to find a safe treetop route",
+    "play": {
+      "scene": "zoo",
+      "length": 7200,
+      "obstacles": 6,
+      "platforms": 1,
+      "hazards": [
+        {
+          "type": "monkey",
+          "at": 0.3
+        },
+        {
+          "type": "monkey",
+          "at": 0.52
+        },
+        {
+          "type": "monkey",
+          "at": 0.84
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "flower",
+        "at": 0.68,
+        "title": "Find the treetop route!",
+        "story": "A treetop flower knows the safe way. Spell its word!",
+        "success": "The treetop flower shows the safe route!"
+      }
+    }
   },
   {
     "id": 10,
@@ -116,8 +291,24 @@
     "provenance": "proposed",
     "story": "Cross a sparkling stream along large numbered stones.",
     "mechanic": "Safe platform order puzzles",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to reveal a crossing stone"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to reveal a crossing stone",
+    "play": {
+      "scene": "river",
+      "length": 7200,
+      "obstacles": 8,
+      "platforms": 3,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Reveal a crossing stone!",
+        "story": "Spell the word and a stepping stone will pop up out of the river!",
+        "success": "Splash! A stepping stone pops up!"
+      }
+    }
   },
   {
     "id": 11,
@@ -128,8 +319,24 @@
     "provenance": "proposed",
     "story": "Help sort the magical flowers that have money inside.",
     "mechanic": "Sorting bins, flower bundles",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to sort the magical flowers"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to sort the magical flowers",
+    "play": {
+      "scene": "garden",
+      "length": 7400,
+      "obstacles": 8,
+      "platforms": 5,
+      "hazards": [],
+      "beads": 3,
+      "targets": 0,
+      "trigger": {
+        "kind": "flower",
+        "at": 0.6,
+        "title": "Sort the magic flowers!",
+        "story": "The greenhouse flowers are all mixed up. Spell the word to sort them!",
+        "success": "The magic flowers line up in neat rows!"
+      }
+    }
   },
   {
     "id": 12,
@@ -140,8 +347,33 @@
     "provenance": "proposed",
     "story": "A giant cartoon hand reaches onto the path; Lyla must watch where it goes.",
     "mechanic": "Slow, obvious hand obstacle; no scary grabbing",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to stop the bouncing hand"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to stop the bouncing hand",
+    "play": {
+      "scene": "castle",
+      "length": 7400,
+      "obstacles": 6,
+      "platforms": 2,
+      "hazards": [
+        {
+          "type": "hand",
+          "at": 0.34
+        },
+        {
+          "type": "hand",
+          "at": 0.78
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.56,
+        "title": "Stop the bouncing hand!",
+        "story": "Spell the word to make the big hands take a nap!",
+        "success": "The big hands take a nap. Shhh!"
+      }
+    }
   },
   {
     "id": 13,
@@ -152,8 +384,24 @@
     "provenance": "proposed",
     "story": "A trail of signs guides Lyla between apple trees and flower patches.",
     "mechanic": "Choose between friendly branching paths",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a clue word to choose the orchard path"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a clue word to choose the orchard path",
+    "play": {
+      "scene": "orchard",
+      "length": 7600,
+      "obstacles": 9,
+      "platforms": 4,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Choose the orchard path!",
+        "story": "A clue sign has a word lock. Spell the word to find the right path!",
+        "success": "The orchard path opens up!"
+      }
+    }
   },
   {
     "id": 14,
@@ -164,8 +412,25 @@
     "provenance": "proposed",
     "story": "A familiar rainbow region returns with a new story clue.",
     "mechanic": "Wide bridges and optional word puzzles",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to cross the story skybridge"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to cross the story skybridge",
+    "play": {
+      "scene": "sky",
+      "length": 7800,
+      "obstacles": 8,
+      "platforms": 4,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.7,
+        "title": "Cross the skybridge!",
+        "story": "Spell the word to unroll the rainbow skybridge!",
+        "success": "The skybridge rolls out like a ribbon!"
+      },
+      "paintDoor": 0.34
+    }
   },
   {
     "id": 15,
@@ -176,8 +441,24 @@
     "provenance": "proposed",
     "story": "Lyla hears a clue about how the king controls the bunnies.",
     "mechanic": "Explore, talk, collect",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a secret word to open the clock tower"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a secret word to open the clock tower",
+    "play": {
+      "scene": "town",
+      "length": 7800,
+      "obstacles": 9,
+      "platforms": 5,
+      "hazards": [],
+      "beads": 2,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Open the clock tower!",
+        "story": "The clock tower door has a secret word lock.",
+        "success": "Tick-tock! The clock tower door opens!"
+      }
+    }
   },
   {
     "id": 16,
@@ -188,8 +469,30 @@
     "provenance": "proposed",
     "story": "Lyla discovers more about the disguised robot bunnies and the king's phone control.",
     "mechanic": "Harmless switches and simple switches",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to decode a message about the king"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to decode a message about the king",
+    "play": {
+      "scene": "town",
+      "length": 8000,
+      "obstacles": 9,
+      "platforms": 2,
+      "hazards": [
+        {
+          "type": "hand",
+          "at": 0.4
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.66,
+        "title": "Decode the secret message!",
+        "story": "A secret message about the king is locked away. Spell the word to read it!",
+        "success": "The message says: the king's phone controls the robot bunnies!"
+      },
+      "cutscene": "workshop"
+    }
   },
   {
     "id": 17,
@@ -200,8 +503,24 @@
     "provenance": "proposed",
     "story": "Lyla protects flowers and their hidden money from the king.",
     "mechanic": "Collect bundles; choose the safe vault door",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to unlock the flower vault"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to unlock the flower vault",
+    "play": {
+      "scene": "town",
+      "length": 8000,
+      "obstacles": 10,
+      "platforms": 4,
+      "hazards": [],
+      "beads": 3,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Unlock the flower vault!",
+        "story": "The king hid flowers in this vault. Spell the word to unlock it!",
+        "success": "The vault opens and flowers spill out!"
+      }
+    }
   },
   {
     "id": 18,
@@ -212,8 +531,25 @@
     "provenance": "proposed",
     "story": "Lyla finds a bow and arrow and practices hitting very large friendly targets.",
     "mechanic": "Tap a still target; no precision aiming",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to earn a harmless training arrow"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to earn a harmless training arrow",
+    "play": {
+      "scene": "meadow",
+      "length": 8000,
+      "obstacles": 9,
+      "platforms": 5,
+      "hazards": [],
+      "beads": 0,
+      "targets": 2,
+      "trigger": {
+        "kind": "bow",
+        "at": 0.45,
+        "title": "Find the bow!",
+        "story": "A magic bow rests on a stand. Spell the word to earn it!",
+        "success": "Lyla found a magic bow and arrows!"
+      },
+      "cutscene": "bow"
+    }
   },
   {
     "id": 19,
@@ -224,8 +560,33 @@
     "provenance": "proposed",
     "story": "Lyla returns to the first castle to uncover the king's final plan.",
     "mechanic": "Revisit a familiar environment with new signs",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to unlock a castle gate"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to unlock a castle gate",
+    "play": {
+      "scene": "castle",
+      "length": 8200,
+      "obstacles": 10,
+      "platforms": 0,
+      "hazards": [
+        {
+          "type": "tiger",
+          "at": 0.38
+        },
+        {
+          "type": "tiger",
+          "at": 0.82
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "gate",
+        "at": 0.6,
+        "title": "Unlock the castle gate!",
+        "story": "Lyla is back at the hot pink castle. Spell the word to open the gate!",
+        "success": "The castle gate creaks open!"
+      }
+    }
   },
   {
     "id": 20,
@@ -236,8 +597,33 @@
     "provenance": "proposed",
     "story": "Find a harmless way to interrupt the king's robot-bunny commands.",
     "mechanic": "Slow-paced lever or button puzzle",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a word to jam the king's phone"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to jam the king's phone",
+    "play": {
+      "scene": "control",
+      "length": 8200,
+      "obstacles": 10,
+      "platforms": 1,
+      "hazards": [
+        {
+          "type": "hand",
+          "at": 0.34
+        },
+        {
+          "type": "tiger",
+          "at": 0.82
+        }
+      ],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "phone",
+        "at": 0.6,
+        "title": "Jam the king's phone!",
+        "story": "The king's giant phone controls the robot bunnies. Spell the word to jam it!",
+        "success": "Buzz! The king's phone gets all jumbled!"
+      }
+    }
   },
   {
     "id": 21,
@@ -248,8 +634,33 @@
     "provenance": "proposed",
     "story": "Flowers are guarded by a huge creature ahead; Lyla gets ready for the final level.",
     "mechanic": "Rehearse easy bow target choices",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell tricky words to prepare for the final monster"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell tricky words to prepare for the final monster",
+    "play": {
+      "scene": "final",
+      "length": 8400,
+      "obstacles": 11,
+      "platforms": 0,
+      "hazards": [
+        {
+          "type": "monkey",
+          "at": 0.3
+        },
+        {
+          "type": "hand",
+          "at": 0.78
+        }
+      ],
+      "beads": 0,
+      "targets": 3,
+      "trigger": {
+        "kind": "flower",
+        "at": 0.56,
+        "title": "Get ready for the monster!",
+        "story": "A brave flower helps Lyla get ready. Spell its word!",
+        "success": "Lyla feels brave and ready!"
+      }
+    }
   },
   {
     "id": 22,
@@ -260,7 +671,25 @@
     "provenance": "confirmed-final",
     "story": "Lyla faces the giant monster with a bow and arrows to retrieve the final flowers.",
     "mechanic": "Forgiving 3-phase boss with large targets and unlimited retries",
-    "developmentStatus": "planned",
-    "spellingChallenge": "Spell a set of words to help Lyla hit large boss targets"
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a set of words to help Lyla hit large boss targets",
+    "play": {
+      "scene": "final",
+      "length": 4600,
+      "obstacles": 4,
+      "platforms": 2,
+      "hazards": [],
+      "beads": 0,
+      "targets": 0,
+      "trigger": {
+        "kind": "heart",
+        "at": "boss",
+        "title": "Power the rainbow arrow!",
+        "story": "Spell the word to fill Lyla's arrow with rainbow power!",
+        "success": "The rainbow arrow glows with power!"
+      },
+      "cutscene": "monster",
+      "boss": true
+    }
   }
 ]

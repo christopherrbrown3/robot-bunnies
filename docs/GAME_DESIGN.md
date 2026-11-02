@@ -1,6 +1,6 @@
 # Game design: spelling-first Robot Bunnies
 
-> **See [Final Game Specification v1.0](FINAL_SPEC.md) for binding requirements.** Older prototype descriptions below are descriptive of currently built functionality, not the approved final interaction.
+> **See [Final Game Specification v1.0](FINAL_SPEC.md) for binding requirements.**
 
 **Primary purpose:** help Zoey prepare for her weekly school spelling tests using her actual teacher-provided list of **up to 20 words**. **No general first-grade math curriculum.** The imaginative 22-level Robot Bunnies world is the setting and reward system for repeated, evidence-informed spelling practice.
 
@@ -38,6 +38,6 @@ Exactly **22 levels** with some recurring and some new areas. Level 1 starts in 
 
 No mandatory read-the-story challenge, timed spelling, lives, game-overs, or punishing platform action. No artificial session-time ceiling: Zoey may play all 22 stages in one sitting or return later. Large buttons, portrait recovery and landscape iPad support. Immediate correctness feedback and assisted retries. Provide a visible way to pause/leave without destroying the saved word progress.
 
-## Current MVP status
+## Current status
 
-The **resumable 22-stage spelling-question prototype and Parent Corner** are coded, pending deployment and iPad testing. Each stage displays its story location, but this is **not yet a playable side-scroller**. Upcoming work adds the required letter-tile composer, parent-recorded audio, two-independent-response mastery model and safe pause/resume triggers in Phaser platform scenes with cartoon art and cutscenes.
+All 22 levels are playable, with spelling built into the platforming as described above. Remaining work is real-iPad QA, confirming the Pages deployment, and Zoey reviewing the story details we proposed (see [DECISIONS.md](DECISIONS.md)).

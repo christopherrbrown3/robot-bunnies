@@ -3,10 +3,20 @@ import {
   importSpellingBackup, loadSpellingData, parseWords, saveWeek
 } from '../spelling/store';
 import type { SpellingData, SpellingWeek } from '../spelling/store';
-import { reviewCount } from '../spelling/scheduler';
+import { isSecure, isSecureAcrossDays, wordStatus } from '../spelling/mastery';
+import { coveredCurrentWords, peekCampaign } from '../spelling/campaign';
+import {
+  deleteRecording, eraseRecordings, exportRecordings, importRecordings,
+  listRecordedWords, recordingsSupported, saveRecording
+} from '../audio/recordings';
+import { playRecordingFor } from '../audio/wordAudio';
+import { speak } from '../audio/speech';
 
 const eventParent = 'robot-bunnies:open-parent';
-const eventPractice = 'robot-bunnies:open-spelling';
+const eventPractice = 'robot-bunnies:open-practice';
+const eventPlay = 'robot-bunnies:play';
+const eventChanged = 'robot-bunnies:data-changed';
+const MAX_RECORD_MS = 4000;
 
 /**
  * A grown-up check separates editing from play. It is intentionally NOT
@@ -56,7 +66,9 @@ export function initializeParentCorner(): void {
             <div class="parent-progress">
               <h2>Practice review</h2>
               <p id="week-summary" class="small-note">Add words to begin.</p>
+              <p class="small-note legend"><strong>Secure</strong> = spelled correctly on the first try, with no help, two times in a row since the last miss, hint, peek or skip. Different days are a stronger sign but never required.</p>
               <ul id="week-stats" aria-label="Word practice progress"></ul>
+              <p id="record-note" class="small-note">🎙 Optional: record your own voice for any word the iPad says wrong. Recordings stay on this iPad and play instead of the robot voice.</p>
               <div class="action-row">
                 <button type="button" class="purple-btn" id="start-practice">Play 22-level adventure</button>
                 <button type="button" class="outline-btn" id="start-review">Practice tricky words</button>
@@ -66,13 +78,20 @@ export function initializeParentCorner(): void {
           </div>
           <details class="backup-tools">
             <summary>Back up, restore or erase spelling lists</summary>
-            <p>Progress is stored in this browser, not synced between iPads. Save a backup file before clearing Safari data or changing devices.</p>
+            <p>Progress is stored in this browser, not synced between iPads. Save a backup file before clearing Safari data or changing devices. The word-list backup does <strong>not</strong> include voice recordings or the in-progress adventure position; recordings have their own backup file below.</p>
             <div class="action-row">
-              <button type="button" id="spelling-export" class="outline-btn">Export JSON backup</button>
-              <label class="outline-btn upload-label" for="spelling-import">Import JSON backup</label>
+              <button type="button" id="spelling-export" class="outline-btn">Export word-list backup</button>
+              <label class="outline-btn upload-label" for="spelling-import">Import word-list backup</label>
               <input type="file" accept=".json,application/json" id="spelling-import" hidden />
               <button type="button" id="spelling-erase" class="danger-btn">Erase all local lists</button>
             </div>
+            <div class="action-row">
+              <button type="button" id="recordings-export" class="outline-btn">Export voice recordings</button>
+              <label class="outline-btn upload-label" for="recordings-import">Import voice recordings</label>
+              <input type="file" accept=".json,application/json" id="recordings-import" hidden />
+              <button type="button" id="recordings-erase" class="danger-btn">Erase all recordings</button>
+            </div>
+            <input type="file" accept="audio/*" id="recording-file" hidden />
           </details>
         </div>
       </div>
@@ -118,21 +137,122 @@ export function initializeParentCorner(): void {
       summary.textContent = 'Save a list to see progress by word.';
       return;
     }
-    const practiced = week.words.filter(word => (week.progress[word]?.attempts ?? 0) > 0).length;
-    summary.textContent = `${week.words.length} school words · ${practiced} practiced · ${reviewCount(week)} need another look`;
-    for (const word of week.words) {
-      const attempts = week.progress[word];
-      const li = document.createElement('li');
-      const label = document.createElement('strong');
-      label.textContent = word;
-      const detail = document.createElement('span');
-      detail.textContent = attempts
-        ? `${attempts.firstTryCorrect} first-try correct · ${attempts.misses} misses · ${attempts.assistedCorrect} helped`
-        : 'Not practiced yet';
-      li.append(label, detail);
-      stats.append(li);
-    }
+    renderStats(week);
   }
+
+  function renderStats(week: SpellingWeek): void {
+    stats.replaceChildren();
+    const data = loadSpellingData();
+    const campaign = data.activeWeekId === week.id ? peekCampaign(data) : null;
+    const covered = campaign ? coveredCurrentWords(campaign).filter(w => week.words.includes(w)).length : 0;
+    const secure = week.words.filter(w => isSecure(week.progress[w])).length;
+    const multiDay = week.words.filter(w => isSecureAcrossDays(week.progress[w])).length;
+    const needs = week.words.length - secure;
+    summary.textContent = `${week.words.length} words · covered in this adventure: ${campaign ? `${covered} / ${week.words.length}` : '—'} · needs practice: ${needs} · secure: ${secure} · secure across multiple days: ${multiDay}`;
+    void listRecordedWords().then(recorded => {
+      for (const word of week.words) {
+        const p = week.progress[word];
+        const status = wordStatus(p);
+        const li = document.createElement('li');
+        const top = document.createElement('div');
+        top.className = 'stat-top';
+        const label = document.createElement('strong');
+        label.textContent = word;
+        const chip = document.createElement('span');
+        chip.className = `chip chip-${status}`;
+        chip.textContent = status === 'untested' ? 'Not tried yet'
+          : status === 'secure' ? (isSecureAcrossDays(p) ? 'Secure · 2+ days' : 'Secure')
+          : `Needs practice${p && p.streak === 1 ? ' · 1 of 2' : ''}`;
+        top.append(label, chip);
+        const detail = document.createElement('span');
+        detail.className = 'stat-detail';
+        detail.textContent = p && p.attempts
+          ? `${p.firstTryCorrect} first-try · ${p.assistedCorrect} helped · ${p.misses} misses · ${p.skips} skipped`
+          : 'Not practiced yet';
+        const controls = document.createElement('div');
+        controls.className = 'record-row';
+        const has = recorded.has(word);
+        controls.append(
+          smallButton(has ? '🎙 Re-record' : '🎙 Record', () => void record(word, week.id)),
+          smallButton(has ? '▶ My voice' : '▶ iPad voice', () => void (has ? playRecordingFor(word) : speak(`${word}.`, 0.8)))
+        );
+        if (has) controls.append(smallButton('🗑', () => void removeRecording(word, week.id), `Delete recording for ${word}`));
+        li.append(top, detail, controls);
+        stats.append(li);
+      }
+    });
+  }
+
+  function smallButton(text: string, onClick: () => void, aria?: string): HTMLButtonElement {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mini-btn';
+    b.textContent = text;
+    if (aria) b.setAttribute('aria-label', aria);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  let recordingFor: string | null = null;
+  const fileInput = get<HTMLInputElement>('recording-file');
+
+  async function record(word: string, weekId: string): Promise<void> {
+    if (!recordingsSupported()) { setMessage('This browser cannot store recordings.', true); return; }
+    const canRecord = typeof MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+    if (!canRecord) {
+      // Older iPads: choose or capture an audio file instead.
+      recordingFor = word;
+      fileInput.click();
+      return;
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setMessage('Microphone permission was not given. You can allow it in Settings → Safari, or import an audio file instead.', true);
+      recordingFor = word;
+      return;
+    }
+    const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported?.(t)) ?? '';
+    const recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    const chunks: BlobPart[] = [];
+    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    recorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      try {
+        await saveRecording(word, new Blob(chunks, { type: recorder.mimeType || type || 'audio/mp4' }));
+        setMessage(`Saved your recording of "${word}". It will play instead of the iPad voice.`);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Could not save the recording.', true);
+      }
+      refresh(weekId);
+    };
+    setMessage(`🔴 Recording "${word}"… say the word clearly. (Stops in 4 seconds.)`);
+    recorder.start();
+    window.setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, MAX_RECORD_MS);
+  }
+
+  async function removeRecording(word: string, weekId: string): Promise<void> {
+    if (!window.confirm(`Delete your recording of "${word}"? The iPad voice will be used instead.`)) return;
+    try { await deleteRecording(word); setMessage(`Recording for "${word}" deleted.`); }
+    catch { setMessage('Could not delete that recording.', true); }
+    refresh(weekId);
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    const word = recordingFor;
+    fileInput.value = '';
+    recordingFor = null;
+    if (!file || !word) return;
+    try {
+      await saveRecording(word, file);
+      setMessage(`Saved the audio file for "${word}".`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not use that audio file.', true);
+    }
+    refresh(selectedWeekId);
+  });
 
   function refresh(targetId?: string): void {
     let data: SpellingData;
@@ -159,7 +279,9 @@ export function initializeParentCorner(): void {
   }
 
   function close(): void {
+    const wasOpen = !overlay.hidden;
     overlay.hidden = true;
+    if (wasOpen) window.dispatchEvent(new Event(eventChanged));
     gate.hidden = false;
     editor.hidden = true;
     answer.value = '';
@@ -202,9 +324,13 @@ export function initializeParentCorner(): void {
   });
   get<HTMLButtonElement>('week-save').addEventListener('click', () => {
     try {
+      const before = peekCampaign();
+      const midRun = !!before && (before.nextLevelIndex > 0 || !!before.level) && before.nextLevelIndex < 22;
       const week = saveWeek(weekName.value, parseWords(wordsInput.value), selectedWeekId);
       refresh(week.id);
-      setMessage('Saved on this iPad! The active list will appear across all 22 levels.');
+      setMessage(midRun
+        ? 'Saved! Because the word list changed, the next play starts a fresh 22-level adventure with this list. Practice history for each word is kept.'
+        : 'Saved on this iPad! Every word on this list will appear across the 22 levels.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to save list.', true);
     }
@@ -215,7 +341,8 @@ export function initializeParentCorner(): void {
       if (!selectedWeekId) { setMessage('Save a week first.', true); return; }
       activateWeek(selectedWeekId);
       close();
-      window.dispatchEvent(new CustomEvent(eventPractice, { detail: { mode } }));
+      if (mode === 'campaign') window.dispatchEvent(new Event(eventPlay));
+      else window.dispatchEvent(new CustomEvent(eventPractice, { detail: { mode } }));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to load practice.', true);
     }
@@ -252,6 +379,39 @@ export function initializeParentCorner(): void {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not restore backup.', true);
     } finally { input.value = ''; }
+  });
+  get<HTMLButtonElement>('recordings-export').addEventListener('click', async () => {
+    try {
+      const { json, count } = await exportRecordings();
+      if (!count) { setMessage('There are no recordings to back up yet.'); return; }
+      const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'robot-bunnies-recordings-backup.json';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setMessage(`Backed up ${count} recording${count === 1 ? '' : 's'}. Keep this file private.`);
+    } catch { setMessage('Could not back up recordings.', true); }
+  });
+  get<HTMLInputElement>('recordings-import').addEventListener('change', async e => {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 60 * 1024 * 1024) throw new Error('This recordings backup is too large.');
+      const count = await importRecordings(await file.text());
+      setMessage(`Restored ${count} recording${count === 1 ? '' : 's'}.`);
+      refresh(selectedWeekId);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not restore recordings.', true);
+    } finally { input.value = ''; }
+  });
+  get<HTMLButtonElement>('recordings-erase').addEventListener('click', async () => {
+    if (!window.confirm('Delete ALL voice recordings on this iPad? The iPad voice will be used instead.')) return;
+    try { await eraseRecordings(); setMessage('All recordings deleted.'); refresh(selectedWeekId); }
+    catch { setMessage('Could not delete recordings.', true); }
   });
   get<HTMLButtonElement>('spelling-erase').addEventListener('click', () => {
     if (!window.confirm('Permanently erase ALL spelling lists and practice history on this iPad? Export a backup first if you want to keep them.')) return;

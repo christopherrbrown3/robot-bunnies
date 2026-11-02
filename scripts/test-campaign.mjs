@@ -1,25 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import ts from 'typescript';
+import { loadTs } from './lib/load-ts.mjs';
 
-function source(path) {
-  return ts.transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 }
-  }).outputText;
-}
-function url(js) {
-  return 'data:text/javascript;base64,' + Buffer.from(js).toString('base64');
-}
-const schedulerUrl = url(source('../src/spelling/scheduler.ts'));
-const storeUrl = url(source('../src/spelling/store.ts'));
-const campaignUrl = url(
-  source('../src/spelling/campaign.ts')
-    .replace(/from ['"]\.\/scheduler['"]/g, `from '${schedulerUrl}'`)
-    .replace(/from ['"]\.\/store['"]/g, `from '${storeUrl}'`)
-);
-const { createCampaignPlan, currentWeekNeedsFocus } = await import(schedulerUrl);
-const { persistSpellingData, saveWeek } = await import(storeUrl);
-const { getOrStartCampaign, markCampaignLevelComplete, prioritizeCurrentWeek, clearCampaign } = await import(campaignUrl);
+const { createCampaignPlan, currentWeekNeedsFocus } = await loadTs('src/spelling/scheduler.ts');
+const { persistSpellingData, saveWeek } = await loadTs('src/spelling/store.ts');
+const {
+  getOrStartCampaign, markCampaignLevelComplete, prioritizeCurrentWeek, clearCampaign,
+  resolveCampaignPrompt, saveLevelProgress, coveredCurrentWords
+} = await loadTs('src/spelling/campaign.ts');
 
 const memory = new Map();
 globalThis.localStorage = {
@@ -39,7 +26,7 @@ function fixture(count, previousCount) {
     words: Array.from({ length: previousCount }, (_, i) => `olderword${String.fromCharCode(97+i)}`),
     progress: {}, createdAt: '2026-10-25T00:00:00.000Z'
   };
-  return { schemaVersion: 1, activeWeekId: 'current', weeks: previousCount ? [current, earlier] : [current] };
+  return { schemaVersion: 2, activeWeekId: 'current', weeks: previousCount ? [current, earlier] : [current] };
 }
 
 for (const count of [1, 2, 10, 11, 15, 19, 20]) {
@@ -66,7 +53,8 @@ function confidentFixture(count = 10, oldCount = 10) {
   const data = fixture(count, oldCount);
   for (const word of data.weeks[0].words) {
     data.weeks[0].progress[word] = {
-      attempts: 2, misses: 0, correct: 2, firstTryCorrect: 2, assistedCorrect: 0
+      attempts: 2, misses: 0, correct: 2, firstTryCorrect: 2, assistedCorrect: 0,
+      skips: 0, streak: 2, streakDates: ['2026-11-01'], successDates: ['2026-11-01']
     };
   }
   return data;
@@ -77,8 +65,9 @@ assert.ok(createCampaignPlan(confident).some(step => step.source === 'previous')
   'older words appear only when active list is comfortable');
 
 const needsWork = confidentFixture();
-needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].misses = 2;
-needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].firstTryCorrect = 0;
+needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].misses = 1;
+needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].streak = 0;
+needsWork.weeks[0].progress[needsWork.weeks[0].words[0]].streakDates = [];
 assert.equal(currentWeekNeedsFocus(needsWork.weeks[0]), true);
 assert.equal(createCampaignPlan(needsWork).filter(step => step.source === 'previous').length, 0);
 
@@ -113,7 +102,7 @@ assert.equal(getOrStartCampaign().steps[firstSpare].source, 'previous',
 
 
 const realData = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   activeWeekId: 'current',
   weeks: [{
     id: 'current', label: 'Week one',
@@ -126,8 +115,19 @@ clearCampaign();
 let campaign = getOrStartCampaign();
 assert.equal(campaign.nextLevelIndex, 0);
 assert.equal(campaign.steps.length, 22);
+// In-level save: the prompt is resolved and saved before the portal is reached.
+campaign = resolveCampaignPrompt(campaign, 0, 'independent');
+assert.equal(getOrStartCampaign().level.promptResolved, true, 'resolved prompt survives reload');
+assert.equal(resolveCampaignPrompt(campaign, 0, 'skipped').results[0], 'independent', 'resolving twice keeps the first result');
+campaign = saveLevelProgress(campaign, 0, { checkpointX: 1800, flowers: 4, collected: ['f1', 'f2', 'f2'] });
+const reloaded = getOrStartCampaign();
+assert.equal(reloaded.level.checkpointX, 1800, 'checkpoint survives reload');
+assert.deepEqual(reloaded.level.collected, ['f1', 'f2'], 'collected objects are not double-counted');
+assert.ok(coveredCurrentWords(reloaded).includes(reloaded.steps[0].word), 'resolved word counts as covered in this run');
 campaign = markCampaignLevelComplete(campaign, 0);
 assert.equal(getOrStartCampaign().nextLevelIndex, 1, 'resumes the level after last completed');
+assert.equal(getOrStartCampaign().totalFlowers, 4, 'level flowers bank at the portal');
+assert.equal(getOrStartCampaign().level, null, 'next level starts without stale checkpoint');
 assert.throws(() => markCampaignLevelComplete(campaign, 0), /active word list changed/i, 'no double-advances');
 for (let i = 1; i < 22; i++) campaign = markCampaignLevelComplete(campaign, i);
 const next = getOrStartCampaign();

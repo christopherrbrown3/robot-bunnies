@@ -1,4 +1,5 @@
 import type { SpellingData, SpellingWeek, WordProgress } from './store';
+import { isSecure, lastPracticedTime, needsPractice, weakness } from './mastery';
 
 export type PracticeMode = 'campaign' | 'review' | 'test';
 export type CampaignSource = 'current' | 'previous';
@@ -14,21 +15,19 @@ export interface CampaignStep {
 
 const CAMPAIGN_LEVELS = 22;
 
+/** Attempted but not yet secure (missed, helped, skipped, or one independent success). */
 function needsReview(stats?: WordProgress): boolean {
-  return !!stats && (stats.misses > 0 || stats.assistedCorrect > 0) &&
-    stats.firstTryCorrect < Math.max(2, stats.misses + 1);
+  return needsPractice(stats);
 }
 
 function lastPracticed(stats?: WordProgress): number {
-  if (!stats?.lastPracticedAt) return 0;
-  const date = Date.parse(stats.lastPracticedAt);
-  return Number.isFinite(date) ? date : 0;
+  return lastPracticedTime(stats);
 }
 
 function wordPriority(a: string, b: string, progress: Record<string, WordProgress>): number {
   const pa = progress[a], pb = progress[b];
-  const hard = Number(needsReview(pb)) - Number(needsReview(pa));
-  if (hard) return hard;
+  const urgency = weakness(pb) - weakness(pa);
+  if (urgency) return urgency;
   const missed = (pb?.misses ?? 0) - (pa?.misses ?? 0);
   if (missed) return missed;
   const success = (pa?.firstTryCorrect ?? 0) - (pb?.firstTryCorrect ?? 0);
@@ -47,19 +46,15 @@ export function reviewCount(week: SpellingWeek): number {
   return week.words.filter(word => needsReview(week.progress[word])).length;
 }
 
-/** Untested, missed or helped current-week words require priority practice. */
+/** Any current-week word that is not secure (untested, missed, helped, skipped or 1 success) needs focus. */
 export function currentWeekNeedsFocus(week: SpellingWeek): boolean {
-  return week.words.some(word => {
-    const stats = week.progress[word];
-    return (stats?.firstTryCorrect ?? 0) < 1 || needsReview(stats);
-  });
+  return week.words.some(word => !isSecure(week.progress[word]));
 }
 
 /** Pick an active-week weak word; first-priority words get extra repetitions. */
 export function selectCurrentFocusWord(week: SpellingWeek, levelIndex: number): string {
-  const struggling = week.words.filter(word =>
-    (week.progress[word]?.firstTryCorrect ?? 0) < 1 || needsReview(week.progress[word])
-  ).sort((a, b) => wordPriority(a, b, week.progress));
+  const struggling = week.words.filter(word => !isSecure(week.progress[word]))
+    .sort((a, b) => wordPriority(a, b, week.progress));
   if (!struggling.length) throw new Error('No current-week words need extra practice.');
   return struggling[levelIndex % Math.min(struggling.length, 3)];
 }
@@ -69,8 +64,8 @@ export function selectCurrentFocusWord(week: SpellingWeek, levelIndex: number): 
  *
  * Each school word appears at least once, regardless of whether a list has
  * 1, 10, 15 or 20 words. Spare levels repeat current tricky/less-practiced
- * words. Earlier-week words appear only after ALL current words have at
- * least one independent success and no unresolved miss/assistance signals.
+ * words. Earlier-week words appear only after ALL current words are secure
+ * (two independent successes since their latest miss/help/skip).
  * The persisted plan adjusts future older-week slots when new misses occur.
  */
 export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignStep[] {
