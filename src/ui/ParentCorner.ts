@@ -38,7 +38,7 @@ export function initializeParentCorner(): void {
           <p class="small-note">This is a child-friendly barrier, not a password or security feature.</p>
         </div>
         <div id="parent-editor" hidden>
-          <p class="subhead">Add up to 20 school spelling words. One word per line, or separate with commas. Keep prior weeks for review.</p>
+          <p class="subhead">Add up to 20 school spelling words. One word per line, or separate with commas. Keep prior weeks for extra review flowers during each full adventure.</p>
           <div class="parent-grid">
             <div class="parent-fields">
               <label for="week-picker">Saved weeks</label>
@@ -58,7 +58,7 @@ export function initializeParentCorner(): void {
               <p id="week-summary" class="small-note">Add words to begin.</p>
               <ul id="week-stats" aria-label="Word practice progress"></ul>
               <div class="action-row">
-                <button type="button" class="purple-btn" id="start-practice">Play spelling quest</button>
+                <button type="button" class="purple-btn" id="start-practice">Play 22-level adventure</button>
                 <button type="button" class="outline-btn" id="start-review">Practice tricky words</button>
                 <button type="button" class="outline-btn" id="start-test">Full spelling test</button>
               </div>
@@ -204,13 +204,13 @@ export function initializeParentCorner(): void {
     try {
       const week = saveWeek(weekName.value, parseWords(wordsInput.value), selectedWeekId);
       refresh(week.id);
-      setMessage('Saved on this iPad! The active list is ready to practice.');
+      setMessage('Saved on this iPad! The active list will appear across all 22 levels.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to save list.', true);
     }
   });
 
-  function practice(mode: 'quick' | 'review' | 'test'): void {
+  function practice(mode: 'campaign' | 'review' | 'test'): void {
     try {
       if (!selectedWeekId) { setMessage('Save a week first.', true); return; }
       activateWeek(selectedWeekId);
@@ -220,7 +220,7 @@ export function initializeParentCorner(): void {
       setMessage(error instanceof Error ? error.message : 'Unable to load practice.', true);
     }
   }
-  get<HTMLButtonElement>('start-practice').addEventListener('click', () => practice('quick'));
+  get<HTMLButtonElement>('start-practice').addEventListener('click', () => practice('campaign'));
   get<HTMLButtonElement>('start-review').addEventListener('click', () => practice('review'));
   get<HTMLButtonElement>('start-test').addEventListener('click', () => practice('test'));
 

@@ -174,8 +174,10 @@ export function exportSpellingBackup(): string {
 export function importSpellingBackup(content: string): void {
   const parsed: unknown = JSON.parse(content);
   persistSpellingData(validateSpellingData(parsed));
+  localStorage.removeItem('robot-bunnies.campaign.v1');
 }
 
 export function eraseSpellingData(): void {
   localStorage.removeItem(SPELLING_STORAGE_KEY);
+  localStorage.removeItem('robot-bunnies.campaign.v1');
 }

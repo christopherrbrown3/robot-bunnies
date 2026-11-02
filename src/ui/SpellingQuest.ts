@@ -2,7 +2,13 @@ import {
   getActiveWeek, loadSpellingData, normalizeAnswer, recordSpellingAttempt
 } from '../spelling/store';
 import type { SpellingWeek } from '../spelling/store';
-import { selectPracticeWords, type PracticeMode } from '../spelling/scheduler';
+import {
+  selectPracticeWords, type CampaignStep, type PracticeMode
+} from '../spelling/scheduler';
+import {
+  getOrStartCampaign, markCampaignLevelComplete, type SavedCampaign
+} from '../spelling/campaign';
+import levels from '../content/levels.json';
 
 const parentEvent = 'robot-bunnies:open-parent';
 const practiceEvent = 'robot-bunnies:open-spelling';
@@ -14,7 +20,7 @@ export function initializeSpellingQuest(): void {
   overlay.hidden = true;
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-label', 'Lyla’s Spelling Quest');
+  overlay.setAttribute('aria-label', "Lyla's 22-level spelling adventure");
 
   overlay.innerHTML = `
     <div class="practice-scroll">
@@ -24,19 +30,21 @@ export function initializeSpellingQuest(): void {
             <span class="eyebrow">LYLA'S FLOWER QUEST</span>
             <h1>Spelling Adventure 🌸</h1>
           </div>
-          <button type="button" class="outline-btn" id="quest-close">Leave practice</button>
+          <button type="button" class="outline-btn" id="quest-close">Save &amp; leave</button>
         </header>
         <div class="quest-topline">
           <span id="quest-week"></span>
           <span id="quest-count" aria-live="polite"></span>
         </div>
         <div class="progress-track"><div id="quest-progress"></div></div>
+        <p id="quest-location" class="quest-location"></p>
+        <p id="quest-source" class="small-note"></p>
         <div id="quest-card">
-          <p class="quest-story" id="quest-story">Help Lyla collect magical flowers by spelling her secret words!</p>
-          <div class="quest-hero" aria-hidden="true"><span class="hero-bunny">🐰</span><span class="quest-flower">🌸</span><span class="quest-flower">🌼</span><span class="quest-flower">🌷</span><span class="hero-portal">🌀</span></div>
+          <p class="quest-story" id="quest-story">Help Lyla collect flowers by spelling her secret words!</p>
+          <div class="quest-hero" aria-hidden="true"><span class="hero-bunny">🐰</span><span>🌸</span><span>🌼</span><span>🌷</span><span class="hero-portal">🌀</span></div>
           <div class="quest-prompt">
             <p id="quest-instruction">Listen to the word. Then spell it!</p>
-            <div id="quest-secret" class="word-secret" aria-live="polite">_ _ _</div>
+            <div id="quest-secret" class="word-secret" aria-live="polite">✿ • • •</div>
             <div class="action-row center-actions">
               <button type="button" class="purple-btn" id="quest-hear">🔊 Hear word</button>
               <button type="button" class="outline-btn" id="quest-peek">👀 Peek at word</button>
@@ -52,18 +60,18 @@ export function initializeSpellingQuest(): void {
           </div>
           <div id="quest-feedback" class="quest-feedback" aria-live="polite" role="status"></div>
           <div class="action-row center-actions">
-            <button type="button" class="purple-btn" id="quest-next" hidden>Next flower →</button>
+            <button type="button" class="purple-btn" id="quest-next" hidden>Next level →</button>
             <button type="button" class="outline-btn" id="quest-retry" hidden>Try that word again</button>
-            <button type="button" class="outline-btn" id="quest-skip">Skip this word</button>
+            <button type="button" class="outline-btn" id="quest-skip">Skip for now</button>
           </div>
         </div>
         <div id="quest-finish" class="quest-finish" hidden>
           <div class="finish-art" aria-hidden="true">🐰🌸🌀</div>
-          <h2>Great job helping Lyla!</h2>
+          <h2 id="quest-finish-title">Great job helping Lyla!</h2>
           <p id="quest-summary"></p>
-          <p>Some words may come back another day so they get easier to remember.</p>
+          <p id="quest-finish-note">Previously tricky words return for another try in future adventures.</p>
           <div class="action-row center-actions">
-            <button type="button" class="purple-btn" id="quest-again">Another adventure</button>
+            <button type="button" class="purple-btn" id="quest-again">Start a new adventure</button>
             <button type="button" class="outline-btn" id="quest-parent">Parent Corner</button>
             <button type="button" class="outline-btn" id="quest-home">Back to game</button>
           </div>
@@ -84,20 +92,22 @@ export function initializeSpellingQuest(): void {
   const nextButton = node<HTMLButtonElement>('quest-next');
   const retryButton = node<HTMLButtonElement>('quest-retry');
   const skipButton = node<HTMLButtonElement>('quest-skip');
+  const peekButton = node<HTMLButtonElement>('quest-peek');
   const secret = node<HTMLDivElement>('quest-secret');
   const instruction = node<HTMLParagraphElement>('quest-instruction');
 
   let currentWeek: SpellingWeek | null = null;
-  let mode: PracticeMode = 'quick';
-  let words: string[] = [];
+  let currentCampaign: SavedCampaign | null = null;
+  let mode: PracticeMode = 'campaign';
+  let steps: CampaignStep[] = [];
   let index = 0;
-  let currentWord = '';
+  let currentStep: CampaignStep | null = null;
   let hadMiss = false;
   let hadHelp = false;
   let wrongCount = 0;
   let firstTryCount = 0;
   let practicedCount = 0;
-  let peekTimeout: number | undefined;
+  let peekVisible = false;
 
   function showError(text: string): void {
     feedback.textContent = text;
@@ -105,58 +115,63 @@ export function initializeSpellingQuest(): void {
   }
 
   function speakWord(): void {
-    if (!currentWord || !('speechSynthesis' in window)) {
-      showError('This iPad cannot speak the word. Tap Peek, read it, hide it, then spell from memory.');
+    if (!currentStep || !('speechSynthesis' in window)) {
+      showError('This iPad cannot speak the word. Peek at it, hide it, then spell from memory.');
       return;
     }
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(`Spell the word: ${currentWord}. ${currentWord}.`);
+      const utterance = new SpeechSynthesisUtterance(`Spell the word: ${currentStep.word}. ${currentStep.word}.`);
       utterance.lang = 'en-US';
       utterance.rate = 0.82;
       window.speechSynthesis.speak(utterance);
       instruction.textContent = 'Listen carefully, then spell what you heard.';
     } catch {
-      showError('Could not read this word aloud. Use Peek to study it briefly, then spell it from memory.');
+      showError('Speech is unavailable. Use Peek, then hide the word before typing.');
     }
   }
 
   function hidePeek(): void {
-    if (peekTimeout !== undefined) window.clearTimeout(peekTimeout);
-    peekTimeout = undefined;
-    secret.textContent = '✿ ' + '• '.repeat(Math.min(currentWord.length, 20));
+    peekVisible = false;
+    if (!currentStep) return;
+    secret.textContent = '✿ ' + '• '.repeat(Math.min(currentStep.word.length, 20));
     secret.classList.remove('show-word');
+    peekButton.textContent = '👀 Peek at word';
+    if (!checkButton.hidden) {
+      entry.disabled = false;
+      checkButton.disabled = false;
+    }
+  }
+
+  function togglePeek(): void {
+    if (!currentStep || checkButton.hidden) return;
+    hadHelp = true;
+    if (peekVisible) {
+      hidePeek();
+      instruction.textContent = 'Now spell the word from memory!';
+    } else {
+      peekVisible = true;
+      secret.textContent = currentStep.word;
+      secret.classList.add('show-word');
+      peekButton.textContent = '🙈 Hide word to spell';
+      entry.disabled = true;
+      checkButton.disabled = true;
+      instruction.textContent = 'Study the letters, then hide the word when you are ready. No timer!';
+    }
   }
 
   function close(): void {
-    if (peekTimeout !== undefined) window.clearTimeout(peekTimeout);
-    peekTimeout = undefined;
+    hidePeek();
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     overlay.hidden = true;
     entry.blur();
   }
 
-  function showWord(): void {
-    if (!currentWord) return;
-    hadHelp = true;
-    if (peekTimeout !== undefined) window.clearTimeout(peekTimeout);
-    secret.textContent = currentWord;
-    secret.classList.add('show-word');
-    peekTimeout = window.setTimeout(() => {
-      hidePeek();
-      instruction.textContent = 'The word is hidden again. Can you remember how to spell it?';
-    }, 3500);
-    instruction.textContent = 'Look carefully! In a moment, the word will disappear.';
-  }
-
   function giveHint(): void {
-    if (!currentWord) return;
+    if (!currentStep) return;
     hadHelp = true;
-    const first = currentWord.charAt(0).toUpperCase();
-    const length = currentWord.length;
-    feedback.textContent = `Clue: it starts with "${first}" and has ${length} letters. Listen to the sounds and try!`;
+    feedback.textContent = `Clue: it starts with "${currentStep.word.charAt(0).toUpperCase()}" and has ${currentStep.word.length} characters. Say the sounds slowly and try!`;
     feedback.className = 'quest-feedback feedback-hint';
-    instruction.textContent = 'Say the sounds slowly and think about the letters.';
   }
 
   function setAnswered(value: boolean): void {
@@ -166,27 +181,35 @@ export function initializeSpellingQuest(): void {
   }
 
   function showItem(): void {
-    hidePeek();
-    currentWord = words[index];
+    currentStep = steps[index] ?? null;
+    if (!currentStep) { finish(); return; }
     hadMiss = false;
     hadHelp = false;
     wrongCount = 0;
-    practicedCount = Math.max(practicedCount, index);
-    node<HTMLElement>('quest-count').textContent = `Flower ${index + 1} of ${words.length}`;
-    node<HTMLElement>('quest-progress').style.width = `${(index / words.length) * 100}%`;
-    secret.textContent = '✿ ' + '• '.repeat(Math.min(currentWord.length, 20));
+    hidePeek();
+    const isCampaign = mode === 'campaign';
+    const level = isCampaign ? levels[currentStep.levelId - 1] : null;
+    node<HTMLElement>('quest-count').textContent = isCampaign
+      ? `Level ${currentStep.levelId} of 22`
+      : `Word ${index + 1} of ${steps.length}`;
+    node<HTMLElement>('quest-location').textContent = level ? `🏰 ${level.title}` : '';
+    node<HTMLElement>('quest-source').textContent = currentStep.source === 'previous'
+      ? '✨ A bonus review flower from an earlier week!'
+      : isCampaign ? '🌸 A flower from this week’s spelling list' : '';
+    node<HTMLElement>('quest-progress').style.width = `${(index / steps.length) * 100}%`;
     feedback.textContent = '';
     feedback.className = 'quest-feedback';
     instruction.textContent = 'Listen to the word. Then spell it without looking!';
     entry.value = '';
     entry.disabled = false;
     checkButton.hidden = false;
+    checkButton.disabled = false;
     skipButton.hidden = false;
     retryButton.hidden = true;
     nextButton.hidden = true;
-    node<HTMLElement>('quest-story').textContent = index === 0
-      ? 'Lyla found a flower! Spell the secret word to put it in her pink fanny pack.'
-      : 'Another magical flower is waiting! Help Lyla collect it.';
+    node<HTMLElement>('quest-story').textContent = level
+      ? `Help Lyla find her way through ${level.setting}. Spell a word to collect her flower!`
+      : 'Help Lyla collect a magical flower by spelling its secret word!';
   }
 
   function finish(): void {
@@ -195,36 +218,62 @@ export function initializeSpellingQuest(): void {
     node<HTMLDivElement>('quest-card').hidden = true;
     node<HTMLDivElement>('quest-finish').hidden = false;
     node<HTMLElement>('quest-progress').style.width = '100%';
-    node<HTMLElement>('quest-count').textContent = 'Portal opened!';
+    node<HTMLElement>('quest-count').textContent = mode === 'campaign' ? '22 / 22 levels!' : 'Practice completed!';
+    node<HTMLElement>('quest-location').textContent = mode === 'campaign' ? '🌈 The final purple-and-blue portal is open!' : '';
+    node<HTMLElement>('quest-source').textContent = '';
+    node<HTMLElement>('quest-finish-title').textContent =
+      mode === 'campaign' ? 'Lyla finished all 22 levels! 🎉' : 'Great spelling practice!';
     node<HTMLElement>('quest-summary').textContent =
-      `You practiced ${practicedCount} word${practicedCount === 1 ? '' : 's'}! ${firstTryCount} correct without hints on the first try. Every try helps.`;
+      `This visit you practiced ${practicedCount} spelling ${practicedCount === 1 ? 'word' : 'prompts'}. ${firstTryCount} correct on the first try without hints. Every try helps!`;
+    node<HTMLElement>('quest-finish-note').textContent = mode === 'campaign'
+      ? 'You covered all of this week’s words across the adventure. You can start a fresh playthrough whenever you like.'
+      : 'Practice the tricky words again when you want to.';
+    node<HTMLButtonElement>('quest-again').textContent =
+      mode === 'campaign' ? 'Play all 22 again' : 'Practice again';
   }
 
   function advance(): void {
     index += 1;
-    practicedCount = Math.max(practicedCount, index);
-    if (index < words.length) showItem();
+    practicedCount += 1;
+    if (index < steps.length) showItem();
     else finish();
   }
 
+  function markStage(): boolean {
+    if (mode !== 'campaign' || !currentCampaign) return true;
+    try {
+      currentCampaign = markCampaignLevelComplete(currentCampaign, index);
+      return true;
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Could not save this level. Return to the home screen.');
+      return false;
+    }
+  }
+
   function check(): void {
-    if (!currentWeek) return;
+    if (!currentStep || !currentWeek || peekVisible || checkButton.hidden) return;
     if (!entry.value.trim()) {
       showError('Type the word before checking. You can listen again or ask for a clue.');
       return;
     }
-    hidePeek();
-    const correct = normalizeAnswer(entry.value) === normalizeAnswer(currentWord);
-    recordSpellingAttempt(currentWeek.id, currentWord, correct, !hadMiss && !hadHelp, hadHelp || hadMiss);
+    const correct = normalizeAnswer(entry.value) === normalizeAnswer(currentStep.word);
+    const firstTry = !hadMiss && !hadHelp;
+    try {
+      if (correct && !markStage()) return;
+      recordSpellingAttempt(currentStep.weekId, currentStep.word, correct, firstTry, hadHelp || hadMiss);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Could not save spelling progress.');
+      return;
+    }
     if (correct) {
-      if (!hadMiss && !hadHelp) firstTryCount += 1;
+      if (firstTry) firstTryCount += 1;
       feedback.textContent = hadMiss
-        ? `You did it! "${currentWord}" is spelled correctly. Lyla gets her flower! 🌸`
+        ? `You did it! "${currentStep.word}" is spelled correctly. Lyla gets her flower! 🌸`
         : hadHelp
-          ? `Nice remembering! "${currentWord}" is correct. A flower for Lyla! 🌸`
-          : `Wonderful! "${currentWord}" is right on the first try! 🌸`;
+          ? `Nice remembering! "${currentStep.word}" is correct. A flower for Lyla! 🌸`
+          : `Wonderful! "${currentStep.word}" is right on the first try! 🌸`;
       feedback.className = 'quest-feedback feedback-good';
-      node<HTMLElement>('quest-story').textContent = '🌸 Lyla puts another magical flower in her pink fanny pack!';
+      node<HTMLElement>('quest-story').textContent = '🌸 Lyla puts another flower in her pink fanny pack!';
       setAnswered(true);
       retryButton.hidden = true;
       nextButton.hidden = false;
@@ -232,9 +281,9 @@ export function initializeSpellingQuest(): void {
       hadMiss = true;
       wrongCount++;
       hadHelp = true;
-      feedback.textContent = `Let's learn this one! The correct spelling is "${currentWord}". Look at each letter, then tap Try Again to spell it from memory.`;
+      feedback.textContent = `The correct spelling is "${currentStep.word}". Look at the letters, then try again from memory.`;
       feedback.className = 'quest-feedback feedback-error';
-      secret.textContent = currentWord;
+      secret.textContent = currentStep.word;
       secret.classList.add('show-word');
       setAnswered(true);
       retryButton.hidden = false;
@@ -245,55 +294,72 @@ export function initializeSpellingQuest(): void {
 
   function retry(): void {
     retryButton.hidden = true;
-    secret.textContent = '✿ ' + '• '.repeat(Math.min(currentWord.length, 20));
-    secret.classList.remove('show-word');
-    feedback.textContent = wrongCount > 1 ? 'Try saying each sound slowly. You can use Peek if you need it.' : 'Your turn! Spell the word again.';
+    hidePeek();
+    feedback.textContent = wrongCount > 1
+      ? 'Try saying each sound slowly. You can peek if you need to.'
+      : 'Your turn! Spell the word again.';
     feedback.className = 'quest-feedback feedback-hint';
     instruction.textContent = 'Remember the word you just saw. Type it now!';
     entry.value = '';
     setAnswered(false);
+    checkButton.disabled = false;
   }
 
   function skip(): void {
-    if (!currentWeek) return;
-    recordSpellingAttempt(currentWeek.id, currentWord, false, false, true);
+    if (!currentStep) return;
+    try {
+      if (!markStage()) return;
+      recordSpellingAttempt(currentStep.weekId, currentStep.word, false, false, true);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Could not save spelling progress.');
+      return;
+    }
     advance();
   }
 
-  function start(requestedMode: PracticeMode = 'quick'): void {
+  function start(requestedMode: PracticeMode = 'campaign'): void {
     let week: SpellingWeek | null = null;
-    try { week = getActiveWeek(loadSpellingData()); } catch { /* Show parent recovery. */ }
-    if (!week || week.words.length === 0) {
+    try { week = getActiveWeek(loadSpellingData()); } catch { /* Open parent to recover */ }
+    if (!week?.words.length) {
       close();
       window.dispatchEvent(new Event(parentEvent));
       return;
     }
-    const selected = selectPracticeWords(week, requestedMode);
-    if (selected.length === 0 && requestedMode === 'review') {
-      mode = 'quick';
-      words = selectPracticeWords(week, 'quick');
-    } else {
-      mode = requestedMode;
-      words = selected;
-    }
     currentWeek = week;
-    index = 0;
+    currentCampaign = null;
+    mode = requestedMode;
+    if (mode === 'campaign') {
+      try {
+        currentCampaign = getOrStartCampaign();
+        steps = currentCampaign.steps;
+        index = currentCampaign.nextLevelIndex;
+      } catch (error) {
+        showError(error instanceof Error ? error.message : 'Could not load the adventure.');
+        return;
+      }
+    } else {
+      const selected = selectPracticeWords(week, mode);
+      steps = selected.map((word, i) => ({
+        levelId: i + 1, weekId: week.id, word, source: 'current'
+      }));
+      index = 0;
+    }
     practicedCount = 0;
     firstTryCount = 0;
     node<HTMLDivElement>('quest-card').hidden = false;
     node<HTMLDivElement>('quest-finish').hidden = true;
-    node<HTMLElement>('quest-week').textContent = `${week.label} · ${mode === 'test' ? 'Spelling test' : mode === 'review' ? 'Tricky words' : 'Quick quest'}`;
+    node<HTMLElement>('quest-week').textContent = `${week.label} · ${mode === 'campaign' ? '22-level adventure' : mode === 'test' ? 'Full spelling test' : 'Tricky words'}`;
     overlay.hidden = false;
     showItem();
   }
 
   window.addEventListener(practiceEvent, event => {
-    const requested = (event as CustomEvent<{mode?: PracticeMode}>).detail?.mode ?? 'quick';
+    const requested = (event as CustomEvent<{mode?: PracticeMode}>).detail?.mode ?? 'campaign';
     start(requested);
   });
   node<HTMLButtonElement>('quest-close').addEventListener('click', close);
   node<HTMLButtonElement>('quest-hear').addEventListener('click', speakWord);
-  node<HTMLButtonElement>('quest-peek').addEventListener('click', showWord);
+  peekButton.addEventListener('click', togglePeek);
   node<HTMLButtonElement>('quest-hint').addEventListener('click', giveHint);
   checkButton.addEventListener('click', check);
   entry.addEventListener('keydown', e => {

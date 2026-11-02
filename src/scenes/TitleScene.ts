@@ -13,7 +13,7 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
     surface.on('pointerdown', () => {
       if (event === 'Outline') this.scene.start('Outline');
-      else window.dispatchEvent(new CustomEvent(event, { detail: { mode: 'quick' } }));
+      else window.dispatchEvent(new CustomEvent(event, { detail: { mode: 'campaign' } }));
     });
   }
 
@@ -50,10 +50,10 @@ export class TitleScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif', fontSize: '21px', color: '#473053'
     }).setOrigin(0.5);
 
-    this.button(480, 422, 475, '🌸 PLAY SPELLING QUEST', 'robot-bunnies:open-spelling');
+    this.button(480, 422, 475, '🌸 PLAY 22-LEVEL ADVENTURE', 'robot-bunnies:open-spelling');
     this.button(326, 498, 295, 'PARENT CORNER', 'robot-bunnies:open-parent', 0x8f53b5);
     this.button(670, 498, 295, '22-LEVEL PLAN', 'Outline', 0x8f53b5);
-    this.add.text(12, 531, 'Spelling practice is playable. Story platform levels are still planned.', {
+    this.add.text(12, 531, 'The 22-stage spelling adventure works; platformer gameplay is still planned.', {
       fontFamily: 'Arial, sans-serif', fontSize: '15px', color: '#5e4671'
     }).setOrigin(0, 1);
   }
