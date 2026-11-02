@@ -1,4 +1,4 @@
-import { createCampaignPlan, currentWeekNeedsFocus, selectCurrentFocusWord, type CampaignStep } from './scheduler';
+import { createCampaignPlan, currentWeekNeedsFocus, selectCurrentFocusWord, selectPreviousReviewWord, type CampaignStep } from './scheduler';
 import { loadSpellingData, type SpellingData } from './store';
 
 const STORAGE_KEY = 'robot-bunnies.campaign.v1';
@@ -38,7 +38,8 @@ function validSavedPlan(input: unknown, data: SpellingData): input is SavedCampa
     const step = value.steps[i];
     if (!step || step.levelId !== i + 1 ||
         (step.source !== 'current' && step.source !== 'previous') ||
-        typeof step.word !== 'string' || typeof step.weekId !== 'string') return false;
+        typeof step.word !== 'string' || typeof step.weekId !== 'string' ||
+        (step.optional !== undefined && typeof step.optional !== 'boolean')) return false;
     const source = data.weeks.find(week => week.id === step.weekId);
     if (!source?.words.includes(step.word)) return false;
     if (step.source === 'current') {
@@ -79,9 +80,10 @@ export function getOrStartCampaign(data = loadSpellingData()): SavedCampaign {
 }
 
 /**
- * Enforce active-list priority again at level entry: if a current word became
- * weak during the run, convert the next planned older-week reinforcement
- * stage into a current-week practice stage. Preserve all completed stages.
+ * At every spare stage, choose current-week practice if ANY current-week word
+ * is weak/untried. Only if all are comfortable may a spare stage review an
+ * older week's word. Previously visited stages never change, and every active
+ * word's guaranteed scheduled stage is preserved.
  */
 export function prioritizeCurrentWeek(campaign: SavedCampaign, levelIndex: number): SavedCampaign {
   const data = loadSpellingData();
@@ -93,12 +95,33 @@ export function prioritizeCurrentWeek(campaign: SavedCampaign, levelIndex: numbe
   }
   const step = saved.steps[levelIndex];
   const current = data.weeks.find(week => week.id === saved.activeWeekId);
-  if (!step || step.source !== 'previous' || !current || !currentWeekNeedsFocus(current)) {
-    return saved;
+  if (!step || !step.optional || !current) return saved;
+
+  let replacement: CampaignStep;
+  if (currentWeekNeedsFocus(current)) {
+    replacement = {
+      levelId: levelIndex + 1, weekId: current.id,
+      word: selectCurrentFocusWord(current, levelIndex),
+      source: 'current', optional: true
+    };
+  } else {
+    const spareCount = CAMPAIGN_LEVEL_COUNT - current.words.length;
+    const previousQuota = Math.min(4, Math.ceil(spareCount / 3));
+    const alreadyReviewed = saved.steps.slice(0, levelIndex)
+      .filter(item => item.source === 'previous').length;
+    const old = alreadyReviewed < previousQuota
+      ? selectPreviousReviewWord(data, saved.runNumber, alreadyReviewed)
+      : null;
+    replacement = old
+      ? { levelId: levelIndex + 1, weekId: old.weekId, word: old.word, source: 'previous', optional: true }
+      : { levelId: levelIndex + 1, weekId: current.id,
+          word: current.words[(levelIndex + saved.runNumber) % current.words.length],
+          source: 'current', optional: true };
   }
-  const word = selectCurrentFocusWord(current, levelIndex);
+
+  if (step.word === replacement.word && step.weekId === replacement.weekId) return saved;
   const steps = [...saved.steps];
-  steps[levelIndex] = { levelId: levelIndex + 1, weekId: current.id, word, source: 'current' };
+  steps[levelIndex] = replacement;
   const updated = { ...saved, steps };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   return updated;

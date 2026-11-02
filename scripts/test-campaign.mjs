@@ -95,6 +95,23 @@ assert.equal(prioritized.steps[firstOldIndex].source, 'current',
 assert.equal(getOrStartCampaign().steps[firstOldIndex].source, 'current',
   'redirected word survives a reload');
 
+// A run started with difficult words may later qualify for old-week review.
+const changedMidrun = fixture(10, 10);
+persistSpellingData(changedMidrun);
+clearCampaign();
+let improvedRun = getOrStartCampaign();
+const firstSpare = improvedRun.steps.findIndex(s => s.optional);
+assert.ok(firstSpare >= 0);
+for (let i = 0; i < firstSpare; i++) improvedRun = markCampaignLevelComplete(improvedRun, i);
+const nowFluent = confidentFixture(10, 10);
+persistSpellingData(nowFluent);
+improvedRun = prioritizeCurrentWeek(improvedRun, firstSpare);
+assert.equal(improvedRun.steps[firstSpare].source, 'previous',
+  'old-week reinforcement becomes available as soon as the current list is secure');
+assert.equal(getOrStartCampaign().steps[firstSpare].source, 'previous',
+  'newly chosen old-week word survives reopening');
+
+
 const realData = {
   schemaVersion: 1,
   activeWeekId: 'current',

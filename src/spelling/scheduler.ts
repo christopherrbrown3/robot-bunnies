@@ -8,6 +8,8 @@ export interface CampaignStep {
   weekId: string;
   word: string;
   source: CampaignSource;
+  /** A spare level: can change from current-week practice to older review. */
+  optional?: boolean;
 }
 
 const CAMPAIGN_LEVELS = 22;
@@ -83,8 +85,8 @@ export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignS
   const ordered = [...currentWords.slice(rotate), ...currentWords.slice(0, rotate)];
 
   const plan: Array<CampaignStep | null> = Array(CAMPAIGN_LEVELS).fill(null);
-  const useCurrent = (levelIndex: number, word: string): void => {
-    plan[levelIndex] = { levelId: levelIndex + 1, weekId: current.id, word, source: 'current' };
+  const useCurrent = (levelIndex: number, word: string, optional = false): void => {
+    plan[levelIndex] = { levelId: levelIndex + 1, weekId: current.id, word, source: 'current', optional };
   };
 
   ordered.forEach((word, i) => {
@@ -131,7 +133,7 @@ export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignS
         Math.floor(extraIndex * previousQuota / spareIndices.length));
     if (placePrevious) {
       const candidate = previous[previousUsed++];
-      plan[position] = { levelId: position + 1, weekId: candidate.weekId, word: candidate.word, source: 'previous' };
+      plan[position] = { levelId: position + 1, weekId: candidate.weekId, word: candidate.word, source: 'previous', optional: true };
       return;
     }
     // Favor words that still need work, distributed to avoid repeating the
@@ -148,11 +150,41 @@ export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignS
       }
     }
     repeatUsed++;
-    useCurrent(position, candidate);
+    useCurrent(position, candidate, true);
   });
 
   return plan.map(step => {
     if (!step) throw new Error('Campaign planner left a level empty.');
     return step;
   });
+}
+
+/**
+ * Optional reinforcement: select a distinct previous-week word, excluding
+ * every word currently on the school list. No prior list means no old review.
+ */
+export function selectPreviousReviewWord(data: SpellingData, runNumber: number, previousUsed: number):
+  { weekId: string; word: string } | null {
+  const current = data.weeks.find(w => w.id === data.activeWeekId);
+  if (!current) return null;
+  const excluded = new Set(current.words);
+  const previous: Array<{ weekId: string; word: string; stats?: WordProgress }> = [];
+  for (const week of data.weeks) {
+    if (week.id === current.id) continue;
+    for (const word of week.words) {
+      if (excluded.has(word)) continue;
+      excluded.add(word);
+      previous.push({ weekId: week.id, word, stats: week.progress[word] });
+    }
+  }
+  previous.sort((a, b) =>
+    Number(needsReview(b.stats)) - Number(needsReview(a.stats)) ||
+    (b.stats?.misses ?? 0) - (a.stats?.misses ?? 0) ||
+    lastPracticed(a.stats) - lastPracticed(b.stats) ||
+    a.word.localeCompare(b.word)
+  );
+  if (!previous.length) return null;
+  const index = (Math.max(0, runNumber) + Math.max(0, previousUsed)) % previous.length;
+  const { weekId, word } = previous[index];
+  return { weekId, word };
 }
