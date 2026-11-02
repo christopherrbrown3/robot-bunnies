@@ -36,7 +36,8 @@ const game = new Phaser.Game({
   backgroundColor: '#f7edff',
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    // #app is a centered flexbox; Phaser centering on top of it doubled the offset in portrait.
+    autoCenter: Phaser.Scale.NO_CENTER
   },
   render: { pixelArt: false, antialias: true },
   // windowEvents off: taps on DOM overlays (Parent Corner, letter tiles) must never reach game objects underneath.

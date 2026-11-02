@@ -10,11 +10,43 @@
     <link rel="icon" href="%BASE_URL%icons/bunny.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-180.png" />
     <title>Robot Bunnies — Lyla's Spelling Quest</title>
+    <style>
+      /* Inline so it still shows if the bundled CSS/JS fail to load. */
+      .boot-status { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, 86vw);
+        margin: 0; text-align: center; color: #f2dcff; font: 700 20px/1.4 "Avenir Next", "Trebuchet MS", Arial, sans-serif; z-index: 5; }
+      .rotate-hint { display: none; }
+      .boot-status.boot-error { background: #fff6ff; color: #7a1f4c; border: 4px solid #f2bde4; border-radius: 18px; padding: 18px; }
+    </style>
   </head>
   <body>
     <main id="app" aria-label="Robot Bunnies: Lyla's Spelling Quest"></main>
+    <p id="boot-status" class="boot-status" role="status">Loading Robot Bunnies… 🐰</p>
     <p class="rotate-hint" aria-hidden="true">Turn the iPad sideways for a bigger adventure 🐰</p>
     <noscript>JavaScript is needed to play Robot Bunnies.</noscript>
+    <script>
+      // Show startup problems on screen: a grown-up on an iPad can't see the console.
+      (function () {
+        function show(message) {
+          if (window.__rbStarted) return;
+          var el = document.getElementById('boot-status');
+          if (!el) return;
+          el.textContent = message;
+          el.className = 'boot-status boot-error';
+        }
+        window.addEventListener('error', function (e) {
+          var t = e.target;
+          if (t && t !== window && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
+            show('The game files could not load (' + (t.src || t.href) + '). Check the internet connection, then reload.');
+          } else {
+            show('The game could not start: ' + (e.message || 'unknown error') + '. Try reloading. If it keeps happening, this iPad may need a Safari update.');
+          }
+        }, true);
+        setTimeout(function () { show('Still loading… If this message stays, reload the page.'); }, 20000);
+      })();
+    </script>
+    <script nomodule>
+      document.getElementById('boot-status').textContent = 'This iPad needs a newer version of Safari to play Robot Bunnies.';
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

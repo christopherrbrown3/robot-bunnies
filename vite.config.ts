@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+declare const process: { env: Record<string, string | undefined> };
+
+// The deploy workflow passes the base path GitHub Pages reports: '/' for the
+// custom domain, '/robot-bunnies/' for christopherrbrown3.github.io.
+const pagesBase = process.env.BASE_PATH && /^\/([\w.-]+\/)*$/.test(process.env.BASE_PATH)
+  ? process.env.BASE_PATH : undefined;
+
 export default defineConfig(({ command, isPreview }) => ({
-  // Dev server at '/'; production build AND `vite preview` use the GitHub Pages path.
-  base: command === 'serve' && !isPreview ? '/' : '/robot-bunnies/',
+  // Dev server at '/'; production build and `vite preview` use the Pages path.
+  base: command === 'serve' && !isPreview ? '/' : (pagesBase ?? '/robot-bunnies/'),
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',

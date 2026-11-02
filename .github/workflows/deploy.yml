@@ -28,10 +28,15 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Validate content and campaign progression
         run: npm test
-      - name: Build
-        run: npm run build
       - name: Set up Pages
+        id: pages
         uses: actions/configure-pages@v5
+      - name: Build
+        # Pages reports the site's base path: "" for a custom domain
+        # (robotbunnies.christopherbrown.ai) or "/robot-bunnies" for github.io.
+        run: npm run build
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
       - name: Upload production site
         uses: actions/upload-pages-artifact@v3
         with:
