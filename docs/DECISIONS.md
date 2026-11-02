@@ -71,3 +71,10 @@ When Zoey answers, update this log, [STORY_BIBLE.md](STORY_BIBLE.md), [LEVEL_OUT
 - Any remaining levels may repeat difficult current words and draw on **previous weeks for reinforcement**, never replacing current-list coverage.
 - Zoey decides when she is done playing: leaving and returning should resume the campaign at the next unfinished stage.
 - Game stages and word lists are separate: 22 story locations persist across weeks; the scheduler picks words and retains the plan for the duration of an active run.
+
+## Current-week spelling priority — confirmed requirement
+
+- Zoey's **current school week's words come first**, including repeated practice of weak, previously missed, assisted or not-yet-tested current words.
+- **Only** when the active list has no weak/unpracticed words may spare story levels draw from older weeks for reinforcement. No blanket quota of old words should preempt active-word practice.
+- The app reevaluates this priority **during a playthrough**, since new misses can make a previously strong list need attention again. Core scheduled coverage of all active words never changes.
+- The exact mastery threshold is a provisional heuristic (successful independent spelling, considering previous misses), open for tuning after real playtesting.

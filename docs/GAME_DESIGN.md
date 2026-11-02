@@ -5,8 +5,8 @@
 ## Game structure
 
 - Parent adds, edits, activates and archives a dated/named weekly list directly on Zoey's iPad, up to 20 unique words per list.
-- Zoey plays a **22-level campaign** with one word-based challenge at each level. All 10–20 current-week words (or any smaller list) are guaranteed at least one appearance over the full playthrough. Extra opportunities reinforce current tricky words and optionally earlier-week words. A parent can open a separate full-list practice test.
-- Flowers, gates, bridges, magical keys, bow targets and portals use **the current weekly list first**. Additional level slots can review past-week words, clearly identified as bonus reinforcement. No arbitrary curriculum words.
+- Zoey plays a **22-level campaign** with one word-based challenge at each level. All 10–20 current-week words (or any smaller list) are guaranteed at least one appearance over the full playthrough. Every spare opportunity prioritizes still-weak or untested current-week words. **Only after all current-week words have independent success without unresolved weak-word signals may a spare level review earlier weeks.** Re-evaluate this before every spare stage. A parent can open a separate full-list practice test.
+- Flowers, gates, bridges, magical keys, bow targets and portals use **the current weekly list first**. Additional levels repeat difficult current words; past-week bonus reinforcement is allowed **only while the current list has no weak or untested words**, and reevaluated during play. No arbitrary curriculum words.
 - The 22 story levels are fixed **locations**, not 22 separate school weeks. Each full run spans all 22 locations. Changing the active list prepares a new 22-stage word assignment; replaying with the same list rotates and reviews the words.
 - Puzzles and action segments must remain easy; **correct spelling**, not twitch reflexes, should determine the challenge.
 - Flowers are recovered when spelling is checked successfully; mistakes provide feedback, not lost lives.

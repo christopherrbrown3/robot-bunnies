@@ -11,7 +11,8 @@
 - [x] Parent Corner with adult UX gate.
 - [x] Weekly list input, edit, activate, and archive: **1–20 unique words**.
 - [x] Local word-level stats, JSON export/import, erase with confirmation.
-- [x] Full 22-stage spelling campaign; every weekly word guaranteed at least once, flexible list lengths, spare levels for repeats/prior weeks.
+- [x] Full 22-stage spelling campaign; every weekly word guaranteed at least once, flexible list lengths, spare levels for weak current words first, previous-week reinforcement only when the active list has no weak or untested words.
+- [x] Recheck current-week weaknesses before each spare level, so new misses override older-week review.
 - [x] Save campaign after each completed challenge; resume after app close and replay a fresh 22-stage campaign.
 - [x] Separate tricky-word review and full-word-list mock test (no fixed five-word main quest).
 - [x] Browser spoken word via direct tap, untimed Peek/Hide fallback, first-letter/length hint.

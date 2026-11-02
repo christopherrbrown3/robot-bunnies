@@ -26,7 +26,7 @@ Research reviewed November 2026. This document guides the actual game loop, not 
 ## Game mapping
 
 - Lyla remains a white bunny with a pink fanny pack. Correct spelling retrieves flowers, reveals clues, frees companions, opens gates and moves toward the purple/blue portal.
-- **One spelling prompt per level**, across all 22 levels in a playthrough. Guarantee every current-list word appears at least once (10–20 words, or fewer if school assigns fewer), fill remaining stages by reinforcing harder words and optionally earlier-week words. These 22 levels are *storybook geography*, not 22 school weeks.
+- **One spelling prompt per level**, across all 22 levels in a playthrough. Guarantee every current-list word appears at least once (10–20 words, or fewer if school assigns fewer), fill remaining stages by reinforcing hard or untested current-week words; older-week words only appear once all current-week words show sufficient independent success. Check again after new misses. These 22 levels are *storybook geography*, not 22 school weeks.
 - A week list can be practiced repeatedly. New lists can be loaded whenever a teacher issues them. Previously saved weeks remain available.
 - Make breaks optional and allow seamless resumption, rather than ending after a fixed number of words or minutes. Avoid punishing errors, speed bonuses, mastery fireworks for a single correct attempt, or character distress.
 - Use the tiger/Ridensee rescue story and skippable cutscenes; no academic quizzes involving math.

@@ -6,7 +6,7 @@
 - **Devices:** older iPads, touch first, landscape 4:3/16:9 screens, aim for acceptable performance on iPadOS 15+ (actual minimum TBD after device testing).
 - **Stack:** Phaser 3, TypeScript, Vite, vite-plugin-pwa/Workbox.
 - **No backend:** no authentication, child account, remote telemetry or externally stored learning history. No mandatory network after first app cache.
-- **Scope now:** working title screen, browseable outline, Parent Corner with 20-word weekly lists, and a **22-stage resumable weekly-word spelling campaign**. The story platformer, scripted cutscenes, and final art are future work. Story platforming, scripted cutscenes, and final art are future work.
+- **Scope now:** working title screen, browseable outline, Parent Corner with 20-word weekly lists, and a **22-stage resumable weekly-word spelling campaign**, with dynamic priority given to current-week weak or untested words. The story platformer, scripted cutscenes, and final art are future work. Story platforming, scripted cutscenes, and final art are future work.
 
 ## Source layout
 
@@ -19,7 +19,7 @@ src/
     OutlineScene.ts       # 22-level browser; not gameplay
   spelling/
     store.ts            # 1–20 words/week and local spelling stats
-    scheduler.ts        # coverage of all active words + past-week reinforcement
+    scheduler.ts        # all active words first; past-week review only when current is secure
     campaign.ts         # stable 22-stage assignments and saved resume state
   ui/
     ParentCorner.ts     # weekly list editor
@@ -55,7 +55,7 @@ Pause/cutscene/puzzle states stop movement and disable conflicting input. A tap 
 
 ## Save system (implemented / future)
 
-**Implemented:** versioned `localStorage` for weekly lists and word stats; a distinct versioned campaign record holds the **frozen** 22-stage word assignment, run number and `nextLevelIndex`. Save immediately after a correctly spelled or skipped word, so the player can leave and resume. Progress statistics can change without reshuffling an in-progress campaign. Editing lists, switching active weeks or importing a backup resets the word assignment. A completed 22-stage run starts a fresh run on the next play.
+**Implemented:** versioned `localStorage` for weekly lists and word stats; a distinct versioned campaign record holds the **frozen** 22-stage word assignment, run number and `nextLevelIndex`. Save immediately after a correctly spelled or skipped word, so the player can leave and resume. Progress statistics can change without reshuffling mandatory active-week stages. Optional spare stages are reassessed before each prompt: an active-week word needing practice always supersedes a previous-week review word. Editing lists, switching active weeks or importing a backup resets the word assignment. A completed 22-stage run starts a fresh run on the next play.
 
 **Future:** checkpoint positions for real platform scenes, sound preferences, all cutscene flags, and a backup including full in-progress campaign state (today's word-list JSON backup does **not** include campaign cursor). If history expands significantly, consider IndexedDB. Local Safari data deletion can lose progress; nothing is synced to a server.
 
