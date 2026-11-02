@@ -1,5 +1,5 @@
 import {
-  activateWeek, eraseSpellingData, exportSpellingBackup, getActiveWeek,
+  activateWeek, eraseSpellingData, exportSpellingBackup,
   importSpellingBackup, loadSpellingData, parseWords, saveWeek
 } from '../spelling/store';
 import type { SpellingData, SpellingWeek } from '../spelling/store';
@@ -60,6 +60,7 @@ export function initializeParentCorner(): void {
               <div class="action-row">
                 <button type="button" class="purple-btn" id="start-practice">Play spelling quest</button>
                 <button type="button" class="outline-btn" id="start-review">Practice tricky words</button>
+                <button type="button" class="outline-btn" id="start-test">Full spelling test</button>
               </div>
             </div>
           </div>
@@ -209,7 +210,7 @@ export function initializeParentCorner(): void {
     }
   });
 
-  function practice(mode: 'quick' | 'review'): void {
+  function practice(mode: 'quick' | 'review' | 'test'): void {
     try {
       if (!selectedWeekId) { setMessage('Save a week first.', true); return; }
       activateWeek(selectedWeekId);
@@ -221,6 +222,7 @@ export function initializeParentCorner(): void {
   }
   get<HTMLButtonElement>('start-practice').addEventListener('click', () => practice('quick'));
   get<HTMLButtonElement>('start-review').addEventListener('click', () => practice('review'));
+  get<HTMLButtonElement>('start-test').addEventListener('click', () => practice('test'));
 
   get<HTMLButtonElement>('spelling-export').addEventListener('click', () => {
     try {
