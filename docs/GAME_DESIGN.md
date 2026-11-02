@@ -1,5 +1,7 @@
 # Game design: spelling-first Robot Bunnies
 
+> **See [Final Game Specification v1.0](FINAL_SPEC.md) for binding requirements.** Older prototype descriptions below are descriptive of currently built functionality, not the approved final interaction.
+
 **Primary purpose:** help Zoey prepare for her weekly school spelling tests using her actual teacher-provided list of **up to 20 words**. **No general first-grade math curriculum.** The imaginative 22-level Robot Bunnies world is the setting and reward system for repeated, evidence-informed spelling practice.
 
 ## Game structure
@@ -13,13 +15,14 @@
 - A word once missed or completed with hints is prioritized for reinforcement on replay. A mistake does not stop the player from continuing the story.
 - Parents can see which words Zoey spells without help on her first attempt, which she struggles with, and which she skips.
 
-## The core learning interaction
+## The approved in-game spelling interaction
 
-1. Lyla finds a flower. **Listen** to its word (audio) without seeing the answer; if speech doesn't work, **Peek** at it briefly, hide it, then attempt recall.
-2. Zoey types the word using a real on-screen iPad keyboard. Future versions can add assistive letter tiles; an independent full-word response stays the primary goal.
-3. If correct, Lyla gains a flower. Keep first-attempt success separate from assisted or corrected success.
-4. If incorrect, immediately reveal the *correct spelling*, invite Zoey to study it, then hide it before she retries. Keep the word in future practice rotation.
-5. Each spelling challenge advances to the next story level; after Level 22, celebrate the purple-and-blue portal and full campaign completion. No time penalty, shame, or score punishment.
+1. In a playable, forgiving side-scrolling level, Lyla encounters a flower, key, gate or other story objective. **The game world freezes safely**: no enemies, scrolling or physics continue while spelling.
+2. The target word is heard aloud from TTS or an optional parent recording that overrides a mispronunciation. Repeat audio without penalty. If audio fails, use Peek → Hide → Recall (logged as help).
+3. Zoey **arranges letter tiles** to construct the word from memory. The tile bank contains all letters, not only letters in the answer; repeated letters are selectable. The iPad keyboard is **not** the primary child experience.
+4. First-attempt independent success gets the reward. On a miss, immediately reveal the correct spelling, hide it for another attempt, and allow hints or Skip. Corrected attempts remain assisted; mistakes never cost lives, progress or flowers.
+5. Once the prompt is resolved, **resume the paused level**, give a brief collision grace period, and retain progress. Every full 22-level run must cover the whole current word list; spare stages prioritize weak current words before any past-week reinforcement.
+6. A word is considered secure only after **two independent, first-try correct presentations since the last miss/assisted outcome**, preferably separated by days but with **no enforced waiting**.
 
 See [SPELLING_RESEARCH.md](SPELLING_RESEARCH.md) for sources, evidence strength and implementation limits.
 
@@ -37,4 +40,4 @@ No mandatory read-the-story challenge, timed spelling, lives, game-overs, or pun
 
 ## Current MVP status
 
-The **resumable 22-stage spelling-question flow and Parent Corner** are functional in the scaffold, pending deployment and iPad testing. Each stage displays its story location, but this is **not yet a playable side-scroller**. Upcoming work integrates the same spelling engine into Phaser platform scenes with cartoon art and narrative cutscenes.
+The **resumable 22-stage spelling-question prototype and Parent Corner** are coded, pending deployment and iPad testing. Each stage displays its story location, but this is **not yet a playable side-scroller**. Upcoming work adds the required letter-tile composer, parent-recorded audio, two-independent-response mastery model and safe pause/resume triggers in Phaser platform scenes with cartoon art and cutscenes.

@@ -1,5 +1,7 @@
 # Technical architecture (initial)
 
+> **Authority:** [Final Game Specification v1.0](FINAL_SPEC.md). The current browser UI still uses a keyboard text input; letter tiles and parent-recorded audio are required **next implementation work**, not present yet.
+
 ## Constraints and goals
 
 - **Distribution:** static build on GitHub Pages at `/robot-bunnies/`. Home-screen install via Safari.
@@ -23,7 +25,7 @@ src/
     campaign.ts         # stable 22-stage assignments and saved resume state
   ui/
     ParentCorner.ts     # weekly list editor
-    SpellingQuest.ts    # spelling prompts and 22-stage campaign
+    SpellingQuest.ts    # CURRENT keyboard-based prompts and 22-stage campaign
   content/
     levels.json           # 22 story locations; spellingChallenge metadata
     types.ts              # static level shape
@@ -35,7 +37,7 @@ scripts/
 .github/workflows/deploy.yml
 ```
 
-Production architecture **target**, to implement incrementally: `GameScene`, `HUDScene`, `CutsceneScene`, `LearningScene`, `RescueScene`, `ParentScene`, `AudioManager`, `ProgressStore`, `ContentRepository`, `InputRouter`. Do not create empty classes for functionality that doesn't yet exist.
+Production architecture **target**, to implement incrementally: `LetterTileComposer` (full alphabet bank, repeats, punctuation), `WordAudioRepository` (IndexedDB parent clips → TTS fallback), `SpellingMastery` (independent 2-success streak and date evidence), `SpellingPauseController` (freeze physics/hazards and resume safely), plus `GameScene`, `HUDScene`, `CutsceneScene`, `LearningScene`, `RescueScene`, `ParentScene`, `AudioManager`, `ProgressStore`, `ContentRepository`, `InputRouter`. Do not create empty classes for functionality that doesn't yet exist.
 
 ## Game engine approach
 
@@ -51,13 +53,13 @@ Production architecture **target**, to implement incrementally: `GameScene`, `HU
 
 `RUNNING` (auto-run / high single jump) ↔ `SHRUNK` (only after tap on Lyla in DANGER_WINDOW) → `RECOVERING` (automatic regrowth), and `CAPTURED` → `RIDENSEE_RESCUE` → `RUNNING`.
 
-Pause/cutscene/puzzle states stop movement and disable conflicting input. A tap on the on-screen Jump button must not bubble through into the shrink-tap handler. Explicitly test single-touch, accidental second taps, resume after backgrounding, orientation changes, and audio unlock gestures.
+Spelling triggers pause physics, character velocity, enemy movement, timers and game input; restore the saved world and resume after success, error-corrected success or skip, with short collision grace. The tile composer must be touch-first and accessible. Pause/cutscene/puzzle states stop movement and disable conflicting input. A tap on the on-screen Jump button must not bubble through into the shrink-tap handler. Explicitly test single-touch, accidental second taps, resume after backgrounding, orientation changes, and audio unlock gestures.
 
 ## Save system (implemented / future)
 
 **Implemented:** versioned `localStorage` for weekly lists and word stats; a distinct versioned campaign record holds the **frozen** 22-stage word assignment, run number and `nextLevelIndex`. Save immediately after a correctly spelled or skipped word, so the player can leave and resume. Progress statistics can change without reshuffling mandatory active-week stages. Optional spare stages are reassessed before each prompt: an active-week word needing practice always supersedes a previous-week review word. Editing lists, switching active weeks or importing a backup resets the word assignment. A completed 22-stage run starts a fresh run on the next play.
 
-**Future:** checkpoint positions for real platform scenes, sound preferences, all cutscene flags, and a backup including full in-progress campaign state (today's word-list JSON backup does **not** include campaign cursor). If history expands significantly, consider IndexedDB. Local Safari data deletion can lose progress; nothing is synced to a server.
+**Future:** two-independent-success security and regression events with distinct dates, locally stored parent audio clips in IndexedDB, the letter tile answer state, checkpoint positions for real platform scenes, sound preferences, cutscene flags, and a backup including full in-progress campaign state (today's word-list JSON backup does **not** include campaign cursor). If history expands significantly, consider IndexedDB. Local Safari data deletion can lose progress; nothing is synced to a server.
 
 ## PWA / GitHub Pages
 

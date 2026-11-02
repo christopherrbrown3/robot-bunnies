@@ -1,5 +1,7 @@
 # Spelling-only learning design
 
+> **Binding product rules live in [Final Game Specification v1.0](FINAL_SPEC.md).** Any description of the keyboard/TTS-only prototype is not a final-design decision.
+
 **Scope change:** Zoey's spelling tests are the entire learning goal. Do **not** reintroduce general reading, sentence comprehension, addition, counting, money arithmetic, or other unrelated educational objectives.
 
 ## Weekly parent workflow
@@ -12,7 +14,7 @@
 
 ## Spelling loop
 
-Hear → recall → type → immediate feedback → optional assisted correction → spaced later revisit. Only **first-try, no-hint spelling** counts as independent success. Revealing the word, asking for a hint, or correcting after an error remains worthwhile learning but is recorded as assisted.
+Hear → recall → arrange **letter tiles** into a complete word → immediate feedback → optional assisted correction → later revisit. Only **first-try, no-hint spelling from a broad alphabet tile bank** counts as independent success. Audio replay does not count as a hint. Revealing the word, asking for a hint, or correcting after an error remains worthwhile learning but is recorded as assisted.
 
 On an error, show exact correct spelling immediately, encourage a new response with the answer hidden, then return that word to future review. Don't penalize mistakes or delete progress.
 
@@ -20,15 +22,15 @@ On an error, show exact correct spelling immediately, encourage a new response w
 
 **No timer or session cap.** Zoey can complete the entire 22-level run at once, pause in the middle, or return on another day. Save after each completed challenge. The scheduler guarantees full active-list coverage, uses dynamic spare stages to prioritize active words with unresolved difficulty; after all current words demonstrate independent success, a few older words may return. This decision is rechecked throughout the same run and may switch back if she misses a current word. Repeated sessions across days may strengthen retention, but the interface must never force a break. A true review-interval scheduler using separate-day independent retrieval is a future refinement; current priorities are transparent heuristics.
 
-A simple word history stores attempts, misses, first-try correct and assisted correct. Do not call this a scientific mastery score. A recommended future definition of `comfortable` is at least two successful independent spelling attempts on separate days; this threshold is a practical product heuristic, not medical/educational diagnosis.
+**Approved secure-word rule:** two independent correct presentations **since the last miss, hint, Peek or Skip**. A successful prompted retry after an error is assisted, not independent. Two successes on separate days are preferred and separately tracked, but a child is **never forced to wait for tomorrow** to continue or to become secure. One independent success is still weak; an error or hint after security makes it weak again until two new independent successes. A word's stage and calendar date must be tracked so repeated taps on one attempt cannot count twice. This is a practical game heuristic, **not a scientific diagnostic or educational assessment**. Current code tracks first-try counts but needs a new streak/regression model to meet this spec.
 
 ## Interaction & motor-skills considerations
 
-The MVP uses an iPad's ordinary onscreen keyboard. An optional letter-tile builder is appropriate for very early practice, but letter choices may cue the answer, so record as **assisted** and ensure full-word retrieval remains available. Consider parent-supervised write-on-paper prompts before the school test because keyboard spelling is not a full substitute for handwriting.
+**Approved primary child interaction: arrange large tappable letter tiles.** Offer a reusable full A–Z bank, not only the answer letters, to reduce answer cues. Tap tiles to enter, tap entered letters to remove/rearrange, and provide Backspace, Clear, Hear, Hint and Check. Unassisted full-word recall from a broad bank is eligible for independent credit. **Tile layout itself is not a hint**; Peek, filled letters, narrowed choices, answer reveal and retries are assistance. Text-input may remain a developer or accessibility fallback, never the primary game mechanic. Support repeated letters and any accepted punctuation in parent lists. Handwritten practice may still be useful before a written school test.
 
 ## Speech and pronunciation
 
-The app tries browser `speechSynthesis` on a direct Hear button tap. It may not work consistently offline or with all older iPads. The Peek button offers an explicit study→hide→spell fallback, counted as assistance. For a reliable audio-dictation experience, future work should bundle recorded word audio or provide parent-recorded prompts stored locally. Do **not** silently assume perfect or offline TTS.
+**Approved audio behavior:** try an optional local **parent recording for the exact word first**, otherwise browser/on-device **text-to-speech**, and use an explicit Peek → Hide → Spell fallback when audio fails (counted as assistance). Parent Corner must offer Record/Play/Replace/Delete per word; store blobs locally in IndexedDB and document backup/restore limits. The current prototype has **TTS only**; recording and audio priority have **not yet been implemented**. Audio may be unreliable offline on some older iPads; do not claim otherwise until tested.
 
 ## Reports and privacy
 

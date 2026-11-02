@@ -78,3 +78,15 @@ When Zoey answers, update this log, [STORY_BIBLE.md](STORY_BIBLE.md), [LEVEL_OUT
 - **Only** when the active list has no weak/unpracticed words may spare story levels draw from older weeks for reinforcement. No blanket quota of old words should preempt active-word practice.
 - The app reevaluates this priority **during a playthrough**, since new misses can make a previously strong list need attention again. Core scheduled coverage of all active words never changes.
 - The exact mastery threshold is a provisional heuristic (successful independent spelling, considering previous misses), open for tuning after real playtesting.
+
+## Approved final v1 choices — November 1, 2026 (dad)
+
+These choices **supersede** earlier suggestions or prototype behaviors where they conflict. See [FINAL_SPEC.md](FINAL_SPEC.md).
+
+1. **In-level spelling:** gameplay pauses naturally when Lyla reaches a flower, gate, key or story challenge. Spelling is completed in the world and movement safely resumes afterward.
+2. **Answer input:** **arrange letter tiles**, not default keyboard typing. The tile bank must allow full uncued recall; being offered tiles doesn't automatically mark a spelling assisted.
+3. **Pronunciation:** **text-to-speech plus optional parent recordings** for mispronounced words. Recording overrides TTS for an exact word and stays stored locally.
+4. **Secure-word threshold:** **two independent correct spellings**, preferably on separate days, **without forced waiting**. A new miss/hint/peek/skip marks the word as needing review until two fresh independent correct presentations. Current one-success scheduler is obsolete and must be replaced.
+5. **Misspelled word:** immediately show correct spelling, then hide for a retry; allow hints and Skip as necessary. Record error; never punish or block story progress.
+
+This is now a **complete enough implementation spec**; remaining story dialogue, art details and exact staging are creative tasks, not blockers. `FINAL_SPEC.md` is the canonical authority, and working-prototype implementation differences are documented rather than misrepresented as completed features.

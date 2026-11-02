@@ -1,5 +1,7 @@
 # Research: What helps young children learn spelling?
 
+> **Approved product design:** [Final Game Specification v1.0](FINAL_SPEC.md). The research supports recall, feedback and spaced review; it does **not** independently prove a tile-bank interface or exact mastery threshold.
+
 Research reviewed November 2026. This document guides the actual game loop, not a general first-grade math/reading curriculum. School-provided weekly words (up to 20) are the **only required learning content**.
 
 ## The strongest practical principles
@@ -18,7 +20,7 @@ Research reviewed November 2026. This document guides the actual game loop, not 
 
 1. **Hear:** present the spoken word (and potentially a simple example sentence, if supplied by a parent). On devices with unreliable speech synthesis, provide a *peek, hide, retrieve* alternative.
 2. **Think:** encourage the child to say the sounds slowly and map them to letters. Never force a timed response.
-3. **Spell:** enter the entire word *from memory*. Current MVP uses the iPad keyboard; future touch letter tiles can be offered as training assistance, but should not substitute for keyboard/handwritten independent recall.
+3. **Spell:** construct the entire word *from memory*. The final game uses a **full-alphabet letter-tile bank** rather than the keyboard. Tiles are an input modality, not automatically assistance; a reduced answer-only tile set would be cued/assisted. The current prototype still uses keyboard input.
 4. **Check:** evaluate the whole spelling, ignoring capitalization. Correct → flower and progress. Incorrect → show the correct answer, invite another hidden attempt, and flag for future review.
 5. **Revisit:** return to previously missed or assisted words in a later session, not just immediately in the same session.
 6. **Assess:** provide a full-list, low-pressure *practice test* to spot remaining difficulty. Parent report distinguishes first-try independent success from helped attempts.
@@ -37,8 +39,8 @@ Evidence for a particular touch interface, 22-question campaign, automatic maste
 
 ## Current implementation vs future work
 
-**Built:** weekly list editor (1–20 words), local history, backup/import, 22-stage resumable campaigns that cover all current words and some prior-week words, optional spoken prompts via browser speech synthesis, untimed peek-and-hide fallback, first-letter/length hints, immediate correction and retry, missed-word prioritization, full-list practice test, flower rewards.
+**Built in code:** weekly list editor (1–20 words), local history, JSON word-list backup/import, 22-stage resumable campaigns that guarantee active-list coverage and prioritize active weaknesses, spoken browser TTS, untimed Peek/Hide fallback, first-letter/length hints, immediate correction and retry, full-list practice test and flower rewards.
 
-**Not yet built:** word-level phoneme-grapheme teaching, well-designed sound pattern explanations, actual 22 playable platform scenes, automatically scheduled daily reminders, child-friendly letter tile mode, real hand-writing mode, guaranteed offline TTS, rule-based mastery proof, and progress visualization integrated in story world.
+**Not yet built:** real 22 playable platform scenes and in-world pause/resume puzzles; **required child letter-tile composer**; optional **parent-recorded audio**; **two-independent-correct secure-state tracking and regression**; phoneme-grapheme feedback; on-paper practice options; reliable offline pronunciation on all target devices; narrative cutscenes.
 
 **Speech limitation:** iPadOS/Safari voices differ, and speech synthesis can be silent or unavailable offline. The peek fallback lets the child study then hide a word, but it is not equivalent to listening dictation. Record or bundle offline spoken audio in a later version for a reliable true test experience.
