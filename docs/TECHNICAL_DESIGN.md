@@ -6,7 +6,7 @@
 - **Devices:** older iPads, touch first, landscape 4:3/16:9 screens, aim for acceptable performance on iPadOS 15+ (actual minimum TBD after device testing).
 - **Stack:** Phaser 3, TypeScript, Vite, vite-plugin-pwa/Workbox.
 - **No backend:** no authentication, child account, remote telemetry or externally stored learning history. No mandatory network after first app cache.
-- **Scope now:** working title screen and browseable level outline **only**; gameplay, educational activities, cutscenes, parent tools and art are future work.
+- **Scope now:** working title screen, browseable outline, Parent Corner with 20-word weekly lists, and a short retrieval-based spelling quiz. Story platforming, scripted cutscenes, and final art are future work.
 
 ## Source layout
 
@@ -18,7 +18,7 @@ src/
     TitleScene.ts         # title/menu, handoff to outline
     OutlineScene.ts       # 22-level browser; not gameplay
   content/
-    levels.json           # all 22 proposed level definitions
+    levels.json           # 22 story locations; spellingChallenge metadata
     types.ts              # static level shape
 public/
   icons/bunny.svg         # simple placeholder graphic; replace with final art

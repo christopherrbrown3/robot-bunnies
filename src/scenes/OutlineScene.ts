@@ -48,15 +48,11 @@ export class OutlineScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif', fontSize: '19px', color: '#644279',
       wordWrap: { width: 795 }
     });
-    this.add.text(84, 345, `READING: ${level.reading}`, {
+    this.add.text(84, 345, `SPELLING: ${level.spellingChallenge}`, {
       fontFamily: 'Arial, sans-serif', fontSize: '19px', color: '#6a3d92',
       wordWrap: { width: 795 }
     });
-    this.add.text(84, 383, `MATH: ${level.math}`, {
-      fontFamily: 'Arial, sans-serif', fontSize: '19px', color: '#6a3d92',
-      wordWrap: { width: 795 }
-    });
-    this.button(145, 477, 'BACK', () => this.scene.start('Title'));
+this.button(145, 477, 'BACK', () => this.scene.start('Title'));
     this.button(480, 477, 'PREVIOUS', () => {
       this.index = (this.index + levels.length - 1) % levels.length;
       this.renderCard();

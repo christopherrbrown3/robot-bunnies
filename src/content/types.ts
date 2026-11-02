@@ -10,7 +10,6 @@ export interface LevelOutline {
   provenance: LevelProvenance;
   story: string;
   mechanic: string;
-  reading: string;
-  math: string;
+  spellingChallenge: string;
   developmentStatus: DevelopmentStatus;
 }

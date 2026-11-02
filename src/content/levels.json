@@ -8,9 +8,8 @@
     "provenance": "confirmed-setting",
     "story": "Bunny Police hand Lyla a key and reveal the king is evil. Escape the cage; an evil tiger can jump out and catch her. Ridensee automatically rescues her if needed.",
     "mechanic": "Key, cage, jumping and auto-collection tutorial",
-    "reading": "Decode KEY / HOP with optional narration",
-    "math": "Count 1–5 flowers",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Listen, look if needed, then spell the key word to free Lyla"
   },
   {
     "id": 2,
@@ -21,9 +20,8 @@
     "provenance": "confirmed-setting",
     "story": "Lyla enters a giant rainbow; how the rainbow is traversed is a proposed design choice.",
     "mechanic": "Easy rainbow pathways and a purple-blue exit portal",
-    "reading": "Read RED / BLUE / SUN",
-    "math": "Count and order 1–6",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a rainbow flower word to open the portal"
   },
   {
     "id": 3,
@@ -34,9 +32,8 @@
     "provenance": "proposed",
     "story": "Find colorful door panels and place paint splatters in rainbow order to reveal flowers.",
     "mechanic": "Simple drag/tap-to-place color puzzle",
-    "reading": "Match color words with audio hints",
-    "math": "Complete repeating sequences",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a color word to unlock the rainbow paint door"
   },
   {
     "id": 4,
@@ -47,9 +44,8 @@
     "provenance": "proposed",
     "story": "Lyla hops across generous floating clouds on her way to the next portal.",
     "mechanic": "Wide, low-stakes platforms",
-    "reading": "Read UP / GO / HOP",
-    "math": "More / less comparisons",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a secret word to build a cloud bridge"
   },
   {
     "id": 5,
@@ -60,9 +56,8 @@
     "provenance": "proposed",
     "story": "Beads are scattered across the ground; pick up the beads so no bunny trips.",
     "mechanic": "Collect beads and flowers; gentle bounce on missed beads",
-    "reading": "Read simple warning signs",
-    "math": "Count removed beads within 10",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to clean up the bead path"
   },
   {
     "id": 6,
@@ -73,9 +68,8 @@
     "provenance": "proposed",
     "story": "A friendly moonlit meadow has glowing flowers and a sleepy gatekeeper.",
     "mechanic": "Timing-free collecting and sign clues",
-    "reading": "CVC word-picture matching",
-    "math": "Addition within 10 using petals",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a flower word to fill Lyla's pack"
   },
   {
     "id": 7,
@@ -86,9 +80,8 @@
     "provenance": "proposed",
     "story": "Repair a little bridge made of numbered stepping stones.",
     "mechanic": "Choose correct stepping stones",
-    "reading": "Short phrases and directions",
-    "math": "Number bonds to 10",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to repair the woodland bridge"
   },
   {
     "id": 8,
@@ -99,9 +92,8 @@
     "provenance": "proposed",
     "story": "Zoo animals jump down trying to catch bunnies carrying flowers, as Zoey specified.",
     "mechanic": "Telegraphed animal ambushes, safe hiding spots",
-    "reading": "Read short animal warning signs",
-    "math": "Subtract flowers from small sets",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a zoo warning word before animals jump"
   },
   {
     "id": 9,
@@ -112,9 +104,8 @@
     "provenance": "proposed",
     "story": "Lyla escapes to wide treetop walkways while playful animals look on.",
     "mechanic": "Repeat zoo theme with gentle higher paths",
-    "reading": "Short sentence comprehension",
-    "math": "Count forward/backward within 20",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to find a safe treetop route"
   },
   {
     "id": 10,
@@ -125,9 +116,8 @@
     "provenance": "proposed",
     "story": "Cross a sparkling stream along large numbered stones.",
     "mechanic": "Safe platform order puzzles",
-    "reading": "Read simple action prompts",
-    "math": "Addition within 10",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to reveal a crossing stone"
   },
   {
     "id": 11,
@@ -138,9 +128,8 @@
     "provenance": "proposed",
     "story": "Help sort the magical flowers that have money inside.",
     "mechanic": "Sorting bins, flower bundles",
-    "reading": "Vocabulary: color, shape, amount",
-    "math": "Subtraction within 10",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to sort the magical flowers"
   },
   {
     "id": 12,
@@ -151,9 +140,8 @@
     "provenance": "proposed",
     "story": "A giant cartoon hand reaches onto the path; Lyla must watch where it goes.",
     "mechanic": "Slow, obvious hand obstacle; no scary grabbing",
-    "reading": "Read LEFT / RIGHT / STOP",
-    "math": "Simple comparison and patterning",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to stop the bouncing hand"
   },
   {
     "id": 13,
@@ -164,9 +152,8 @@
     "provenance": "proposed",
     "story": "A trail of signs guides Lyla between apple trees and flower patches.",
     "mechanic": "Choose between friendly branching paths",
-    "reading": "Two-sentence clues",
-    "math": "Add within 20 using visual counters",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a clue word to choose the orchard path"
   },
   {
     "id": 14,
@@ -177,9 +164,8 @@
     "provenance": "proposed",
     "story": "A familiar rainbow region returns with a new story clue.",
     "mechanic": "Wide bridges and optional word puzzles",
-    "reading": "Sentence order",
-    "math": "Tens and ones",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to cross the story skybridge"
   },
   {
     "id": 15,
@@ -190,9 +176,8 @@
     "provenance": "proposed",
     "story": "Lyla hears a clue about how the king controls the bunnies.",
     "mechanic": "Explore, talk, collect",
-    "reading": "Read brief dialogue",
-    "math": "Number patterns and grouping",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a secret word to open the clock tower"
   },
   {
     "id": 16,
@@ -203,9 +188,8 @@
     "provenance": "proposed",
     "story": "Lyla discovers more about the disguised robot bunnies and the king's phone control.",
     "mechanic": "Harmless switches and simple switches",
-    "reading": "Short narrative comprehension",
-    "math": "Make ten / teen numbers",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to decode a message about the king"
   },
   {
     "id": 17,
@@ -216,9 +200,8 @@
     "provenance": "proposed",
     "story": "Lyla protects flowers and their hidden money from the king.",
     "mechanic": "Collect bundles; choose the safe vault door",
-    "reading": "Read 2–3 sentence instructions",
-    "math": "Optional coin identification or within-20 sums",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to unlock the flower vault"
   },
   {
     "id": 18,
@@ -229,9 +212,8 @@
     "provenance": "proposed",
     "story": "Lyla finds a bow and arrow and practices hitting very large friendly targets.",
     "mechanic": "Tap a still target; no precision aiming",
-    "reading": "Read target word clues",
-    "math": "Add/subtract within 20",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to earn a harmless training arrow"
   },
   {
     "id": 19,
@@ -242,9 +224,8 @@
     "provenance": "proposed",
     "story": "Lyla returns to the first castle to uncover the king's final plan.",
     "mechanic": "Revisit a familiar environment with new signs",
-    "reading": "Short dialogue and inference",
-    "math": "Count mixed flower bundles",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to unlock a castle gate"
   },
   {
     "id": 20,
@@ -255,9 +236,8 @@
     "provenance": "proposed",
     "story": "Find a harmless way to interrupt the king's robot-bunny commands.",
     "mechanic": "Slow-paced lever or button puzzle",
-    "reading": "Reading clues in order",
-    "math": "Two-step visual number problem",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a word to jam the king's phone"
   },
   {
     "id": 21,
@@ -268,9 +248,8 @@
     "provenance": "proposed",
     "story": "Flowers are guarded by a huge creature ahead; Lyla gets ready for the final level.",
     "mechanic": "Rehearse easy bow target choices",
-    "reading": "Short story comprehension",
-    "math": "Mixed within-20 review",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell tricky words to prepare for the final monster"
   },
   {
     "id": 22,
@@ -281,8 +260,7 @@
     "provenance": "confirmed-final",
     "story": "Lyla faces the giant monster with a bow and arrows to retrieve the final flowers.",
     "mechanic": "Forgiving 3-phase boss with large targets and unlimited retries",
-    "reading": "Choose words from simple clues",
-    "math": "Visual first-grade sums and patterns",
-    "developmentStatus": "planned"
+    "developmentStatus": "planned",
+    "spellingChallenge": "Spell a set of words to help Lyla hit large boss targets"
   }
 ]

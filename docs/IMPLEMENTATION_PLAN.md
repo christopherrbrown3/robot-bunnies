@@ -1,70 +1,49 @@
-# Implementation roadmap & acceptance criteria
+# Development roadmap: school spelling first
 
-This repository begins with a **starter app and game spec**. Future feature phases are suggestions, not finished capabilities.
+## M0 — Repository scaffold (complete)
 
-## M0 — Repository & spec (this scaffold)
+- [x] GitHub repository, Phaser/Vite/PWA base and 22-level story outline.
+- [x] Zoey-confirmed story facts separated from proposed story bridges.
+- [x] GitHub Pages deployment workflow (site may still need Settings → Pages enablement).
 
-- [x] GitHub repository supplied by the project owner.
-- [x] Separate Zoey-confirmed canon from proposals.
-- [x] 22-level outline and machine-readable JSON definitions.
-- [x] Architecture, educational plan, game-design document, initial content validation.
-- [x] Vite + Phaser + PWA app-shell source, GitHub Actions Pages workflow.
-- [ ] Confirm first deployment and PWA installation on a real iPad.
-- [ ] Run `npm ci && npm run build` in a networked environment; dependency installation was not available in the authoring environment.
+## M1 — Spelling practice MVP (implemented in code, pending on-device QA)
 
-## M1 — Level 1 vertical slice (next)
+- [x] Parent Corner with adult UX gate.
+- [x] Weekly list input, edit, activate, and archive: **1–20 unique words**.
+- [x] Local word-level stats, JSON export/import, erase with confirmation.
+- [x] Five-word quick quests, tricky-word review, full-word-list mock test.
+- [x] Browser spoken word via direct tap, brief Peek fallback, first-letter/length hint.
+- [x] Spell from memory with on-screen keyboard; immediate answer correction and retry.
+- [x] Distinguish independent first try from assisted/corrected attempts.
+- [x] Flower rewards and game-themed practice screen.
+- [ ] Confirm successful build, launch, local storage and iPad Safari keyboard.
+- [ ] Confirm speech playback and PWA behavior on actual older iPad(s).
 
-- [ ] Replace the outline-only preview with a real auto-running Lyla controller.
-- [ ] Draw original placeholder bunny, castle cage, Bunny Police, key, tiger, flowers and portal.
-- [ ] Add single high jump, collision bounce and forgiving checkpoint.
-- [ ] Collect all flowers automatically by contact; unlock portal.
-- [ ] Danger indicator and tap-Lyla-to-shrink; automatic regrowth and flower-collection restriction.
-- [ ] Tiger ambush and capture → automated Ridensee rescue → respawn at exact prior place; tiger removed.
-- [ ] One embedded reading cue (KEY/HOP), one visual math task (count flowers), hint and read-aloud alternative.
-- [ ] Brief skippable intro/key cutscene, pause, no punishing resets.
-- [ ] Test a complete Level 1 on an older iPad, including returning from the Home Screen.
+## M2 — Integrate spelling in actual Phaser platformer
 
-**Acceptance:** Zoey can finish a full Level 1 without adult help, can't get stuck, and sees the king/tiger/Ridensee story without mandatory reading.
+- [ ] Give Lyla a polished 2D bunny sprite and pink fanny pack (never visibly a robot).
+- [ ] Implement forgiving high single jump, auto-run, automatic flower collection, bounce-back and portal.
+- [ ] Make spelling a meaningful part of opening a gate, collecting a special flower, escaping a cage and reaching a portal.
+- [ ] Implement Level 1 hot-pink-castle cage, Bunny Police, king reveal, tiger and automatic Ridensee rescue.
+- [ ] Implement Level 2 inside a rainbow.
+- [ ] Add skippable storybook cutscenes and offline-safe narration approach.
+- [ ] Make story level progression independent of the current week's spelling list: replay with any active week.
+- [ ] No mandatory math or general reading quizzes.
 
-## M2 — Reusable platformer system
+## M3 — Stronger spelling instruction
 
-- [ ] JSON-driven spawners for terrain, flowers, hazards, doors, portal and triggers.
-- [ ] Reusable scene transitions, cutscene runner, branching story flags.
-- [ ] Separate, versioned progress storage; resume/replay/backup behavior.
-- [ ] Adaptive learning widgets: letter decoding, choice puzzle, number counters and short dialogue.
-- [ ] Optional narration strategy that works offline on target iPad models; accessible captions.
-- [ ] Level 2 rainbow plus proposed rainbow-door and bead mechanics.
+- [ ] Test reliable bundled audio or parent recording for each weekly word; don't depend solely on TTS.
+- [ ] Optional word-family hints and letter-sound pattern assistance **only when correct** (avoid guessing wrong phoneme splits).
+- [ ] Optional letter tiles for guided practice, tracked as assisted.
+- [ ] Optional on-paper spelling check mode for alignment with handwritten school tests.
+- [ ] Cross-day spaced review with transparent scheduling and mastery based on independent success on multiple days.
+- [ ] Gentle mini cutscenes, word-specific flower rewards and persistent bunny satchel progress.
 
-**Acceptance:** Levels 1–3 are authored by data instead of copying scene logic; each maintains 60/30 fps performance target on test devices.
+## M4 — Remaining world and polish
 
-## M3 — Content production
+- [ ] Implement and test all 22 story levels using current weekly words.
+- [ ] Zoo animals, bead hazards, hand obstacles, rainbow paint doors, find bow, final giant monster.
+- [ ] Add warm original art, readable screens, captions, reduced motion, and 180px/192px/512px PWA PNG icons.
+- [ ] QA: intermittent/no network, older iPad home-screen mode, storage export/import, school spelling changes, a list with 1 word, a list with 20 words, missed words and interrupted sessions.
 
-- [ ] Make all 22 levels playable, keeping each short and achievable.
-- [ ] Develop original 2D art, sprite sheets, effects and audio under a documented asset license.
-- [ ] Implement zoo animal ambush, hand obstacle, beads, returning worlds, bow practice, and final monster.
-- [ ] Complete skippable cutscenes and storybook captions.
-- [ ] Tune reading/math skill progression through observation and practical playtests with Zoey.
-
-**Acceptance:** No dead ends, no unfinishable puzzle, and the full campaign is completable without losing progress.
-
-## M4 — Parent and polish
-
-- [ ] Parent-only view for weekly spelling-list input on-device.
-- [ ] Reading/math practice history and nonjudgmental skill confidence.
-- [ ] Local JSON backup/export/import and clear reset confirmation.
-- [ ] Optional reduced-motion mode and sound controls.
-- [ ] Real 180×180/192×192/512×512 PNG icons, orientation and offline smoke tests.
-- [ ] Manual QA for at least one older iPad and one current iPad; Safari home-screen and regular tabs.
-
-**Acceptance:** Content remains usable offline after installation, personal learning history stays on-device, and a parent can safely recover/export data.
-
-## Deferred intentionally
-
-Multiplayer, cloud sync, backend accounts, leaderboards, subscriptions, precise full-screen 3D graphics, procedurally generated levels, and complicated combat are **out of scope**.
-
-## Decisions before implementation
-
-- [ ] Confirm the plot bridge for money-filled flowers after evil king reveal.
-- [ ] Select optional read-aloud approach on older iPads and source/recorded audio.
-- [ ] Determine actual oldest iPad/iPadOS hardware target and test manually.
-- [ ] Finalize approved character appearance and gameplay sprite scale.
+**Important:** M1 is a working browser practice loop; do not describe M2–M4 as already playable.

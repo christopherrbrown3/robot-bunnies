@@ -1,70 +1,52 @@
-# Robot Bunnies: Lyla's Flower Quest 🐰🌸
+# Robot Bunnies: Lyla's Spelling Quest 🐰🌸
 
-A gentle, story-driven, educational 2D platform adventure invented by **Zoey**. Built as an installable, landscape-first iPad PWA for GitHub Pages.
+An iPad spelling-test adventure designed around **Zoey's actual weekly spelling words** (up to 20 per week), set in her 22-level cartoon Robot Bunnies world.
 
-> **Status: project scaffold / design phase.** The app can display a title screen and browse the 22-level outline. Platforming, cutscenes, assessment, art, and sound are **not implemented yet**. Level ideas not explicitly chosen by Zoey are proposals, not canon.
+## Current status
 
-## The game
+**A playable spelling-practice MVP is in the code.** The Parent Corner, five-word flower quest, targeted missed-word practice, and up-to-20-word mock spelling test are implemented; the full Phaser platform game and its 22 story levels are still **planned**.
 
-Guide Lyla, a white bunny with a pink fanny pack, through **exactly 22 levels**. Lyla looks like a normal bunny but is secretly a robot. She collects flowers that contain money, discovers the truth about the king, escapes an evil tiger, and ultimately confronts a giant monster using a bow and arrows. Her blue, super-fast friend Ridensee rescues her if she's captured.
+- **Parent Corner:** enter or edit 1–20 words per week; activate earlier weeks; see attempts, misses and first-try successes. A grown-up math gate discourages accidental edits but is **not a security control**.
+- **Spelling Quest:** listen to a word and spell it from memory using the iPad keyboard, with optional hints/peek, immediate corrective feedback, and another hidden attempt.
+- **Flower reward:** each correctly spelled word earns Lyla a flower and opens the way toward a purple-and-blue portal. No time limits or punished mistakes.
+- **Review:** five-word quick sessions prefer unpracticed and missed words; targeted tricky-word review; full mock test drills all words on the active list.
+- **Privacy:** lists and progress stored only on that iPad in browser storage. JSON backup/export/import and permanent erasure are available. No backend, sign-in, tracking, ads or purchases.
+- **Story:** keep Zoey's fluffy white bunny Lyla, Ridensee, secret king, tiger, magical flowers, rainbow, hot pink castle, and the giant monster in a 22-level adventure.
 
-- Side-scrolling, cheerful cartoon platforming; forgiving and accessible to a young child.
-- Lyla auto-runs; press a large Jump button for one high jump at a time.
-- Tap Lyla **while in danger** to shrink to ant size; she grows back automatically when safe.
-- Walk over flowers to collect them in her fanny pack. Collect them all to open a purple-and-blue portal.
-- No lives, game-over screens, hard time limits, or loss of progress on capture.
-- Meaningful first-grade reading and math integrated into play, with optional hints and read-aloud support planned.
-- Brief, skippable storybook cutscenes; optional narration planned.
+### Documentation
 
-## Documentation
+- [Research and evidence for spelling instruction](docs/SPELLING_RESEARCH.md)
+- [Spelling-only learning design](docs/LEARNING_DESIGN.md)
+- [Game design and narrative integration](docs/GAME_DESIGN.md)
+- [22-level storyline plan](docs/LEVEL_OUTLINE.md)
+- [Character and story canon](docs/STORY_BIBLE.md)
+- [Technical architecture](docs/TECHNICAL_DESIGN.md)
+- [Implementation roadmap](docs/IMPLEMENTATION_PLAN.md)
+- [What Zoey decided vs. our proposals](docs/DECISIONS.md)
 
-| Document | What it covers |
-|---|---|
-| [Game design](docs/GAME_DESIGN.md) | Vision, controls, game loop, level structure, difficulty, encounters and cutscenes |
-| [Story bible](docs/STORY_BIBLE.md) | World, characters, confirmed story, and unresolved narrative questions |
-| [All 22 levels](docs/LEVEL_OUTLINE.md) | Level-by-level proposed progression and educational hooks |
-| [Learning design](docs/LEARNING_DESIGN.md) | First-grade literacy/numeracy outcomes, feedback, adaptation and parent dashboard |
-| [Technical design](docs/TECHNICAL_DESIGN.md) | Phaser/PWA architecture, older-iPad constraints, offline and save strategy |
-| [Implementation plan](docs/IMPLEMENTATION_PLAN.md) | Phases, acceptance criteria, test matrix, and deferred work |
-| [Decisions & provenance](docs/DECISIONS.md) | Zoey-confirmed facts vs. adult design proposals; questions to settle later |
+## Tech
 
-The machine-readable level outline is [src/content/levels.json](src/content/levels.json).
+Phaser 3, TypeScript, Vite, vite-plugin-pwa, GitHub Pages. Home screen PWA; landscape-first iPad experience for older devices; static hosting; no backend. The game's 22 story locations are in [src/content/levels.json](src/content/levels.json).
 
-## Stack
-
-**Phaser 3 + TypeScript + Vite + vite-plugin-pwa**, deployed by GitHub Actions to GitHub Pages. Static hosting; no backend, account, cloud save, analytics, or ads required.
-
-## Run locally
-
-Requirements: Node.js 22 and npm.
+## Run
 
 ```bash
 npm install
-npm run dev
 npm run validate
+npm run dev
 npm run build
-npm run preview
 ```
 
-Vite serves locally at the URL shown in its output. `npm run validate` checks the design-data invariants without needing installed dependencies. The production base path is `/robot-bunnies/`; the development server uses `/`.
+## Deploy
 
-## Deployment
+In GitHub **Settings → Pages**, choose **GitHub Actions**, then run the workflow in [deploy.yml](.github/workflows/deploy.yml). The intended site address is [christopherrbrown3.github.io/robot-bunnies/](https://christopherrbrown3.github.io/robot-bunnies/). Do not assume the site is already live until deployment succeeds.
 
-1. In **Settings → Pages** for this repository, choose **GitHub Actions** as the build/deployment source.
-2. Commit to `main`; the workflow in [deploy.yml](.github/workflows/deploy.yml) will validate and build the site, then deploy `dist/`.
-3. Once deployed, open `https://christopherrbrown3.github.io/robot-bunnies/` on the iPad in Safari and choose **Share → Add to Home Screen**.
-4. The service worker caches the app after a successful online visit. Offline use is a goal, not something to assume before deployment testing.
+On an iPad, open in Safari, then **Share → Add to Home Screen**. After an initial connected visit, the service-worker cache can help make the app available offline. **Speech synthesis may still need device voices or network** on older iPads.
 
-GitHub Pages may need its first manual enablement. This repository is currently **public**; do not commit private details or individual learning records. Child-specific progress must stay on-device by default.
+## Scope
 
-## Principles
+This is **not** a general first-grade literacy and math application anymore. Spellings supplied by school are the learning target. The game world remains Zoey's original invention, but any educational interaction should directly support spelling retrieval, corrective feedback or later review.
 
-1. **Zoey is the creative director.** Keep her confirmed decisions separate from proposals and revise the latter freely.
-2. **Game first, schoolwork woven in.** Never block progress for incorrect answers; give hints and celebrate trying.
-3. **Forgiving by design.** No death, no forced level replay after a rescue, predictable controls, short sessions.
-4. **Older-iPad friendly.** Lightweight 2D art, touch-friendly targets, capped graphics memory, no heavy 3D or server dependency.
-5. **Build iteratively.** Implement a small Level 1 vertical slice before producing all 22 worlds.
+## License & child privacy
 
-## License and assets
-
-No license has been selected. Code and documentation are not automatically licensed for reuse. Replace placeholder graphics with original or appropriately licensed assets; do not copy Nintendo art, music, or characters.
+No license selected. The repository is public; do not commit private records, a child's spelling progress, identifying information or recordings. Local browser data may disappear if Safari storage is cleared; use a backup. All game artwork should be original or properly licensed.

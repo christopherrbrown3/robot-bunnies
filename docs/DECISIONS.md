@@ -28,18 +28,18 @@ This is an **accuracy guardrail**. We must not accidentally turn adult/assistant
 
 ## Confirmed by dad / project requirements
 
-- First-grade reading and math should be integrated into an adventure.
+- **Superseded:** initial first-grade reading/math learning goal has been explicitly replaced with a **spelling-test-only game** using school-supplied weekly word lists of up to 20 words.
 - Simple and forgiving, not too difficult; **cutscenes allowed**.
 - **PWA**, **GitHub Pages**, works on **older iPads**; same general stack as previous family games.
 - Project name/repository: `christopherrbrown3/robot-bunnies`.
-- No backend assumed. Runtime and authoring choices in the next section are implementation decisions.
+- Weekly spelling words and practice tracking are now the core educational purpose; parent controls and a quick practice MVP are implemented in code. No backend assumed. Runtime and authoring choices in the next section are implementation decisions.
 
 ## Proposals / implementation decisions (not canon)
 
 - Phaser 3, TypeScript, Vite, vite-plugin-pwa, mobile-first 2D art and UI.
 - Act breakdown, 22 proposed individual level titles beyond Levels 1 and 2, and placements of zoo/beads/hand/rainbow-door.
 - The idea that Lyla protects the flowers from the evil king and returns money to the kingdom.
-- Rescue cutscene details, boss phases, nonviolent effects, all dialogue, exact educational puzzles, coin representation.
+- Rescue cutscene details, boss phases, nonviolent effects, all dialogue, exact spelling prompts, coin representation.
 - Level duration target (2–4 min), offline caching, checkpoint design, progression heuristics, parent dashboard, audio implementation, and art direction beyond Zoey's decisions.
 - Accessible assistance, no punishing loss, and separate story/skills progress as adult product-design requirements.
 
@@ -55,3 +55,11 @@ This is an **accuracy guardrail**. We must not accidentally turn adult/assistant
 8. Any other level settings, friends, songs, or surprises she'd like to invent?
 
 When Zoey answers, update this log, [STORY_BIBLE.md](STORY_BIBLE.md), [LEVEL_OUTLINE.md](LEVEL_OUTLINE.md), and the machine-readable content together.
+
+## Latest product direction (authoritative)
+
+- The app's **only learning objective** is helping Zoey prepare for her weekly spelling tests.
+- Each week has **up to 20 spelling words**, entered by a parent in an on-device Parent Corner.
+- The 22-level adventure and characters remain, but educational challenges **must practice the active weekly list**; math and broad reading-curriculum goals are cancelled.
+- Short oral/visual word-to-memory-spelling prompts, corrections, later review, and a low-pressure full-list spelling test replace general quizzes.
+- Implemented in the source: parent editor, local data, backup/restore, word statistics, five-word practice quest and spelling test. Phaser story levels are still planned.

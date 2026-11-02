@@ -11,7 +11,7 @@ for (const level of levels) {
   assert.ok(expected.has(level.id), `unexpected level ID ${level.id}`);
   assert.ok(!seen.has(level.id), `duplicate level ID ${level.id}`);
   seen.add(level.id);
-  for (const key of ['slug', 'title', 'setting', 'theme', 'story', 'mechanic', 'reading', 'math']) {
+  for (const key of ['slug', 'title', 'setting', 'theme', 'story', 'mechanic', 'spellingChallenge']) {
     assert.equal(typeof level[key], 'string', `level ${level.id} missing ${key}`);
     assert.ok(level[key].trim().length > 0, `level ${level.id} empty ${key}`);
   }
@@ -24,4 +24,4 @@ assert.match(levels[0].story, /Bunny Police/);
 assert.match(levels[1].setting, /rainbow/i);
 assert.match(levels[21].story, /giant monster/i);
 assert.match(levels[21].story, /bow and arrows/i);
-console.log('Valid: exactly 22 ordered levels with canonical story anchors and learning fields.');
+console.log('Valid: exactly 22 ordered levels with canonical story anchors and spelling fields.');

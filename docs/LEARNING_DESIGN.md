@@ -1,71 +1,39 @@
-# First-grade learning design
+# Spelling-only learning design
 
-## Learning philosophy
+**Scope change:** Zoey's spelling tests are the entire learning goal. Do **not** reintroduce general reading, sentence comprehension, addition, counting, money arithmetic, or other unrelated educational objectives.
 
-The adventure is a **game**, not a worksheet disguised with a bunny. Literacy and numeracy mechanics should naturally affect Lyla's world: signs, conversations, clues, doors, money-filled flowers, maps, rescued friends, and portals. Frequent playful success, small hints, no public failures, and no penalty for answering incorrectly.
+## Weekly parent workflow
 
-Target first-grade skills and adjust based on observation; this is not a formal curriculum or diagnostic assessment.
+1. Enter up to **20 school-assigned words** directly in Parent Corner (one per line or comma-separated); save under a week name.
+2. Review the list before activating. The active week supplies every word in the child's game and practice test.
+3. Run quick 5-word practice sessions on several days of the week; use **Practice tricky words** when mistakes accumulate.
+4. Before a school spelling test, use **Full spelling test**: all the active week's words, no forced hints. The parent can review first-try correct vs. missed/assisted responses.
+5. Keep previous weeks locally for optional review; export a JSON backup periodically.
 
-## Reading progression
+## Spelling loop
 
-| Stage | Skills | In-world examples |
-|---|---|---|
-| 1: L1–5 | Letter-sound correspondence, CVC decoding, high-frequency words, listening to short text | Read **key**, **hop**, **red**; simple labeled castle signs |
-| 2: L6–11 | CVC blends/digraphs when ready, sight-word recall, phrase comprehension | Read a short clue to find the safe path; match word to picture |
-| 3: L12–17 | Short complete sentences, sequencing, simple character dialogue | Follow a 1–2 sentence clue; select what happened first |
-| 4: L18–22 | Brief illustrated story passages, infer meaning using context, fluency practice | Understand how to save a friend, choose a final boss target clue |
+Hear → recall → type → immediate feedback → optional assisted correction → spaced later revisit. Only **first-try, no-hint spelling** counts as independent success. Revealing the word, asking for a hint, or correcting after an error remains worthwhile learning but is recorded as assisted.
 
-- Present a **listen** icon next to any written prompt; voice can read a prompt aloud without silently selecting the answer.
-- Support tap-to-hear phonemes and progressively revealed letters for early readers.
-- Repeating a reading activity is welcome. Wrong-answer feedback is kind, specific, and helpful.
-- Do not gate exploration behind a child's inability to decode an optional story beat. Auto-read or offer a context hint after repeated tries.
+On an error, show exact correct spelling immediately, encourage a new response with the answer hidden, then return that word to future review. Don't penalize mistakes or delete progress.
 
-## Math progression
+## Frequency and scheduling
 
-| Stage | Skills | Gameplay example |
-|---|---|---|
-| 1: L1–5 | Count objects within 10, recognize numerals, compare groups | Gather 5 flowers; find the door with more stars |
-| 2: L6–11 | Addition and subtraction within 10, number bonds, simple patterns | 3 flowers + 2 flowers = ? |
-| 3: L12–17 | Addition/subtraction within 20 using visual counters; tens and ones; measurement/patterns | Build a bridge with 10 + 4 stones |
-| 4: L18–22 | Mixed within-20 word problems; optional U.S. coin recognition and values, if ready | Work out a small flower-money total to unlock a gate |
+Short, mixed practice is generally preferable to one long repetitive cram session. Five words per quick session is a **UX default** for an early learner, not an experimentally established dose. The current scheduler prioritizes still-hard words and unseen words. A true day-level spacing algorithm (with dated review intervals) is a future improvement, especially for words first practiced on Monday and revisited through Friday.
 
-**Flowers with money inside** are part of Zoey's world; if real coin problems are included, explicitly teach recognizable coin images and values instead of inventing fictional currency that might confuse early money concepts. No real money, purchases or rewards.
+A simple word history stores attempts, misses, first-try correct and assisted correct. Do not call this a scientific mastery score. A recommended future definition of `comfortable` is at least two successful independent spelling attempts on separate days; this threshold is a practical product heuristic, not medical/educational diagnosis.
 
-## Embedded challenge templates
+## Interaction & motor-skills considerations
 
-- **Key word:** choose or sound out `key` to open the cage; voice reads the narrative aloud.
-- **Rainbow:** place colored splashes in correct sequence; use a short written clue and an optional audio version. Colorblind-friendly symbols accompany colors.
-- **Flower bundles:** collect flowers while the HUD displays a friendly number sentence.
-- **Zoo warning:** read a simple sign to spot which animal jumps next.
-- **Bead clean-up:** count how many beads must be safely cleared.
-- **Boss:** match a sound or solve a small equation to select one of several large arrow targets; no rapid action requirement.
+The MVP uses an iPad's ordinary onscreen keyboard. An optional letter-tile builder is appropriate for very early practice, but letter choices may cue the answer, so record as **assisted** and ensure full-word retrieval remains available. Consider parent-supervised write-on-paper prompts before the school test because keyboard spelling is not a full substitute for handwriting.
 
-One level should not require more than 1–3 focused educational interactions without a playtest finding that additional work is enjoyable.
+## Speech and pronunciation
 
-## Assistance and learning signals
+The app tries browser `speechSynthesis` on a direct Hear button tap. It may not work consistently offline or with all older iPads. The Peek button offers an explicit study→hide→spell fallback, counted as assistance. For a reliable audio-dictation experience, future work should bundle recorded word audio or provide parent-recorded prompts stored locally. Do **not** silently assume perfect or offline TTS.
 
-Feedback ladder: **independent success → gentle visual hint → spoken hint → narrowed choices / worked example → continue**. There must always be a path forward. Track support level without shaming.
+## Reports and privacy
 
-Separate three concepts:
-- **Game completion:** completed levels, flowers, unlocks, cutscenes seen.
-- **Practice history:** skill ID, result, number of attempts, hints used; no punitive scores.
-- **Estimated mastery:** tentative per-skill confidence based on several opportunities, **not** a grade or psychological assessment.
+Review missed words, helpful attempts and independent first tries by week. Keep all data only on the iPad; no user profile, telemetry, service/backend, sharing, or network calls for personal word data. Offer explicit backup, restore and erase with confirmation. A parent-gate math question is a simple UX separation from the child, **not secure authentication**.
 
-A simple initial model can mark a skill `new`, `practicing`, or `comfortable`, using small, interpretable rules. Avoid misleading claims about mastery from one correct answer.
+## Evidence
 
-## Parent-only controls (future phase)
-
-- Enter weekly spelling words directly on the child's iPad.
-- Reuse these words inside appropriate story signs, clues, and gentle spelling games.
-- See a local-only skill dashboard for reading and math; review missed words and repeat practice.
-- Export/import a JSON backup, with schema versioning, optional, **not** automatic cloud sync.
-- Gate the parent section behind a simple grown-up check, not a claim of secure authentication.
-- Provide erase-progress control, explicit confirmation, and no required child profile/email/account.
-
-## Privacy and accessibility
-
-No analytics, ads, account creation, purchases, leaderboards, or external telemetry. Save only local game and practice data. Provide optional read-aloud narration with bundled recordings or reliable on-device facilities; do not assume Web Speech API works offline on every older iPad. Support captions, high contrast, reduced motion, large touch targets, and no essential audio-only information.
-
-## What success looks like
-
-Zoey asks to replay because she likes the adventure; can independently decode increasingly complex signs or short text with less help over time; and practices small number problems without feeling tested. Observed engagement and learning are stronger signals than raw correct-answer counts.
+Detailed evidence and research references live in [SPELLING_RESEARCH.md](SPELLING_RESEARCH.md). The largest practical priorities are retrieval from memory, immediate correction and future review; do not make the game depend on word-search puzzles or copying as the central learning method.

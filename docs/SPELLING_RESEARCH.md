@@ -1,0 +1,44 @@
+# Research: What helps young children learn spelling?
+
+Research reviewed November 2026. This document guides the actual game loop, not a general first-grade math/reading curriculum. School-provided weekly words (up to 20) are the **only required learning content**.
+
+## The strongest practical principles
+
+1. **Recall, don't simply copy.** An experimental study with first- and second-graders (three experiments, small samples) found retrieval practice improved spelling more than repeatedly rainbow-writing words. This is particularly relevant to Zoey's age. Source: Angela C. Jones et al. (2016), *Beyond the Rainbow: Retrieval Practice Leads to Better Spelling than Does Rainbow Writing*. [ERIC](https://eric.ed.gov/?id=EJ1100679). **Implementation:** play a spoken word, conceal its spelling, ask the child to produce it from memory. Do not make tracing, repeated copying or word-recognition multiple-choice the primary drill.
+
+2. **Give immediate, clear corrective feedback.** In fifth-graders, retrieval practice showed spelling benefits over copying when followed by corrective feedback after errors. This evidence is from older children than Zoey but supports an actionable design rule. Source: Veiga da Silva, Ekuni & Jaeger (2023), [PubMed](https://pubmed.ncbi.nlm.nih.gov/37605436/). **Implementation:** if misspelled, immediately reveal the correct word and invite a new attempt with it hidden. Do not merely show a red X.
+
+3. **Strengthen sound-to-letter mappings.** The What Works Clearinghouse recommends linking segments of spoken words to written letters and explicitly teaching children to decode, analyze, write and recognize words (strong evidence for recommendations 2 and 3). Source: [IES Foundational Skills Practice Guide (2016, updated 2019)](https://ies.ed.gov/ncee/wwc/PracticeGuide/21/). **Implementation:** prompt children to say the word slowly, attend to sounds and spelling patterns, and offer simple letter/sound hints. Avoid auto-generated syllable/sound segmentation that might be incorrect.
+
+4. **Review words across days, not just once.** Research-based spelling-teaching advice includes periodically reviewing previously taught words to promote retention. Source: [Reading Rockets, Tips for Teaching Spelling](https://www.readingrockets.org/sites/default/files/migrated/pdfs/Tips%20for%20Teaching%20Spelling.pdf). **Implementation:** short daily sessions, prioritize missed/assisted/unpracticed words, and include a no-hints recall check before the school test. The particular scheduling thresholds are heuristic, not scientifically validated.
+
+5. **Mix patterns thoughtfully.** A 2025 preregistered classroom study of German third-graders found that interleaving spelling-rule examples reduced errors relative to blocked practice. This is supportive, not direct evidence for U.S. first-grade weekly word lists. Source: [Klimovich & Richter (2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12511507/). **Implementation:** mix practiced word order and revisit confusable patterns, without forcing an overly complex rules curriculum.
+
+## Core word-learning interaction
+
+1. **Hear:** present the spoken word (and potentially a simple example sentence, if supplied by a parent). On devices with unreliable speech synthesis, provide a *peek, hide, retrieve* alternative.
+2. **Think:** encourage the child to say the sounds slowly and map them to letters. Never force a timed response.
+3. **Spell:** enter the entire word *from memory*. Current MVP uses the iPad keyboard; future touch letter tiles can be offered as training assistance, but should not substitute for keyboard/handwritten independent recall.
+4. **Check:** evaluate the whole spelling, ignoring capitalization. Correct → flower and progress. Incorrect → show the correct answer, invite another hidden attempt, and flag for future review.
+5. **Revisit:** return to previously missed or assisted words in a later session, not just immediately in the same session.
+6. **Assess:** provide a full-list, low-pressure *practice test* to spot remaining difficulty. Parent report distinguishes first-try independent success from helped attempts.
+
+## Game mapping
+
+- Lyla remains a white bunny with a pink fanny pack. Correct spelling retrieves flowers, reveals clues, frees companions, opens gates and moves toward the purple/blue portal.
+- Over 22 story levels, give 3–5 **weekly-word spelling opportunities** in each gentle quest (unless fewer words are supplied); the 22 levels are *storybook geography*, not 22 separate fixed word lists or 22 weeks of homework.
+- A week list can be practiced repeatedly. New lists can be loaded whenever a teacher issues them. Previously saved weeks remain available.
+- Make each session optional and short; avoid punishing errors, speed bonuses, mastery fireworks for a single correct attempt, or character distress.
+- Use the tiger/Ridensee rescue story and skippable cutscenes; no academic quizzes involving math.
+
+## Evidence caveats
+
+Evidence for a particular touch interface, five-word daily dose, automatic mastery threshold, or iPad modality is not established by the cited studies. Treat these as hypotheses to improve through observation. Actual school tests may be written by hand, and typing accuracy is not identical to handwriting-based spelling transfer; periodically have Zoey say or write words on paper too.
+
+## Current implementation vs future work
+
+**Built:** weekly list editor (1–20 words), local history, backup/import, short five-word quests, optional spoken prompts via browser speech synthesis, timed peek fallback, first-letter/length hints, immediate correction and retry, missed-word prioritization, full-list practice test, flower rewards.
+
+**Not yet built:** word-level phoneme-grapheme teaching, well-designed sound pattern explanations, actual 22 playable platform scenes, automatically scheduled daily reminders, child-friendly letter tile mode, real hand-writing mode, guaranteed offline TTS, rule-based mastery proof, and progress visualization integrated in story world.
+
+**Speech limitation:** iPadOS/Safari voices differ, and speech synthesis can be silent or unavailable offline. The peek fallback lets the child study then hide a word, but it is not equivalent to listening dictation. Record or bundle offline spoken audio in a later version for a reliable true test experience.
