@@ -49,10 +49,11 @@ function tone(freq: number, start: number, duration: number, type: OscillatorTyp
 }
 
 export type Sfx = 'jump' | 'flower' | 'bump' | 'shrink' | 'grow' | 'tile' | 'correct' | 'gentle' |
-  'portal' | 'whoosh' | 'arrow' | 'pop' | 'checkpoint' | 'bead' | 'tap';
+  'portal' | 'whoosh' | 'arrow' | 'pop' | 'checkpoint' | 'bead' | 'tap' | 'rec-start' | 'rec-stop';
 
-export function play(name: Sfx): void {
-  if (!loadPrefs().sound) return;
+/** `force` plays even when the child's game sounds are off (used for grown-up recording cues). */
+export function play(name: Sfx, force = false): void {
+  if (!force && !loadPrefs().sound) return;
   switch (name) {
     case 'jump': tone(380, 0, 0.18, 'triangle', 0.14, 760); break;
     case 'flower': tone(988, 0, 0.09, 'sine', 0.13); tone(1319, 0.07, 0.14, 'sine', 0.12); break;
@@ -71,5 +72,7 @@ export function play(name: Sfx): void {
     case 'arrow': tone(700, 0, 0.2, 'triangle', 0.1, 1400); break;
     case 'pop': tone(600, 0, 0.08, 'square', 0.07, 1200); tone(1200, 0.06, 0.12, 'sine', 0.08); break;
     case 'checkpoint': tone(659, 0, 0.12, 'triangle', 0.1); tone(880, 0.1, 0.18, 'triangle', 0.1); break;
+    case 'rec-start': tone(880, 0, 0.12, 'sine', 0.16); break;
+    case 'rec-stop': tone(660, 0, 0.1, 'sine', 0.14); tone(440, 0.1, 0.16, 'sine', 0.12); break;
   }
 }

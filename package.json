@@ -12,7 +12,8 @@
     "test:campaign": "node scripts/test-campaign.mjs",
     "test:mastery": "node scripts/test-mastery.mjs",
     "test:layouts": "node scripts/test-layouts.mjs",
-    "e2e": "node scripts/e2e-playthrough.cjs"
+    "e2e": "node scripts/e2e-playthrough.cjs",
+    "e2e:recording": "node scripts/e2e-recording.cjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"

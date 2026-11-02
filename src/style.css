@@ -133,6 +133,26 @@ body {
 .chip-secure { background: #d6f5e3; color: #1d6b56; }
 .record-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .panel .mini-btn { min-height: 44px; padding: 6px 10px; font-size: 14px; border-radius: 10px; border: 2px solid #c7a6dc; background: #fff; color: #65439c; }
+/* Voice-recording cue (issue #3) */
+.rec-banner {
+  position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px;
+  margin: 0 0 12px; padding: 10px 14px; border-radius: 12px;
+  background: #d81e4c; color: #fff; font-weight: 800; font-size: 17px; box-shadow: 0 6px 18px #d81e4c55;
+  animation: rec-glow 1.2s ease-in-out infinite;
+}
+.parent-progress li.is-recording { background: #fff0f4; border-radius: 12px; padding: 8px; box-shadow: inset 0 0 0 3px #d81e4c; }
+.panel .mini-btn.rec-stop {
+  background: #d81e4c; border-color: #d81e4c; color: #fff; min-width: 112px;
+  animation: rec-pulse 1s ease-in-out infinite;
+}
+.panel .mini-btn:disabled { opacity: .45; cursor: default; }
+.rec-meter { flex: 1 1 110px; align-self: center; height: 12px; min-width: 80px; border-radius: 6px; background: #f6d6df; overflow: hidden; }
+.rec-level { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #3ccf6a, #ffd84d 60%, #d81e4c); transition: width 70ms linear; }
+@keyframes rec-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes rec-glow { 0%, 100% { box-shadow: 0 6px 18px #d81e4c55; } 50% { box-shadow: 0 6px 26px #d81e4caa; } }
+@media (prefers-reduced-motion: reduce) {
+  .rec-banner, .panel .mini-btn.rec-stop { animation: none; }
+}
 .legend { font-size: 13px !important; background: #fff; border-radius: 10px; padding: 8px 10px; }
 .backup-tools { margin-top: 15px; border-top: 1px solid #d4c4e3; padding-top: 12px; }
 .backup-tools summary { font-size: 16px; font-weight: 750; cursor: pointer; }

@@ -53,6 +53,7 @@ scripts/
   test-mastery.mjs        # §9 criteria 2 and 4, migration, source-week recording
   test-layouts.mjs        # every layout jumpable, deterministic, hazard/trigger zones clear
   e2e-playthrough.cjs     # optional Playwright run of all 22 levels (`npm run e2e`)
+  e2e-recording.cjs       # optional Parent Corner recording-cue check with a fake mic (`npm run e2e:recording`)
 ```
 
 ## Game engine approach

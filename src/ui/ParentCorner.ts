@@ -11,12 +11,15 @@ import {
 } from '../audio/recordings';
 import { playRecordingFor } from '../audio/wordAudio';
 import { speak } from '../audio/speech';
+import { play } from '../audio/sfx';
 
 const eventParent = 'robot-bunnies:open-parent';
 const eventPractice = 'robot-bunnies:open-practice';
 const eventPlay = 'robot-bunnies:play';
 const eventChanged = 'robot-bunnies:data-changed';
-const MAX_RECORD_MS = 4000;
+const MAX_RECORD_MS = 5000;
+/** Gap between the start tone and the microphone opening, so the tone isn't captured. */
+const START_TONE_GAP_MS = 350;
 
 /**
  * A grown-up check separates editing from play. It is intentionally NOT
@@ -48,6 +51,7 @@ export function initializeParentCorner(): void {
           <p class="small-note">This is a child-friendly barrier, not a password or security feature.</p>
         </div>
         <div id="parent-editor" hidden>
+          <div id="rec-banner" class="rec-banner" role="status" aria-live="assertive" hidden></div>
           <p class="subhead">Add up to 20 school spelling words. One word per line, or separate with commas. Keep prior weeks for extra review flowers during each full adventure.</p>
           <div class="parent-grid">
             <div class="parent-fields">
@@ -172,8 +176,11 @@ export function initializeParentCorner(): void {
         const controls = document.createElement('div');
         controls.className = 'record-row';
         const has = recorded.has(word);
+        const recordBtn = smallButton(has ? '🎙 Re-record' : '🎙 Record', () => void record(word, week.id, recordBtn, li),
+          `Record your voice saying ${word}`);
+        recordBtn.classList.add('rec-btn');
         controls.append(
-          smallButton(has ? '🎙 Re-record' : '🎙 Record', () => void record(word, week.id)),
+          recordBtn,
           smallButton(has ? '▶ My voice' : '▶ iPad voice', () => void (has ? playRecordingFor(word) : speak(`${word}.`, 0.8)))
         );
         if (has) controls.append(smallButton('🗑', () => void removeRecording(word, week.id), `Delete recording for ${word}`));
@@ -195,8 +202,25 @@ export function initializeParentCorner(): void {
 
   let recordingFor: string | null = null;
   const fileInput = get<HTMLInputElement>('recording-file');
+  const recBanner = get<HTMLDivElement>('rec-banner');
+  /** The recording in progress, if any. `stop` ends it early (and saves it). */
+  let activeRecording: { word: string; stop: () => void } | null = null;
 
-  async function record(word: string, weekId: string): Promise<void> {
+  function stopActiveRecording(): void {
+    activeRecording?.stop();
+  }
+
+  /**
+   * Record the grown-up saying `word`, with an unmistakable cue (issue #3):
+   * a start tone, the row highlighted, the button turned into a pulsing red
+   * "Stop" with a countdown, a live microphone level meter, a banner at the
+   * top of Parent Corner, and a stop tone. Tap Stop to finish early.
+   */
+  async function record(word: string, weekId: string, button: HTMLButtonElement, row: HTMLLIElement): Promise<void> {
+    if (activeRecording) {
+      if (activeRecording.word === word) stopActiveRecording();
+      return;
+    }
     if (!recordingsSupported()) { setMessage('This browser cannot store recordings.', true); return; }
     const canRecord = typeof MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
     if (!canRecord) {
@@ -205,31 +229,141 @@ export function initializeParentCorner(): void {
       fileInput.click();
       return;
     }
-    let stream: MediaStream;
+
+    // ---- the cue starts the instant Record is tapped (before the mic opens) ----
+    const otherButtons = [...stats.querySelectorAll<HTMLButtonElement>('.rec-btn')].filter(b => b !== button);
+    otherButtons.forEach(b => { b.disabled = true; });
+    const originalLabel = button.textContent ?? '';
+    row.classList.add('is-recording');
+    button.classList.add('rec-stop');
+    button.setAttribute('aria-label', `Stop recording ${word}`);
+    button.textContent = '● Starting…';
+    recBanner.hidden = false;
+    recBanner.textContent = `● Opening the microphone to record “${word}”…`;
+    setMessage('');
+
+    let stream: MediaStream | null = null;
+    let recorder: MediaRecorder | null = null;
+    let analyserCtx: AudioContext | null = null;
+    let meter: HTMLSpanElement | null = null;
+    let raf = 0;
+    let countdown = 0;
+    let deadline = 0;
+    let finished = false;
+    let startedAt = 0;
+
+    const cleanUp = (): void => {
+      window.clearInterval(countdown);
+      window.clearTimeout(deadline);
+      window.cancelAnimationFrame(raf);
+      void analyserCtx?.close().catch(() => undefined);
+      stream?.getTracks().forEach(t => t.stop());
+      row.classList.remove('is-recording');
+      button.classList.remove('rec-stop');
+      button.textContent = originalLabel;
+      button.setAttribute('aria-label', `Record your voice saying ${word}`);
+      otherButtons.forEach(b => { b.disabled = false; });
+      meter?.remove();
+      recBanner.hidden = true;
+      activeRecording = null;
+    };
+    const stop = (): void => {
+      if (finished) return;
+      finished = true;
+      if (recorder?.state === 'recording') recorder.stop(); // onstop saves and cleans up
+      else { cleanUp(); setMessage('Recording cancelled. Nothing was saved.'); }
+    };
+    activeRecording = { word, stop };
+
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
+      finished = true;
+      cleanUp();
       setMessage('Microphone permission was not given. You can allow it in Settings → Safari, or import an audio file instead.', true);
-      recordingFor = word;
       return;
     }
+    if (finished) { cleanUp(); return; } // cancelled while the mic was opening
+
     const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported?.(t)) ?? '';
-    const recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    try {
+      recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    } catch {
+      finished = true;
+      cleanUp();
+      setMessage('This browser could not start recording. Try importing an audio file instead.', true);
+      return;
+    }
     const chunks: BlobPart[] = [];
-    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-    recorder.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
+    const activeRecorder = recorder;
+    activeRecorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    activeRecorder.onstop = async () => {
+      cleanUp();
+      play('rec-stop', true);
       try {
-        await saveRecording(word, new Blob(chunks, { type: recorder.mimeType || type || 'audio/mp4' }));
-        setMessage(`Saved your recording of "${word}". It will play instead of the iPad voice.`);
+        await saveRecording(word, new Blob(chunks, { type: activeRecorder.mimeType || type || 'audio/mp4' }));
+        setMessage(`✓ Saved your recording of "${word}" (${Math.max(1, Math.round((Date.now() - startedAt) / 1000))} s). It will play instead of the iPad voice.`);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Could not save the recording.', true);
       }
       refresh(weekId);
     };
-    setMessage(`🔴 Recording "${word}"… say the word clearly. (Stops in 4 seconds.)`);
-    recorder.start();
-    window.setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, MAX_RECORD_MS);
+
+    // Live input level, where the browser can analyse a microphone stream.
+    meter = document.createElement('span');
+    meter.className = 'rec-meter';
+    meter.setAttribute('aria-hidden', 'true');
+    const level = document.createElement('span');
+    level.className = 'rec-level';
+    meter.append(level);
+    button.parentElement?.append(meter);
+    try {
+      const Ctor = window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctor) throw new Error('no Web Audio');
+      analyserCtx = new Ctor();
+      const analyser = analyserCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyserCtx.createMediaStreamSource(stream).connect(analyser);
+      const samples = new Uint8Array(analyser.fftSize);
+      const tick = (): void => {
+        analyser.getByteTimeDomainData(samples);
+        let peak = 0;
+        for (const v of samples) peak = Math.max(peak, Math.abs(v - 128));
+        level.style.width = `${Math.min(100, Math.round((peak / 128) * 160))}%`;
+        raf = window.requestAnimationFrame(tick);
+      };
+      tick();
+    } catch {
+      meter.remove();
+      meter = null;
+    }
+
+    // Start tone, then open recording just after it so the tone isn't captured.
+    button.textContent = '● Get ready…';
+    recBanner.textContent = `● Get ready to say “${word}”…`;
+    play('rec-start', true);
+    window.setTimeout(() => {
+      if (finished) return;
+      try {
+        activeRecorder.start();
+      } catch {
+        finished = true;
+        cleanUp();
+        setMessage('Recording could not start. Try again, or import an audio file instead.', true);
+        return;
+      }
+      startedAt = Date.now();
+      const update = (): void => {
+        const left = Math.max(0, Math.ceil((MAX_RECORD_MS - (Date.now() - startedAt)) / 1000));
+        button.textContent = `■ Stop · ${left}`;
+        recBanner.textContent = `● Recording “${word}” — say it clearly. ${left} s left · tap Stop when done.`;
+      };
+      update();
+      setMessage(`🔴 Recording "${word}"…`);
+      countdown = window.setInterval(update, 250);
+      deadline = window.setTimeout(stop, MAX_RECORD_MS);
+    }, START_TONE_GAP_MS);
   }
 
   async function removeRecording(word: string, weekId: string): Promise<void> {
@@ -279,6 +413,7 @@ export function initializeParentCorner(): void {
   }
 
   function close(): void {
+    stopActiveRecording();
     const wasOpen = !overlay.hidden;
     overlay.hidden = true;
     if (wasOpen) window.dispatchEvent(new Event(eventChanged));
@@ -313,6 +448,7 @@ export function initializeParentCorner(): void {
   wordsInput.addEventListener('input', updateCounter);
 
   weekPicker.addEventListener('change', () => {
+    stopActiveRecording();
     setMessage('');
     const data = loadSpellingData();
     chooseWeek(data.weeks.find(w => w.id === weekPicker.value) ?? null);

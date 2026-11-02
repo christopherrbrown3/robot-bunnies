@@ -16,7 +16,7 @@ An iPad spelling-test adventure designed around **Zoey's actual weekly spelling 
 - **Mastery:** a word is **secure** after two independent correct spellings since its last miss, hint, peek or skip. Successes on different days are tracked and shown, but never required.
 - **Scheduling:** every word on the active weekly list (1–20 words) appears at least once across the 22 levels. Spare levels go to weak current-week words first. Earlier weeks' words come back only while every current word is secure, and this is re-checked before each spare level.
 - **Saving:** progress saves at checkpoints, right after each spelling answer, and on Pause → Save & leave. Leaving and coming back resumes at the same level and checkpoint. After all 22 levels, a gentle summary appears and a new playthrough can start.
-- **Parent Corner:** a grown-up check (a math question, not security), then 1–20 words per week with earlier weeks kept. Each word shows a status (Not tried / Needs practice / Secure / Secure · 2+ days) and its counts. There is a summary line (covered in this run, needs practice, secure, secure across multiple days) and per-word **Record / Play / Delete** for parent voice clips. Word-list backup and recordings backup are separate files, and both can be erased. Extra practice is available: tricky words, or a full mock spelling test.
+- **Parent Corner:** a grown-up check (a math question, not security), then 1–20 words per week with earlier weeks kept. Each word shows a status (Not tried / Needs practice / Secure / Secure · 2+ days) and its counts. There is a summary line (covered in this run, needs practice, secure, secure across multiple days) and per-word **Record / Play / Delete** for parent voice clips. While recording, a red banner names the word, the word's row is highlighted, and the button turns into a pulsing **■ Stop** with a countdown (up to 5 s) and a live microphone level meter. Short tones mark the start and end. Word-list backup and recordings backup are separate files, and both can be erased. Extra practice is available: tricky words, or a full mock spelling test.
 - **Privacy:** word lists, progress and voice recordings stay in this browser on the iPad (localStorage and IndexedDB). No backend, sign-in, tracking, ads or purchases. All art and sounds are drawn or synthesized in code; there are no outside images, fonts or music.
 
 ### Documentation
@@ -44,6 +44,7 @@ npm run dev       # http://localhost:5173/
 npm run build
 npm run preview   # production build at http://localhost:4173/robot-bunnies/
 npm run e2e       # optional: plays all 22 levels in Chromium (needs Playwright and a running preview)
+npm run e2e:recording  # optional: checks the voice-recording cue with Chromium's fake microphone
 ```
 
 On a computer, Space/↑ jumps, ↓ shrinks when in danger, P pauses, and letters, Backspace and Enter work in the spelling panel. On the iPad, everything is done by tapping.
