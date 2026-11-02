@@ -29,7 +29,7 @@ body {
 
 .rotate-hint { display: none; }
 @media (orientation: portrait) and (max-width: 900px) {
-  .rotate-hint {
+  body.game-ready .rotate-hint {
     display: block; position: fixed; left: 0; right: 0; bottom: max(env(safe-area-inset-bottom, 0px), 18px);
     margin: 0; text-align: center; color: #f2dcff; font: 700 18px "Avenir Next", "Trebuchet MS", Arial, sans-serif;
     pointer-events: none;

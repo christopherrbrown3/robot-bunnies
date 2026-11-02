@@ -50,7 +50,7 @@ On a computer, Space/↑ jumps, ↓ shrinks when in danger, P pauses, and letter
 
 ## Deploy
 
-In GitHub **Settings → Pages**, choose **GitHub Actions**, then run the workflow in [deploy.yml](.github/workflows/deploy.yml). The intended site address is [christopherrbrown3.github.io/robot-bunnies/](https://christopherrbrown3.github.io/robot-bunnies/). Do not assume the site is already live until deployment succeeds.
+GitHub Pages is set to **GitHub Actions** with the custom domain **[robotbunnies.christopherbrown.ai](https://robotbunnies.christopherbrown.ai/)**. Every push to `main` runs [deploy.yml](.github/workflows/deploy.yml). The workflow asks Pages for the site's base path and builds with it: `/` for the custom domain, or `/robot-bunnies/` if the custom domain is ever removed and the site goes back to `christopherrbrown3.github.io/robot-bunnies/`. If the page ever shows only a loading or error message, it reports which file failed to load.
 
 On an iPad, open in Safari, then **Share → Add to Home Screen**. After an initial connected visit, the service-worker cache can help make the app available offline. **Speech synthesis may still need device voices or network** on older iPads.
 

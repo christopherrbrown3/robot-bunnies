@@ -4,7 +4,7 @@
 
 ## Constraints and goals
 
-- **Distribution:** static build on GitHub Pages at `/robot-bunnies/`. Home-screen install via Safari.
+- **Distribution:** static build on GitHub Pages at the custom domain `robotbunnies.christopherbrown.ai` (served from `/`). Home-screen install via Safari.
 - **Devices:** older iPads, touch first, landscape 4:3/16:9 screens, aim for acceptable performance on iPadOS 15+ (actual minimum TBD after device testing).
 - **Stack:** Phaser 3, TypeScript, Vite, vite-plugin-pwa/Workbox.
 - **No backend:** no authentication, child account, remote telemetry or externally stored learning history. No mandatory network after first app cache.
@@ -81,7 +81,7 @@ Spelling triggers pause physics, character velocity, enemy movement, timers and 
 
 ## PWA / GitHub Pages
 
-- `base: /robot-bunnies/` in production Vite config is **mandatory** for repo-scoped hosting.
+- The production `base` must match where Pages serves the site. The deploy workflow passes `BASE_PATH` from `actions/configure-pages` (`/` for the custom domain, `/robot-bunnies/` for github.io). A wrong base makes every script and stylesheet 404, so `index.html` contains an inline boot-status message that names any file that fails to load.
 - PWA manifest `start_url` and `scope` relative to build base. Cache emitted JS/CSS/fonts/images/HTML using Workbox in `vite-plugin-pwa`.
 - Reopening offline works **only after** service worker installation and asset cache completion while online.
 - Initial icon is SVG only. For reliable older iPad install appearance, produce a **180×180 PNG apple-touch-icon** plus 192/512 PNGs in the asset phase and reference them in `index.html`/manifest. Until then, home-screen icon appearance may vary.
