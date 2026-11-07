@@ -1,6 +1,8 @@
-/** Shared Phaser UI helpers: big, touch-friendly buttons and readable text. */
+/** Shared Phaser UI helpers: big, touch-friendly buttons, panels and readable text. */
 import Phaser from 'phaser';
 import { play } from '../audio/sfx';
+import { RES } from './hidpi';
+import { buttonTexture, panelTexture } from './art';
 
 export const FONT = '"Avenir Next", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif';
 
@@ -10,7 +12,8 @@ export function textStyle(size: number, color = '#3d2560', bold = true, extra: P
     fontSize: `${size}px`,
     color,
     fontStyle: bold ? 'bold' : 'normal',
-    resolution: Math.min(2, window.devicePixelRatio || 1),
+    // Rendered at the canvas density so text stays sharp through the 2× camera.
+    resolution: RES,
     ...extra
   };
 }
@@ -23,36 +26,40 @@ export interface ButtonOptions {
   stroke?: number;
 }
 
-/** A rounded button that fires on release (pointer still over it). Min 44px tall. */
+/** A glossy rounded button that fires on release (pointer still over it). Min 44px tall. */
 export function makeButton(
   scene: Phaser.Scene, x: number, y: number, w: number, h: number,
   label: string, onTap: () => void, opts: ButtonOptions = {}
 ): Phaser.GameObjects.Container {
   const color = opts.color ?? 0x7445c5;
-  const radius = opts.radius ?? Math.min(22, h / 2);
-  const g = scene.add.graphics();
-  const draw = (pressed: boolean): void => {
-    g.clear();
-    g.fillStyle(0x000000, 0.18).fillRoundedRect(-w / 2, -h / 2 + (pressed ? 2 : 5), w, h, radius);
-    g.fillStyle(color, 1).fillRoundedRect(-w / 2, -h / 2 + (pressed ? 2 : 0), w, h, radius);
-    g.lineStyle(opts.stroke ?? 3, 0xffffff, 0.9).strokeRoundedRect(-w / 2, -h / 2 + (pressed ? 2 : 0), w, h, radius);
-  };
-  draw(false);
-  const text = scene.add.text(0, 0, label, textStyle(opts.fontSize ?? 24, opts.textColor ?? '#ffffff', true, { align: 'center' })).setOrigin(0.5);
-  const container = scene.add.container(x, y, [g, text]);
+  const normal = buttonTexture(scene, w, h, color, false);
+  const pressed = buttonTexture(scene, w, h, color, true);
+  // The texture has a 4px margin and a 6px drop lip; offset so the face is centred.
+  const face = scene.add.image(0, 4, normal);
+  const text = scene.add.text(0, 0, label, textStyle(opts.fontSize ?? 24, opts.textColor ?? '#ffffff', true, {
+    align: 'center', shadow: { offsetX: 0, offsetY: 2, color: 'rgba(40,10,70,0.45)', blur: 3, fill: true }
+  })).setOrigin(0.5);
+  const container = scene.add.container(x, y, [face, text]);
   container.setSize(w, h);
   container.setInteractive({ useHandCursor: true });
   let armed = false;
-  container.on('pointerdown', () => { armed = true; draw(true); text.y = 2; });
-  container.on('pointerout', () => { armed = false; draw(false); text.y = 0; });
+  const show = (down: boolean): void => { face.setTexture(down ? pressed : normal); text.y = down ? 4 : 0; };
+  container.on('pointerdown', () => { armed = true; show(true); });
+  container.on('pointerout', () => { armed = false; show(false); });
   container.on('pointerup', () => {
-    draw(false); text.y = 0;
+    show(false);
     if (!armed) return;
     armed = false;
     play('tap');
     onTap();
   });
   return container;
+}
+
+/** A soft rounded panel centred at (x, y). */
+export function makePanel(scene: Phaser.Scene, x: number, y: number, w: number, h: number): Phaser.GameObjects.Image {
+  // Texture adds a 20px margin for the drop shadow; the panel sits 2px above its centre.
+  return scene.add.image(x, y + 2, panelTexture(scene, w, h));
 }
 
 /** A speech/caption bubble with an optional tail pointing down at (0, h/2+tail). */

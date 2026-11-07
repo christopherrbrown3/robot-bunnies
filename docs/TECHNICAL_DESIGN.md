@@ -23,8 +23,10 @@ src/
     GameScene.ts          # one level: run/jump/shrink, hazards, rescue, paint door, spelling trigger, boss, portal
     FinaleScene.ts        # end-of-run celebration and gentle word summary
   game/
-    art.ts                # Canvas 2D drawings: Lyla, Ridensee, Bunny Police, king, tiger, monkey, hand, monster, objects
-    themes.ts             # 13 visual themes; parallax backgrounds generated lazily per level
+    hidpi.ts              # retina rendering: RES (2× on high-density screens), per-scene camera setup
+    art.ts                # Canvas 2D drawings (shaded characters, objects, themed props/platforms, buttons, panels)
+    themes.ts             # 13 visual themes: painted skies, parallax layers, ground, foreground, ambient particles
+    sceneArt.ts           # title-screen castle scene, adventure-map road and nodes, storybook frame
     levelPlan.ts          # deterministic layout generator from levels.json `play` parameters
     cutscenes.ts          # storybook panel captions
     flow.ts / ui.ts       # navigation helpers, buttons, bubbles, screen-pinned overlays
@@ -60,6 +62,8 @@ scripts/
 
 - Phaser Arcade Physics for lightweight 2D collision and auto-running platform controls.
 - Fixed virtual size **960×540**, `Phaser.Scale.FIT` with letterboxing; letterbox/background absorbs unused 4:3 space.
+- **Retina rendering:** on high-density screens (every retina iPad) the canvas is 1920×1080. Each scene's camera uses origin (0,0) and zoom 2, so game code keeps logical 960×540 coordinates and screen-fixed UI stays put. `GameScene` follows Lyla with its own clamped lerp, because Phaser's built-in follow/bounds/pan assume a centred zoom. Textures are drawn at 2× and registered at their logical size (the source/frame report logical dimensions, so UVs still span 0..1). Text renders at `resolution: 2`. TileSprites copy frames by pixel size, so the world ground uses a raw 2× texture with `tileScale 0.5`, and the screen-fixed parallax layers are pairs of leapfrogging images. Non-retina screens use 1× at no extra cost; `?lowres` forces 1×.
+- **Art pipeline:** everything is drawn in code with Canvas 2D (gradients, soft shadows, rim light, gloss), so no image assets need licensing. Each level theme has a painted far layer (sky, sun/moon glow, scenery), a mid layer, a themed ground tile, a foreground strip with faster parallax, themed obstacles/platforms, and a gentle ambient particle style (petals, fireflies, leaves, pollen, sparkles). Characters get a contact shadow, take-off stretch, landing squash and dust puffs. Large background textures and props of other themes are freed when a level starts. Ambient particles and decorative tweens respect `prefers-reduced-motion`.
 - 60 fps aspirational; 30 fps acceptable with transparent fallbacks. Use compact atlases, reuse sprites, pool particles, cap effects and support reduced motion. Avoid large video backgrounds or heavy libraries.
 - HTML title description and optional ARIA accessible controls can be added as overlays later. Phaser canvas alone is not inherently screen-reader accessible.
 - Start with a fully drawn but asset-light level using shapes. Later replace with original sprites/atlasses.

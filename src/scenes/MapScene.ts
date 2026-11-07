@@ -1,10 +1,12 @@
 /** The 22-level adventure map: progress, level info and the Play button. */
 import Phaser from 'phaser';
-import { burst, makeButton, textStyle } from '../game/ui';
+import { setupCamera } from '../game/hidpi';
+import { burst, makeButton, makePanel, textStyle } from '../game/ui';
 import { PARENT_EVENT, levels, refreshOnDataChange, startAdventure } from '../game/flow';
 import { getOrStartCampaign, type SavedCampaign } from '../spelling/campaign';
 import { getActiveWeek, loadSpellingData } from '../spelling/store';
-import { loadPrefs } from '../audio/prefs';
+import { loadPrefs, prefersReducedMotion } from '../audio/prefs';
+import { generateMapArt, mapNodePositions } from '../game/sceneArt';
 import { CUTSCENES, STORYBOOK_ORDER } from '../game/cutscenes';
 
 export class MapScene extends Phaser.Scene {
@@ -17,6 +19,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   create(): void {
+    setupCamera(this);
     refreshOnDataChange(this);
     this.overlay = undefined;
     let campaign: SavedCampaign;
@@ -30,54 +33,38 @@ export class MapScene extends Phaser.Scene {
     const week = getActiveWeek(loadSpellingData());
     const current = Math.min(campaign.nextLevelIndex, 21);
 
-    const g = this.add.graphics();
-    for (let i = 0; i < 20; i++) {
-      const c = Phaser.Display.Color.Interpolate.ColorWithColor(
-        Phaser.Display.Color.ValueToColor(0xffe6f6), Phaser.Display.Color.ValueToColor(0xd9ecff), 20, i);
-      g.fillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b)).fillRect(0, 27 * i, 960, 28);
-    }
+    generateMapArt(this);
+    this.add.image(480, 270, 'map-bg');
 
-    this.add.text(30, 28, "Lyla's Adventure Map", textStyle(30, '#6e3b9d')).setOrigin(0, 0.5);
+    this.add.text(30, 28, "Lyla's Adventure Map", textStyle(30, '#6e3b9d', true, { stroke: '#ffffff', strokeThickness: 6 })).setOrigin(0, 0.5);
     this.add.text(30, 58, `${week?.label ?? ''} · Adventure #${campaign.runNumber + 1}`, textStyle(16, '#7a5a94', false)).setOrigin(0, 0.5);
-    const pill = this.add.graphics();
-    pill.fillStyle(0xffffff, 0.95).fillRoundedRect(800, 18, 140, 48, 24).lineStyle(3, 0xff7ac0).strokeRoundedRect(800, 18, 140, 48, 24);
-    this.add.image(830, 42, 'flower-icon');
-    this.add.text(854, 42, String(campaign.totalFlowers + (campaign.level?.flowers ?? 0)), textStyle(26, '#c0307a')).setOrigin(0, 0.5);
+    this.add.image(866, 42, 'hud-pill');
+    this.add.image(818, 42, 'flower-icon');
+    this.add.text(842, 42, String(campaign.totalFlowers + (campaign.level?.flowers ?? 0)), textStyle(26, '#c0307a')).setOrigin(0, 0.5);
 
-    // Snake path: 8 / 7 / 7 nodes.
-    const positions: Array<[number, number]> = [];
-    for (let i = 0; i < 22; i++) {
-      if (i < 8) positions.push([90 + i * 111, 158]);
-      else if (i < 15) positions.push([835 - (i - 8) * 120, 270]);
-      else positions.push([115 + (i - 15) * 120, 382]);
-    }
-    const path = this.add.graphics();
-    path.lineStyle(10, 0xffffff, 0.9);
-    path.beginPath();
-    positions.forEach(([x, y], i) => (i === 0 ? path.moveTo(x, y) : path.lineTo(x, y)));
-    path.strokePath();
-    path.lineStyle(4, 0xd9b7eb, 1);
-    path.beginPath();
-    positions.forEach(([x, y], i) => (i === 0 ? path.moveTo(x, y) : path.lineTo(x, y)));
-    path.strokePath();
-
+    const positions = mapNodePositions();
+    const calm = prefersReducedMotion();
     positions.forEach(([x, y], i) => {
       const done = i < campaign.nextLevelIndex;
       const isCurrent = i === current && campaign.nextLevelIndex < 22;
-      const fill = done ? 0xff7ac0 : isCurrent ? 0x7445c5 : 0xffffff;
-      const node = this.add.circle(x, y, isCurrent ? 34 : 29, fill).setStrokeStyle(4, done ? 0xffffff : 0x9a7ac0);
-      node.setInteractive({ useHandCursor: true });
-      const num = this.add.text(x, y, String(i + 1), textStyle(isCurrent ? 26 : 22, done || isCurrent ? '#ffffff' : '#7a5a94')).setOrigin(0.5);
+      const node = this.add.image(x, y, done ? 'node-done' : isCurrent ? 'node-current' : 'node-locked').setScale(isCurrent ? 1.12 : 0.95);
+      node.setInteractive(new Phaser.Geom.Circle(42, 42, 40), Phaser.Geom.Circle.Contains);
+      const num = this.add.text(x, y, String(i + 1), textStyle(isCurrent ? 26 : 22, done || isCurrent ? '#ffffff' : '#7a5a94', true,
+        done || isCurrent ? { shadow: { offsetX: 0, offsetY: 2, color: 'rgba(60,10,60,0.4)', blur: 3, fill: true } } : {})).setOrigin(0.5);
       if (done) {
         num.setY(y + 14).setFontSize(15);
         this.add.image(x, y - 6, 'flower-icon').setScale(0.7);
       }
-      if (i === 21) this.add.text(x, y + 46, 'Monster!', textStyle(14, '#7a2fb0')).setOrigin(0.5);
-      if (i === 0) this.add.text(x, y + 48, 'Castle', textStyle(14, '#c0307a')).setOrigin(0.5);
+      if (i === 21) this.add.text(x, y + 46, 'Monster!', textStyle(14, '#7a2fb0', true, { stroke: '#ffffff', strokeThickness: 4 })).setOrigin(0.5);
+      if (i === 0) this.add.text(x, y + 48, 'Castle', textStyle(14, '#c0307a', true, { stroke: '#ffffff', strokeThickness: 4 })).setOrigin(0.5);
       if (isCurrent) {
-        this.tweens.add({ targets: node, scale: 1.1, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-        const lyla = this.add.image(x, y - 30, 'lyla-stand').setOrigin(0.5, 1).setScale(0.45);
-        this.tweens.add({ targets: lyla, y: y - 38, duration: 400, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
+        if (!calm) this.tweens.add({ targets: node, scale: 1.2, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        const shadow = this.add.image(x, y - 26, 'shadow').setScale(0.45, 0.5);
+        const lyla = this.add.image(x, y - 28, 'lyla-stand').setOrigin(0.5, 1).setScale(0.48);
+        if (!calm) {
+          this.tweens.add({ targets: lyla, y: y - 40, duration: 400, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
+          this.tweens.add({ targets: shadow, scaleX: 0.3, alpha: 0.5, duration: 400, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
+        }
       }
       node.on('pointerup', () => this.showInfo(i, campaign));
     });
@@ -107,8 +94,7 @@ export class MapScene extends Phaser.Scene {
     const root = this.add.container(0, 0).setDepth(100);
     this.overlay = root;
     const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.6).setInteractive();
-    const panel = this.add.graphics();
-    panel.fillStyle(0xfff6ff, 1).fillRoundedRect(180, 50, 600, 440, 26).lineStyle(5, 0xf2bde4).strokeRoundedRect(180, 50, 600, 440, 26);
+    const panel = makePanel(this, 480, 270, 600, 440);
     root.add([dim, panel, this.add.text(480, 92, '📖 Storybook', textStyle(32, '#6e3b9d')).setOrigin(0.5)]);
     const available = STORYBOOK_ORDER.filter(id => seen.includes(id));
     if (!available.length) {
