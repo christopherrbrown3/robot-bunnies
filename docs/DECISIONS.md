@@ -4,7 +4,7 @@ This is an **accuracy guardrail**. We must not accidentally turn adult/assistant
 
 ## Confirmed directly by Zoey (via her dad)
 
-- **22 levels total**; first easiest, increasing difficulty gradually; some settings repeat.
+- **22 levels total**; first easiest, increasing difficulty gradually; some settings repeat. (A 23rd, Christmas level was later added on request; see [Christmas level](#christmas-level-added--november-7-2026).)
 - Bunnies collect flowers for a king; flowers contain **money**.
 - The king controls apparently normal-looking **robot bunnies with his phone**.
 - The king is **secretly evil**. The bunny heroes discover his nature at the handoff of the key.
@@ -93,7 +93,7 @@ This is now a **complete enough implementation spec**; remaining story dialogue,
 
 ## Proposals made while building the playable game (November 2, 2026) — NOT canon
 
-These came from the builder (an AI assistant working with Dad), not from Zoey. They are in the game so it is playable end to end, and each one can change once Zoey reviews it.
+These came from the builder (an AI assistant working with Dad), not from Zoey. Level numbers below use the current 23-level order (Levels 12–22 moved up one when the Christmas level was added). They are in the game so it is playable end to end, and each one can change once Zoey reviews it.
 
 **Characters and look**
 
@@ -107,18 +107,28 @@ These came from the builder (an AI assistant working with Dad), not from Zoey. T
 
 - All cutscene captions and in-game lines, including the Bunny Police line at the cage: "Here is a key! The king is secretly EVIL. He controls robot bunnies with his phone!"
 - Why Lyla keeps collecting flowers: "Now that she knows the king is evil, Lyla will keep the magic flowers safe from him."
-- In the Level 16 workshop, the secret message says the king's phone controls the robot bunnies. Level 20 jams the phone.
+- In the Level 17 workshop, the secret message says the king's phone controls the robot bunnies. Level 21 jams the phone.
 - Ending: the monster becomes friendly, the king's phone stops working so the robot bunnies are free, and Lyla brings the flowers home for everyone.
-- The bow and arrows are found on a stand in Level 18 (Finding the Bow). Levels 18 and 21 have tap-to-shoot practice targets.
-- Level 22 boss: tap two glowing star targets to shoot arrows at them, then spell a word to power a "rainbow arrow" at the monster's rainbow heart. There's no damage, and "Hee hee! That tickles!" plays instead.
+- The bow and arrows are found on a stand in Level 19 (Finding the Bow). Levels 19 and 22 have tap-to-shoot practice targets.
+- Level 23 boss: tap two glowing star targets to shoot arrows at them, then spell a word to power a "rainbow arrow" at the monster's rainbow heart. There's no damage, and "Hee hee! That tickles!" plays instead.
 - Ridensee appears **only** in automatic rescues: never in cutscenes, never as a playable character.
 
 **Mechanics**
 
 - **What can catch Lyla:** the tiger and the monkeys. If either catches her, Ridensee rescues her back to the same spot, and that animal is gone for the rest of the level. **What bounces her back:** the hand, low obstacles and untapped beads.
 - **Shrinking:** tapping Lyla only shrinks her while a danger warning is showing (a pink ring and "Tap Lyla to shrink!"). At other times, a tap anywhere is a jump.
-- **Paint doors (Levels 3 and 14):** tap six paint pots in rainbow order (red, orange, yellow, green, blue, purple) to open a door with bonus flowers. After two wrong taps, the next correct pot glows.
+- **Paint doors (Levels 3 and 15):** tap six paint pots in rainbow order (red, orange, yellow, green, blue, purple) to open a door with bonus flowers. After two wrong taps, the next correct pot glows.
 - **Flower bonuses:** +3 for each spelling object, +6 for each paint door, +10 when the monster is befriended, +2 for each practice target. The portal opens once the level's story object is resolved. Not every flower is needed.
 - **Helper hop:** after Lyla bumps the same obstacle twice, she hops over it automatically. After three bumps, the hand lifts and waits for her.
 - **Visual themes** for the proposed levels: sky, night meadow, woodland, zoo, river, orchard, town and control room.
 - **Decorative scenery** (added in the November 7 graphics pass): lollipop trees in the rainbow, glowing mushrooms in the night meadow, a giraffe and acacia trees at the zoo, a stone bridge at the river, lanterns and a clock tower in the town, giant flowers in the monster's garden, the castle's arched windows, banners and topiaries, and the title screen's castle on a hill. All of it is decoration only and can be redrawn to match Zoey's ideas.
+
+## Christmas level added — November 7, 2026
+
+Requested by the project owner: "Add a new Christmas themed level somewhere in the middle with Christmas trees, gifts, candy canes, elves, bells, and other Christmas themed stuff." This is **not** one of Zoey's 22 levels; she may want to rename, move or redesign it.
+
+- The adventure now has **23 levels**. "A Very Bunny Christmas" is Level 12, between The Golden Greenhouse and The Helping Hand Hall; the old Levels 12–22 are now 13–23. Earlier mentions of 22 levels in this log describe Zoey's original plan.
+- Proposed details (builder's, not canon): a snowy village at dusk with a sleigh crossing the moon; decorated Christmas trees, gingerbread house, lamp posts with wreaths and bells; wrapped gifts as the obstacles and candy canes as the platforms; a "Merry Christmas!" arch hung with bells; a snowman; three elves who wave, call out greetings and cheer; falling snow; jingle bells that fell off the sleigh in place of beads; and the elves' giant present as the spelling object, which pops open full of flowers. A short storybook cutscene introduces the level.
+- No new danger: the level has no tiger, monkeys or hand, only gifts to hop over and bells to tap.
+- Saved adventures from before the change carry on: finished levels and results are kept, a player who hasn't reached Level 12 yet plays the Christmas level when they get there, and a player partway through a later level stays in that level with their checkpoint. The renumbered levels keep their exact layouts.
+

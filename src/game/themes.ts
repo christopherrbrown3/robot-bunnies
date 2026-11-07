@@ -1,5 +1,5 @@
 /**
- * Visual themes for the 22 locations: painted parallax backgrounds, themed
+ * Visual themes for the story locations: painted parallax backgrounds, themed
  * ground, obstacles, platforms, foreground strip and ambient particles.
  * Backgrounds are generated lazily per level and other themes' large
  * textures are freed, to stay within older iPads' GPU memory.
@@ -10,15 +10,16 @@ import {
   freeThemeProps, lin, makeTexture, noShadow, rad, roundRect, softShadow,
   type PlatformStyle, type PropColors, type PropStyle
 } from './art';
+import { drawChristmasTree, ensureChristmasArt, freeChristmasArt } from './christmasArt';
 
 export type ThemeKey = 'castle' | 'rainbow' | 'sky' | 'garden' | 'night' | 'woodland' | 'zoo' | 'river' |
-  'orchard' | 'town' | 'meadow' | 'control' | 'final';
+  'orchard' | 'town' | 'meadow' | 'control' | 'final' | 'christmas';
 
 type Painter = 'castle' | 'control' | 'rainbow' | 'clouds' | 'hills' | 'meadow' | 'night' | 'forest' | 'zoo' |
-  'river' | 'orchard' | 'town' | 'final';
-type GroundStyle = 'grass' | 'tiles' | 'candy' | 'cloud' | 'sand' | 'stone' | 'cobble';
-type Foreground = 'grass' | 'candy' | 'cloud' | 'flowers' | 'pebbles' | 'glow';
-export type Ambient = 'petal' | 'sparkle' | 'pollen' | 'firefly' | 'leaf' | 'mote' | 'blossom';
+  'river' | 'orchard' | 'town' | 'final' | 'christmas';
+type GroundStyle = 'grass' | 'tiles' | 'candy' | 'cloud' | 'sand' | 'stone' | 'cobble' | 'icing';
+type Foreground = 'grass' | 'candy' | 'cloud' | 'flowers' | 'pebbles' | 'glow' | 'snow';
+export type Ambient = 'petal' | 'sparkle' | 'pollen' | 'firefly' | 'leaf' | 'mote' | 'blossom' | 'snow';
 
 export interface Theme {
   /** Top, middle and horizon sky colours. */
@@ -142,6 +143,14 @@ export const THEMES: Record<ThemeKey, Theme> = {
     platform: { style: 'candy', colors: { main: '#b48aff', light: '#efe6ff', dark: '#6a3db8', accent: '#ffe066' } },
     gate: { main: '#ff7cc0', dark: '#9a2f6c', style: 'rainbow' },
     foreground: 'flowers', ambient: 'petal', ambientTint: 0xffffff, hudText: '#5a1a3a'
+  },
+  christmas: {
+    sky: ['#1f2a66', '#5560b4', '#f2b9d9'], painter: 'christmas',
+    ground: { style: 'icing', top: '#ffffff', topLight: '#ffffff', soil: '#c47e40', soilDark: '#7a4520', accent: '#e8394d' },
+    prop: { style: 'gift', colors: { main: '#e8394d', light: '#ff8a96', dark: '#9a1428', accent: '#ffd84d' } },
+    platform: { style: 'candycane', colors: { main: '#e8394d', light: '#ffffff', dark: '#9a1428', accent: '#e8394d' } },
+    gate: { main: '#e8394d', dark: '#9a1428', style: 'wood' },
+    foreground: 'snow', ambient: 'snow', ambientTint: 0xffffff, hudText: '#ffffff'
   }
 };
 
@@ -458,6 +467,66 @@ function paintFar(ctx: Ctx, t: Theme): void {
       ctx.strokeStyle = '#4a3a88'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(480, 200); ctx.lineTo(480, 182); ctx.moveTo(480, 200); ctx.lineTo(494, 206); ctx.stroke();
       break;
     }
+    case 'christmas': {
+      // Starry dusk with a big moon and a sleigh flying across it.
+      for (let i = 0; i < 120; i++) {
+        const x = rand() * W, y = rand() * 300, r = rand() < 0.1 ? 1.8 : 0.6 + rand() * 0.9;
+        ctx.globalAlpha = 0.35 + rand() * 0.65; circle(ctx, x, y, r); ctx.fillStyle = '#ffffff'; ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      sparkles(ctx, rand, 10, 260, '#fff6c8');
+      sun(ctx, 760, 116, 48, '#fff6d6', 'rgba(255,240,210,0.35)');
+      sleigh(ctx, 712, 112);
+      // Snowy mountains.
+      ctx.fillStyle = lin(ctx, 0, 250, 0, 420, [[0, '#8a92d4'], [1, '#6a70b8']]);
+      ctx.beginPath(); ctx.moveTo(0, 420);
+      const peaks = [[0, 330], [120, 260], [230, 320], [360, 240], [500, 330], [620, 270], [760, 320], [880, 250], [960, 330]];
+      for (const [x, y] of peaks) ctx.lineTo(x, y);
+      ctx.lineTo(W, 420); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      for (const [x, y] of peaks.slice(1, -1)) {
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 34, y + 30); ctx.lineTo(x + 16, y + 24); ctx.lineTo(x, y + 34); ctx.lineTo(x - 14, y + 24); ctx.lineTo(x - 32, y + 30); ctx.closePath(); ctx.fill();
+      }
+      hills(ctx, 400, 16, 2, 0.5, H, '#dfe6fb', '#b8c4ec');
+      // Little village with snowy roofs, glowing windows and wreaths.
+      for (let i = 0; i < 7; i++) {
+        const x = i * 140 + rand() * 40, w = 58 + rand() * 26, h = 40 + rand() * 22, col = ['#d9566a', '#5aa86a', '#e8c98a', '#8a7ad0'][i % 4];
+        wrap(x, w, cx => {
+          const base = 412;
+          ctx.fillStyle = lin(ctx, cx, 0, cx + w, 0, [[0, col], [1, 'rgba(40,30,80,0.55)']]); ctx.fillRect(cx, base - h, w, h);
+          ctx.fillStyle = col; ctx.globalAlpha = 0.6; ctx.fillRect(cx, base - h, w * 0.6, h); ctx.globalAlpha = 1;
+          ctx.fillStyle = '#6a4a3a'; ctx.fillRect(cx + w * 0.7, base - h - 26, 9, 18);
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath(); ctx.moveTo(cx - 8, base - h + 2); ctx.lineTo(cx + w / 2, base - h - 30); ctx.lineTo(cx + w + 8, base - h + 2); ctx.closePath(); ctx.fill();
+          softShadow(ctx, 8, 0, 'rgba(255,220,120,0.95)');
+          ctx.fillStyle = '#ffe28a';
+          roundRect(ctx, cx + 8, base - h + 12, 12, 13, 2); ctx.fill();
+          roundRect(ctx, cx + w - 20, base - h + 12, 12, 13, 2); ctx.fill();
+          noShadow(ctx);
+          ctx.fillStyle = '#5a3424'; roundRect(ctx, cx + w / 2 - 6, base - 20, 12, 20, 5); ctx.fill();
+          circle(ctx, cx + w / 2, base - h - 8, 5); ctx.strokeStyle = '#2f9a4a'; ctx.lineWidth = 3; ctx.stroke();
+          // Chimney smoke.
+          ctx.fillStyle = 'rgba(255,255,255,0.35)';
+          for (let k = 0; k < 3; k++) { circle(ctx, cx + w * 0.7 + 5 + k * 6, base - h - 34 - k * 12, 5 + k * 2); ctx.fill(); }
+        });
+      }
+      // Snowy fir trees with tiny lights.
+      for (let i = 0; i < 12; i++) {
+        const x = i * 82 + rand() * 30, th = 70 + rand() * 50;
+        pine(ctx, x, 452, th, 46, '#3f8a5c', '#1f5a3a');
+        wrap(x, 30, cx => {
+          ctx.fillStyle = 'rgba(255,255,255,0.9)';
+          for (let k = 0; k < 3; k++) { const ty = 452 - th + k * th * 0.22 + th * 0.45; ctx.fillRect(cx - (46 * (0.55 + k * 0.25)) / 2 + 3, ty - 3, 46 * (0.55 + k * 0.25) - 6, 3); }
+          for (let k = 0; k < 5; k++) {
+            const col = ['#fff3a0', '#ff9aa6', '#9fe0ff'][k % 3];
+            softShadow(ctx, 5, 0, col); circle(ctx, cx - 12 + ((k * 13) % 24), 452 - th * (0.25 + (k % 3) * 0.2), 1.6); ctx.fillStyle = col; ctx.fill();
+          }
+          noShadow(ctx);
+        });
+      }
+      hills(ctx, 470, 12, 3, 1.6, H, '#ffffff', '#d4ddf6');
+      break;
+    }
   }
   // Gentle horizon haze over everything.
   ctx.fillStyle = lin(ctx, 0, 300, 0, H, [[0, 'rgba(255,255,255,0)'], [1, t.painter === 'night' ? 'rgba(90,70,170,0.25)' : 'rgba(255,255,255,0.25)']]);
@@ -601,8 +670,82 @@ function paintMid(ctx: Ctx, t: Theme): void {
       }
       break;
     }
+    case 'christmas': {
+      noShadow(ctx);
+      const base = 214;
+      // Decorated Christmas trees.
+      for (const [x, h] of [[110, 170], [575, 150]] as const) wrap(x, 60, cx => drawChristmasTree(ctx, cx, base, h, h * 0.68, false));
+      // Lamp posts with a wreath and a golden bell.
+      for (const x of [330, 805]) {
+        wrap(x, 30, cx => {
+          ctx.fillStyle = lin(ctx, cx - 4, 0, cx + 4, 0, [[0, '#2a2a40'], [0.5, '#5a5a78'], [1, '#1a1a2a']]); ctx.fillRect(cx - 4, 70, 8, base - 70);
+          ctx.fillStyle = '#2a2a40'; roundRect(ctx, cx - 14, 62, 28, 8, 3); ctx.fill();
+          softShadow(ctx, 20, 0, 'rgba(255,220,130,0.95)');
+          roundRect(ctx, cx - 10, 40, 20, 24, 5); ctx.fillStyle = '#fff1b0'; ctx.fill();
+          noShadow(ctx);
+          ctx.beginPath(); ctx.moveTo(cx - 14, 40); ctx.lineTo(cx, 28); ctx.lineTo(cx + 14, 40); ctx.closePath(); ctx.fillStyle = '#2a2a40'; ctx.fill();
+          ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(cx, 30, 12, 4, 0, Math.PI, 0); ctx.fill();
+          // Wreath.
+          for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2; circle(ctx, cx + Math.cos(a) * 15, 112 + Math.sin(a) * 15, 6); ctx.fillStyle = k % 2 ? '#2f9a4a' : '#1f7a3a'; ctx.fill(); }
+          for (const a of [0.5, 2.2, 3.9, 5.4]) { circle(ctx, cx + Math.cos(a) * 15, 112 + Math.sin(a) * 15, 2.4); ctx.fillStyle = '#e8394d'; ctx.fill(); }
+          ctx.fillStyle = '#e8394d';
+          for (const dir of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx, 128); ctx.bezierCurveTo(cx + dir * 12, 118, cx + dir * 13, 136, cx, 128); ctx.fill(); }
+          // Bell under the wreath.
+          ctx.beginPath(); ctx.moveTo(cx - 3, 132); ctx.quadraticCurveTo(cx - 8, 140, cx - 10, 150); ctx.lineTo(cx + 10, 150); ctx.quadraticCurveTo(cx + 8, 140, cx + 3, 132); ctx.closePath();
+          ctx.fillStyle = lin(ctx, cx - 10, 0, cx + 10, 0, [[0, '#b8800e'], [0.4, '#fff1a0'], [1, '#b8800e']]); ctx.fill();
+          circle(ctx, cx, 152, 2.6); ctx.fillStyle = '#b8800e'; ctx.fill();
+        });
+      }
+      // Snowman.
+      wrap(450, 40, cx => {
+        for (const [dy, r] of [[-22, 24], [-56, 17], [-82, 12]] as const) {
+          circle(ctx, cx, base + dy, r); ctx.fillStyle = rad(ctx, cx, base + dy, r, [[0, '#ffffff'], [1, '#c8d0ee']], cx - r * 0.3, base + dy - r * 0.4); ctx.fill();
+        }
+        ctx.fillStyle = '#2a2a3a'; for (const dx of [-4, 4]) { circle(ctx, cx + dx, base - 85, 1.8); ctx.fill(); }
+        ctx.beginPath(); ctx.moveTo(cx, base - 81); ctx.lineTo(cx + 12, base - 79); ctx.lineTo(cx, base - 78); ctx.closePath(); ctx.fillStyle = '#ff8a3c'; ctx.fill();
+        ctx.fillStyle = '#e8394d'; roundRect(ctx, cx - 13, base - 72, 26, 6, 3); ctx.fill(); ctx.fillRect(cx + 4, base - 70, 6, 16);
+        ctx.fillStyle = '#1a1a2a'; ctx.fillRect(cx - 12, base - 96, 24, 4); ctx.fillRect(cx - 8, base - 112, 16, 16);
+      });
+      // Gingerbread house with icing trim and candy.
+      wrap(700, 70, cx => {
+        const w = 104, h = 66, top = base - h;
+        ctx.fillStyle = lin(ctx, cx - w / 2, 0, cx + w / 2, 0, [[0, '#d08a48'], [0.5, '#e8a868'], [1, '#a8682e']]); ctx.fillRect(cx - w / 2, top, w, h);
+        ctx.beginPath(); ctx.moveTo(cx - w / 2 - 12, top + 4); ctx.lineTo(cx, top - 46); ctx.lineTo(cx + w / 2 + 12, top + 4); ctx.closePath();
+        ctx.fillStyle = '#ffffff'; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx - w / 2 - 4, top + 2); ctx.lineTo(cx, top - 36); ctx.lineTo(cx + w / 2 + 4, top + 2); ctx.closePath(); ctx.fillStyle = '#b8743a'; ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+        for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.arc(cx - w / 2 + 8 + k * 18, top + 2, 8, 0, Math.PI); ctx.stroke(); }
+        for (const [dx, dy, col] of [[-36, 18, '#e8394d'], [36, 18, '#2fa65a'], [-20, -16, '#ffd84d'], [20, -16, '#e8394d'], [0, -28, '#5fb3ff']] as const) { circle(ctx, cx + dx, top + dy, 4); ctx.fillStyle = col; ctx.fill(); }
+        softShadow(ctx, 8, 0, 'rgba(255,220,120,0.9)');
+        ctx.fillStyle = '#ffe28a'; roundRect(ctx, cx - 40, top + 30, 16, 16, 3); ctx.fill(); roundRect(ctx, cx + 24, top + 30, 16, 16, 3); ctx.fill();
+        noShadow(ctx);
+        ctx.fillStyle = '#6a3a1e'; roundRect(ctx, cx - 10, base - 32, 20, 32, 9); ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx, base - 22, 10, Math.PI, 0); ctx.stroke();
+      });
+      // Snow drifts burying everything's feet.
+      hills(ctx, base + 4, 8, 4, 1.1, H, '#ffffff', '#d8e0f8');
+      break;
+    }
   }
   noShadow(ctx);
+}
+
+/** A tiny sleigh pulled by three reindeer, in silhouette against the moon. */
+function sleigh(ctx: Ctx, x: number, y: number): void {
+  ctx.save();
+  ctx.fillStyle = 'rgba(40,40,90,0.85)'; ctx.strokeStyle = 'rgba(40,40,90,0.85)';
+  for (let i = 0; i < 3; i++) {
+    const rx = x + i * 20, ry = y + i * 2.5;
+    ctx.beginPath(); ctx.ellipse(rx, ry, 7, 3.2, -0.15, 0, Math.PI * 2); ctx.fill();
+    circle(ctx, rx - 7, ry - 4, 2.4); ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(rx - 7, ry - 6); ctx.lineTo(rx - 9, ry - 10); ctx.moveTo(rx - 8, ry - 8); ctx.lineTo(rx - 11, ry - 8);
+    ctx.moveTo(rx - 4, ry + 2); ctx.lineTo(rx - 7, ry + 6); ctx.moveTo(rx + 4, ry + 2); ctx.lineTo(rx + 7, ry + 6); ctx.stroke();
+  }
+  ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x + 46, y + 5); ctx.lineTo(x + 66, y + 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + 64, y + 4); ctx.lineTo(x + 86, y + 4); ctx.quadraticCurveTo(x + 90, y + 14, x + 80, y + 16); ctx.lineTo(x + 66, y + 16); ctx.closePath(); ctx.fill();
+  ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x + 62, y + 19); ctx.lineTo(x + 86, y + 19); ctx.quadraticCurveTo(x + 92, y + 19, x + 92, y + 14); ctx.stroke();
+  ctx.restore();
 }
 
 // ------------------------------------------------------------ ground
@@ -687,6 +830,30 @@ function paintGround(ctx: Ctx, t: Theme): void {
       ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(0, 0, TW, 2.5);
       break;
     }
+    case 'icing': {
+      // Gingerbread with freckles and gumdrops under drippy white icing snow.
+      for (let i = 0; i < 26; i++) {
+        const x = rand() * TW, y = 26 + rand() * 60;
+        tileWrap(x, 2, cx => { circle(ctx, cx, y, 1 + rand() * 0.8); ctx.fillStyle = 'rgba(90,40,10,0.35)'; ctx.fill(); });
+      }
+      for (const [x, y, col] of [[20, 52, '#e8394d'], [70, 72, '#2fa65a'], [104, 44, '#ffffff'], [44, 80, '#ffd84d']] as const) {
+        roundRect(ctx, x - 4, y - 3, 8, 6, 3); ctx.fillStyle = col; ctx.fill();
+        roundRect(ctx, x - 2.5, y - 2, 3, 1.5, 0.7); ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fill();
+      }
+      const drips = [10, 4, 13, 6, 9, 3, 12, 5];
+      ctx.fillStyle = 'rgba(120,140,200,0.35)';
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(TW, 0); ctx.lineTo(TW, 16);
+      for (let k = drips.length - 1; k >= 0; k--) { const x = k * 16 + 8; ctx.quadraticCurveTo(x + 8, 16, x + 5, 16 + drips[k]); ctx.arc(x, 16 + drips[k], 5, 0, Math.PI); ctx.quadraticCurveTo(x - 8, 16, x - 8, 16); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = lin(ctx, 0, 0, 0, 30, [[0, '#ffffff'], [1, '#eef2ff']]);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(TW, 0); ctx.lineTo(TW, 13);
+      for (let k = drips.length - 1; k >= 0; k--) { const x = k * 16 + 8; ctx.quadraticCurveTo(x + 8, 13, x + 5, 13 + drips[k]); ctx.arc(x, 13 + drips[k], 5, 0, Math.PI); ctx.quadraticCurveTo(x - 8, 13, x - 8, 13); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      for (let x = 4; x < TW; x += 11) { circle(ctx, x, 2 + (x % 3), 1.1); ctx.fillStyle = x % 2 ? '#d8e4ff' : '#ffffff'; ctx.fill(); }
+      ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(0, 0, TW, 2.5);
+      break;
+    }
   }
 }
 
@@ -732,6 +899,26 @@ function paintForeground(ctx: Ctx, t: Theme): void {
           }
           break;
         }
+        case 'snow': {
+          if (i % 4 === 1) {
+            // A little candy cane poking out of the drift.
+            ctx.save(); ctx.lineCap = 'butt';
+            ctx.beginPath(); ctx.moveTo(cx + 4 * s, H); ctx.lineTo(cx + 4 * s, H - 38 * s); ctx.arc(cx - 3 * s, H - 38 * s, 7 * s, 0, Math.PI, true);
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5 * s; ctx.stroke();
+            ctx.setLineDash([4 * s, 4 * s]); ctx.strokeStyle = '#e8394d'; ctx.stroke(); ctx.restore();
+          }
+          for (const [dx, r] of [[-14, 12], [0, 17], [15, 11]]) {
+            circle(ctx, cx + dx * s, H - 2, r * s);
+            ctx.fillStyle = rad(ctx, cx + dx * s, H - 6 * s, r * s, [[0, '#ffffff'], [0.7, '#f2f5ff'], [1, '#c8d2f0']], cx + dx * s - 3 * s, H - 10 * s); ctx.fill();
+          }
+          if (i % 3 === 0) {
+            // Holly sprig on top.
+            ctx.fillStyle = '#2f9a4a';
+            for (const dir of [-1, 1]) { ctx.beginPath(); ctx.ellipse(cx + dir * 6 * s, H - 17 * s, 7 * s, 3 * s, dir * 0.4, 0, Math.PI * 2); ctx.fill(); }
+            for (const [dx, dy] of [[-2, -18], [2, -18], [0, -21]]) { circle(ctx, cx + dx * s, H + dy * s, 2.4 * s); ctx.fillStyle = '#e8394d'; ctx.fill(); }
+          }
+          break;
+        }
       }
     });
   }
@@ -748,6 +935,7 @@ export function ensureThemeArt(scene: Phaser.Scene, key: ThemeKey): ThemeArt {
     for (const k of [`bg-far-${other}`, `bg-mid-${other}`, `bg-fg-${other}`]) if (scene.textures.exists(k)) scene.textures.remove(k);
   }
   freeThemeProps(scene, key);
+  if (key === 'christmas') ensureChristmasArt(scene); else freeChristmasArt(scene);
   makeTexture(scene, far, 960, 540, ctx => paintFar(ctx, t));
   makeTexture(scene, mid, 960, 260, ctx => paintMid(ctx, t));
   makeTexture(scene, ground, 128, 90, ctx => paintGround(ctx, t), true);

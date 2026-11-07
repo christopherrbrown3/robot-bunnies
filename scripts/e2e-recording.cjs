@@ -54,7 +54,12 @@ const week = {
   s = await rowState();
   assert.match(s.buttons[0].text, /■ Stop · [1-5]/, 'Stop button shows seconds left');
   assert.match(s.banner, /Recording “ship”.*s left/, 'banner says recording with time left');
-  assert.ok(s.level === null || s.level > 0, 'mic level meter moves (fake mic plays a tone)');
+  // The fake mic plays short beeps, so watch the meter for a moment rather than sampling one frame.
+  const meterMoved = await page.waitForFunction(() => {
+    const l = document.querySelector('.rec-level');
+    return !l || parseFloat(l.style.width) > 0;
+  }, null, { timeout: 1500, polling: 'raf' }).then(() => true, () => false);
+  assert.ok(meterMoved, 'mic level meter moves (fake mic plays a tone)');
   if (SHOT) await page.screenshot({ path: SHOT });
 
   // 3. Tap Stop to finish early → saved, cue removed, recording available.

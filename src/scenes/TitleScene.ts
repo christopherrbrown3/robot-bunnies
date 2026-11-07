@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { setupCamera } from '../game/hidpi';
 import { makeBubble, makeButton, textStyle } from '../game/ui';
-import { PARENT_EVENT, hasActiveList, levels, refreshOnDataChange, startAdventure } from '../game/flow';
-import { peekCampaign } from '../spelling/campaign';
+import { PARENT_EVENT, addUpdateButton, hasActiveList, levels, refreshOnDataChange, startAdventure } from '../game/flow';
+import { consumeJustUpdated, versionLabel } from '../updates';
+import { CAMPAIGN_LEVEL_COUNT, peekCampaign } from '../spelling/campaign';
 import { loadPrefs, prefersReducedMotion, savePrefs } from '../audio/prefs';
 import { generateTitleArt } from '../game/sceneArt';
 
@@ -59,7 +60,7 @@ export class TitleScene extends Phaser.Scene {
     let playLabel = '▶  PLAY';
     if (ready) {
       const saved = peekCampaign();
-      if (saved && saved.nextLevelIndex > 0 && saved.nextLevelIndex < 22) {
+      if (saved && saved.nextLevelIndex > 0 && saved.nextLevelIndex < CAMPAIGN_LEVEL_COUNT) {
         playLabel = `▶  CONTINUE · Level ${saved.nextLevelIndex + 1}`;
       } else if (saved?.level) {
         playLabel = '▶  CONTINUE · Level 1';
@@ -79,6 +80,14 @@ export class TitleScene extends Phaser.Scene {
       const next = savePrefs({ sound: !loadPrefs().sound });
       (soundBtn.list[1] as Phaser.GameObjects.Text).setText(next.sound ? '🔊' : '🔇');
     }, { color: 0x6a5080, fontSize: 26 });
+
+    // Which version is installed, and an Update button once a new one has downloaded.
+    this.add.text(12, 10, versionLabel(), textStyle(13, '#5a2a7a', true)).setAlpha(0.7);
+    addUpdateButton(this, 160, 500, 270);
+    if (consumeJustUpdated()) {
+      const done = makeBubble(this, 480, 200, 'Robot Bunnies is up to date! ✨', 420, false).setDepth(50);
+      this.time.delayedCall(2600, () => done.destroy());
+    }
 
     if (!ready) {
       this.add.text(480, 418, 'A grown-up adds this week\'s spelling words in Grown-ups first.', textStyle(19, '#5a2a7a', true, { stroke: '#ffffff', strokeThickness: 5 })).setOrigin(0.5);

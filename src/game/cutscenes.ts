@@ -10,7 +10,8 @@
 export type PanelArt =
   | 'lyla-hello' | 'king-phone' | 'castle-cage' | 'police-key'
   | 'rainbow-jump' | 'zoo-warning' | 'workshop' | 'bow-hint'
-  | 'monster-appears' | 'monster-friendly' | 'robots-free' | 'flowers-home';
+  | 'monster-appears' | 'monster-friendly' | 'robots-free' | 'flowers-home'
+  | 'christmas-village' | 'christmas-elves';
 
 export interface Panel { art: PanelArt; caption: string }
 export interface Cutscene { id: string; title: string; panels: Panel[] }
@@ -37,6 +38,13 @@ export const CUTSCENES: Record<string, Cutscene> = {
     panels: [
       { art: 'zoo-warning', caption: 'Lyla reaches the zoo. Watch out! Zoo animals jump down to grab bunnies carrying flowers.' },
       { art: 'lyla-hello', caption: 'When you see the warning, tap Lyla to shrink as small as an ant!' }
+    ]
+  },
+  christmas: {
+    id: 'christmas', title: 'A Very Bunny Christmas',
+    panels: [
+      { art: 'christmas-village', caption: 'Lyla jumps through the portal into a snowy Christmas village! Twinkly trees, candy canes and snow everywhere!' },
+      { art: 'christmas-elves', caption: 'Friendly elves wrapped a giant present for Lyla. Oh! Jingle bells fell off the sleigh. Tap them to pick them up!' }
     ]
   },
   workshop: {
@@ -70,4 +78,4 @@ export const CUTSCENES: Record<string, Cutscene> = {
   }
 };
 
-export const STORYBOOK_ORDER = ['intro', 'rainbow', 'zoo', 'workshop', 'bow', 'monster', 'ending'];
+export const STORYBOOK_ORDER = ['intro', 'rainbow', 'zoo', 'christmas', 'workshop', 'bow', 'monster', 'ending'];

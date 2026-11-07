@@ -4,11 +4,11 @@
 
 **Working title:** Robot Bunnies: Lyla's Spelling Quest  
 **Creative director:** Zoey (story, characters, worlds, major powers)  
-**Product goal:** help Zoey prepare for her real weekly spelling tests through a compelling, forgiving 22-level platform game — **spelling only**, not a broad first-grade reading/math curriculum.
+**Product goal:** help Zoey prepare for her real weekly spelling tests through a compelling, forgiving 23-level platform game — **spelling only**, not a broad first-grade reading/math curriculum.
 
 ## 1. Non-negotiable game requirements
 
-- **Exactly 22 levels per full playthrough**, from the hot-pink castle/cage (Level 1), through a world *inside a rainbow* (Level 2), to the giant-monster/bow finale (Level 22).
+- **Exactly 23 levels per full playthrough** (Zoey's 22 plus the Christmas level, Level 12, added November 7, 2026), from the hot-pink castle/cage (Level 1), through a world *inside a rainbow* (Level 2), to the giant-monster/bow finale (Level 23).
 - A complete playthrough encounters **every word on the current week's teacher-provided list** at least once, whether the list has 10, 15, 20 or another supported number (1–20). World locations are fixed; weekly words are changeable.
 - **No timer, session length cap, daily limit, lives, death screen or punitive restart.** Zoey may play the whole adventure or leave and resume later. Save at checkpoints and after completed spelling interactions.
 - **Current-week words always take priority.** Untested, missed, assisted or not-yet-secure current words receive extra opportunities. Earlier weeks contribute *only* if every current word is currently secure; if a current word becomes weak again, immediately prioritize it for future extra prompts.
@@ -78,15 +78,15 @@ Repeat Hear as many times as requested without counting it as a hint. Do not sho
 
 **Weak/needing practice:** untested, fewer than two independent correct presentations, or newly missed/assisted/skipped after being secure. Require two fresh independent successes after a regression to regain secure status. Multiple independent first tries in one day are valid for the threshold; separately dated successes are a stronger signal, not a gate.
 
-**Important feasibility:** with 20 current words and 22 levels, a single playthrough cannot guarantee **two independent successes for each word** (minimum 40 presentations). The 22-level completion goal is *coverage*, **not all words secure in one run**. Continue reinforcement across replays and natural additional prompts, and report any words still weak at the end without punishing the player.
+**Important feasibility:** with 20 current words and 23 levels, a single playthrough cannot guarantee **two independent successes for each word** (minimum 40 presentations). The full-run completion goal is *coverage*, **not all words secure in one run**. Continue reinforcement across replays and natural additional prompts, and report any words still weak at the end without punishing the player.
 
-**Scheduling:** assign one *required* prompt per story level (22 total in a run), guaranteeing coverage of the entire active list. In spare slots, favor weakest current words; use old-week words only when no current word needs work. Reevaluate at each spare slot (not only at run start). Reuse saved, versioned local word-history records; distinguish word accuracy, hints, misses, independent streak and distinct successful dates. Track progress by the word's **source week** so a previous-week reminder updates the correct list.
+**Scheduling:** assign one *required* prompt per story level (23 total in a run), guaranteeing coverage of the entire active list. In spare slots, favor weakest current words; use old-week words only when no current word needs work. Reevaluate at each spare slot (not only at run start). Reuse saved, versioned local word-history records; distinguish word accuracy, hints, misses, independent streak and distinct successful dates. Track progress by the word's **source week** so a previous-week reminder updates the correct list.
 
-**If the word list changes mid-run:** preserve past results and explain the effect. A new active week/edited word set generates a new assignment; don't silently claim 22-level coverage for a list that changed midway.
+**If the word list changes mid-run:** preserve past results and explain the effect. A new active week/edited word set generates a new assignment; don't silently claim full-run coverage for a list that changed midway.
 
-## 6. 22-level story and difficulty
+## 6. 23-level story and difficulty
 
-Zoey's confirmed canon: Lyla is an ordinary-looking fluffy white rabbit with pink fanny pack, secretly controlled as a robot by the one evil king; Ridensee is a fast blue **boy** bunny with green fanny pack and only appears automatically for rescues; Level 1 begins in a cage **inside** a hot-pink castle and the Bunny Police's key reveals the king's secret; the tiger ambushes her, captures her and is removed after Ridensee rescues her back to the exact capture position; Level 2 is **inside a rainbow**; other environments include a zoo with animals jumping to grab flower-carrying bunnies, spilled beads, a big hand, and a rainbow paint-door puzzle; Level 22 features a giant monster confronted with bow and arrows. Flowers containing money collect automatically on contact when Lyla is normal size, and the purple-and-blue portal ends each level.
+Zoey's confirmed canon: Lyla is an ordinary-looking fluffy white rabbit with pink fanny pack, secretly controlled as a robot by the one evil king; Ridensee is a fast blue **boy** bunny with green fanny pack and only appears automatically for rescues; Level 1 begins in a cage **inside** a hot-pink castle and the Bunny Police's key reveals the king's secret; the tiger ambushes her, captures her and is removed after Ridensee rescues her back to the exact capture position; Level 2 is **inside a rainbow**; other environments include a zoo with animals jumping to grab flower-carrying bunnies, spilled beads, a big hand, and a rainbow paint-door puzzle; the final level (Zoey's Level 22, now Level 23) features a giant monster confronted with bow and arrows. Level 12, a Christmas village, was added on request and is not Zoey's canon. Flowers containing money collect automatically on contact when Lyla is normal size, and the purple-and-blue portal ends each level.
 
 **Proposed additions (not attributed to Zoey):** placement of unnumbered levels, simple 2–5 panel cutscenes, friendly monster defeat/escape mechanics, small spelling trigger in each level, and the story bridge for why Lyla collects flowers after learning the king is evil.
 
@@ -101,14 +101,14 @@ The current adult arithmetic gate is only a UX discouragement, **not authenticat
 ## 8. State, saves, implementation boundaries
 
 - **Target stack:** Phaser 3 + TypeScript + Vite + PWA service worker, hosted as `/robot-bunnies/` on GitHub Pages. Aim for older iPads, smooth fallback from 60 to 30 fps, low graphics memory, touch-first UI. Keep spelling overlay outside game physics/timers but integrate it into the scene's state machine.
-- **Persistent state:** weekly lists, source-week word history, independent streak and practice dates, optional audio blobs, checkpoint identity, campaign's 22-word assignment/cursor, cutscene flags, hints and puzzle outcome. Version/migrate saved schema; export data without compromising locally stored child content.
+- **Persistent state:** weekly lists, source-week word history, independent streak and practice dates, optional audio blobs, checkpoint identity, campaign's per-level word assignment/cursor (older saves migrate when levels are added), cutscene flags, hints and puzzle outcome. Version/migrate saved schema; export data without compromising locally stored child content.
 - **No new gameplay prompts on resume** if one was already resolved. Resume precisely at saved checkpoint, otherwise at a safe restart near last trigger.
 - **No unlicensed media.** All art/sound original or appropriately licensed; no Nintendo characters, art, or copyrighted music.
 - **No timer.** The child controls when to take a break; there are no maximum playtime or forced breaks.
 
 ## 9. Acceptance criteria (definition of done)
 
-1. **10-, 15-, 20-word tests:** every current word appears across exactly 22 levels; smaller lists leave review slots; previous words appear only when every current word qualifies as secure.
+1. **10-, 15-, 20-word tests:** every current word appears across exactly 23 levels; smaller lists leave review slots; previous words appear only when every current word qualifies as secure.
 2. **Regression:** when Zoey misses, peeks or skips a previously secure current word, the next optional reinforcement level switches from an old-week word to that weak current word.
 3. **Letter tiles:** a child can assemble words with duplicates and punctuation, repair a mistake, replay audio and submit without using the keyboard. The bank does not give away the answer.
 4. **Mastery:** 1 independent success → weak; 2 independent successes (same day or different days) → secure; new miss/hint/skip → weak; 2 fresh independent successes → secure again. Distinct dates are tracked, not enforced.
@@ -116,20 +116,21 @@ The current adult arithmetic gate is only a UX discouragement, **not authenticat
 6. **Error recovery:** an incorrect answer reveals correct spelling and allows hidden retry, hint or skip; no death/progress loss. Corrected success is recorded as assisted.
 7. **Pause/resume:** spelling freezes physics/hazards; returns safely to the exact gameplay state with no double rewards. Leaving and reloading midrun preserves the correct level and word history.
 8. **Parent records:** word lists and recordings do not leave the iPad; local export/import and erase behaviors are clear; a previous-week result is recorded against the previous list.
-9. **Story:** Lyla's confirmed appearance, Ridensee rescue, castle, rainbow, magic portal, 22 levels and final boss are preserved. No general math/reading curriculum is introduced.
+9. **Story:** Lyla's confirmed appearance, Ridensee rescue, castle, rainbow, magic portal, Zoey's 22 levels (plus the added Christmas level) and final boss are preserved. No general math/reading curriculum is introduced.
 10. **Device QA:** older iPad Safari/home-screen PWA tested with touch interaction, offline launch after caching, local save, orientation changes, no external fonts/telemetry and acceptable performance.
 
 ## 10. Honest status (updated November 2, 2026)
 
-**Built in code and checked in desktop Chromium (automated playthrough of all 22 levels):**
+**Built in code and checked in desktop Chromium (automated playthrough of all 23 levels):**
 
-- The 22 Phaser side-scrolling levels, with auto-run, one high jump, tap-Lyla-to-shrink during danger, bounce-back obstacles with automatic helper hops, flowers that collect on contact, checkpoints, and the purple-and-blue portal.
-- Zoey's canon: the Level 1 cage with the Bunny Police key and king reveal, the tiger ambush with the automatic Ridensee rescue back to the capture point, Level 2 inside a rainbow, the zoo animal ambushes, beads to tap, the hand obstacle, rainbow paint doors, the bow found in Level 18, and the Level 22 giant monster faced with bow and arrows.
+- The 23 Phaser side-scrolling levels, with auto-run, one high jump, tap-Lyla-to-shrink during danger, bounce-back obstacles with automatic helper hops, flowers that collect on contact, checkpoints, and the purple-and-blue portal.
+- Zoey's canon: the Level 1 cage with the Bunny Police key and king reveal, the tiger ambush with the automatic Ridensee rescue back to the capture point, Level 2 inside a rainbow, the zoo animal ambushes, beads to tap, the hand obstacle, rainbow paint doors, the bow found in Level 19, and the Level 23 giant monster faced with bow and arrows.
+- The Christmas level (Level 12, added November 7, 2026): gifts, candy canes, Christmas trees, elves, bells, a snowman, falling snow, jingle bells to tap and a giant present to open by spelling.
 - Freeze-and-resume spelling triggers (§2). Physics, tweens, animations and hazards stop while the panel is open. The trigger is saved as resolved before any celebration, and play resumes once with a short grace period. A resolved prompt is never shown again after a reload.
 - The tile composer (§3). Full a–z reusable bank, punctuation tiles when lists need them, tap-to-remove letters, Back, Clear, Hear, Peek, Hint and Check. Errors reveal the spelling with the missed letters highlighted, then the child can retry hidden, retry with a hint, or skip. The keyboard is only a desktop/adult fallback.
 - Audio priority (§4). The parent's local IndexedDB recording plays first, then TTS, then the Peek fallback. Parent Corner has Record (MediaRecorder, with audio-file import when that isn't available), Play and Delete, and a separate recordings backup, import and erase.
 - The two-independent-success mastery model with regression and distinct-date tracking (§5), with a v1 → v2 save migration. Spare levels re-target weak current words and fall back to old weeks only while every current word is secure.
-- Campaign saves for checkpoints, collected objects, level flags, per-level outcomes and the run's flowers. Resume returns to the saved checkpoint. A changed word list starts a new 22-level plan, and Parent Corner says so.
+- Campaign saves for checkpoints, collected objects, level flags, per-level outcomes and the run's flowers. Resume returns to the saved checkpoint. A changed word list starts a new plan, and Parent Corner says so. A run saved before a level was added is migrated, not lost.
 - Parent Corner summary: covered in this run, needs practice, secure, and secure across multiple days.
 - Skippable storybook cutscenes with captions and optional narration, replayable from the map's Storybook. Pause menu with sound and story-voice toggles. PNG home-screen icons.
 

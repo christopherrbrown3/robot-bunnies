@@ -4,7 +4,7 @@ import {
 } from '../spelling/store';
 import type { SpellingData, SpellingWeek } from '../spelling/store';
 import { isSecure, isSecureAcrossDays, wordStatus } from '../spelling/mastery';
-import { coveredCurrentWords, peekCampaign } from '../spelling/campaign';
+import { CAMPAIGN_LEVEL_COUNT, coveredCurrentWords, peekCampaign } from '../spelling/campaign';
 import {
   deleteRecording, eraseRecordings, exportRecordings, importRecordings,
   listRecordedWords, recordingsSupported, saveRecording
@@ -12,6 +12,7 @@ import {
 import { playRecordingFor } from '../audio/wordAudio';
 import { speak } from '../audio/speech';
 import { play } from '../audio/sfx';
+import { UPDATE_READY_EVENT, checkForUpdate, installUpdate, isUpdateReady, versionLabel } from '../updates';
 
 const eventParent = 'robot-bunnies:open-parent';
 const eventPractice = 'robot-bunnies:open-practice';
@@ -74,7 +75,7 @@ export function initializeParentCorner(): void {
               <ul id="week-stats" aria-label="Word practice progress"></ul>
               <p id="record-note" class="small-note">🎙 Optional: record your own voice for any word the iPad says wrong. Recordings stay on this iPad and play instead of the robot voice.</p>
               <div class="action-row">
-                <button type="button" class="purple-btn" id="start-practice">Play 22-level adventure</button>
+                <button type="button" class="purple-btn" id="start-practice">Play ${CAMPAIGN_LEVEL_COUNT}-level adventure</button>
                 <button type="button" class="outline-btn" id="start-review">Practice tricky words</button>
                 <button type="button" class="outline-btn" id="start-test">Full spelling test</button>
               </div>
@@ -97,6 +98,15 @@ export function initializeParentCorner(): void {
             </div>
             <input type="file" accept="audio/*" id="recording-file" hidden />
           </details>
+          <div class="update-tools">
+            <h2>Game version</h2>
+            <p class="small-note">Installed on this iPad: <strong id="app-version"></strong>. New versions download by themselves and wait until you choose to update, so a game in progress is never interrupted. The title screen and map also show an Update button when one is ready.</p>
+            <div class="action-row">
+              <button type="button" class="outline-btn" id="update-check">Check for updates</button>
+              <button type="button" class="purple-btn" id="update-install" hidden>Update now</button>
+            </div>
+            <p id="update-status" class="status-text" role="status"></p>
+          </div>
         </div>
       </div>
     </div>`;
@@ -441,6 +451,40 @@ export function initializeParentCorner(): void {
     refresh();
   }
 
+  // Game version and updates.
+  const updateCheck = get<HTMLButtonElement>('update-check');
+  const updateInstall = get<HTMLButtonElement>('update-install');
+  const updateStatus = get<HTMLParagraphElement>('update-status');
+  get<HTMLElement>('app-version').textContent = versionLabel();
+  const setUpdateStatus = (text: string, isError = false): void => {
+    updateStatus.textContent = text;
+    updateStatus.classList.toggle('error-text', isError);
+  };
+  const showUpdateReady = (): void => {
+    updateInstall.hidden = false;
+    setUpdateStatus('A new version is ready. Updating restarts the game; the adventure, words and recordings are all saved.');
+  };
+  if (isUpdateReady()) showUpdateReady();
+  window.addEventListener(UPDATE_READY_EVENT, showUpdateReady);
+  updateCheck.addEventListener('click', () => {
+    updateCheck.disabled = true;
+    setUpdateStatus('Checking for a new version…');
+    void checkForUpdate().then(result => {
+      updateCheck.disabled = false;
+      if (result === 'ready') showUpdateReady();
+      else if (result === 'downloading') setUpdateStatus('Found a new version. Downloading it now…');
+      else if (result === 'current') setUpdateStatus('You have the newest version. ✓');
+      else if (result === 'offline') setUpdateStatus('Could not check right now. Make sure the iPad is online, then try again.', true);
+      else setUpdateStatus('This browser cannot check for updates here. Reloading the page gets the newest version.', true);
+    });
+  });
+  updateInstall.addEventListener('click', () => {
+    stopActiveRecording();
+    updateInstall.disabled = true;
+    setUpdateStatus('Updating… the game will restart in a moment.');
+    installUpdate();
+  });
+
   window.addEventListener(eventParent, open);
   get<HTMLButtonElement>('parent-close').addEventListener('click', close);
   get<HTMLButtonElement>('adult-unlock').addEventListener('click', unlock);
@@ -461,12 +505,12 @@ export function initializeParentCorner(): void {
   get<HTMLButtonElement>('week-save').addEventListener('click', () => {
     try {
       const before = peekCampaign();
-      const midRun = !!before && (before.nextLevelIndex > 0 || !!before.level) && before.nextLevelIndex < 22;
+      const midRun = !!before && (before.nextLevelIndex > 0 || !!before.level) && before.nextLevelIndex < CAMPAIGN_LEVEL_COUNT;
       const week = saveWeek(weekName.value, parseWords(wordsInput.value), selectedWeekId);
       refresh(week.id);
       setMessage(midRun
-        ? 'Saved! Because the word list changed, the next play starts a fresh 22-level adventure with this list. Practice history for each word is kept.'
-        : 'Saved on this iPad! Every word on this list will appear across the 22 levels.');
+        ? `Saved! Because the word list changed, the next play starts a fresh ${CAMPAIGN_LEVEL_COUNT}-level adventure with this list. Practice history for each word is kept.`
+        : `Saved on this iPad! Every word on this list will appear across the ${CAMPAIGN_LEVEL_COUNT} levels.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to save list.', true);
     }

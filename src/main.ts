@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { registerSW } from 'virtual:pwa-register';
 import { BootScene } from './scenes/BootScene';
 import { TitleScene } from './scenes/TitleScene';
 import { MapScene } from './scenes/MapScene';
@@ -12,11 +11,12 @@ import { unlockAudio } from './audio/sfx';
 import { unlockSpeech } from './audio/speech';
 import { unlockWordAudio } from './audio/wordAudio';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, RES } from './game/hidpi';
+import { initializeUpdates } from './updates';
 import './style.css';
 
 initializeParentCorner();
 initializePracticeSession();
-registerSW({ immediate: true });
+initializeUpdates();
 
 // iPad Safari only allows sound after a tap: prime every audio path on the first gestures.
 let unlocks = 0;

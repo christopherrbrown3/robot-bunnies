@@ -16,6 +16,7 @@ import type { LevelOutline } from '../content/types';
 import { buildLayout, GROUND_Y, LYLA_START_X, type Collectible, type Hazard, type LevelLayout } from '../game/levelPlan';
 import { ParallaxLayer, THEMES, addGround, ensureThemeArt, type Ambient, type Theme } from '../game/themes';
 import { blockTexture, gateTexture, platformTexture } from '../game/art';
+import { ELF_KEYS } from '../game/christmasArt';
 import { burst, makeBubble, makeButton, makePanel, pinToScreen, textStyle } from '../game/ui';
 import { setupCamera } from '../game/hidpi';
 import {
@@ -24,7 +25,7 @@ import {
 } from '../spelling/campaign';
 import { punctuationInLists } from '../spelling/store';
 import { presentSpelling } from '../ui/SpellingPanel';
-import { play } from '../audio/sfx';
+import { play, type Sfx } from '../audio/sfx';
 import { loadPrefs, prefersReducedMotion, savePrefs } from '../audio/prefs';
 import { speak, stopSpeech } from '../audio/speech';
 
@@ -38,6 +39,20 @@ const JUMP_VELOCITY = -760;
 const SMALL_SCALE = 0.36;
 /** Lyla's position on screen while the camera follows her (logical px from the left). */
 const FOLLOW_X = 310;
+
+/** Things on the ground to tap and pick up so Lyla does not trip. */
+interface PickupStyle { keys: string[]; tip: string; picked: string; oops: string; sound: Sfx }
+const BEADS: PickupStyle = {
+  keys: ['bead-a', 'bead-b', 'bead-c'], sound: 'bead',
+  tip: 'Tap the beads to pick them up so Lyla does not trip!', picked: 'Bead picked up!', oops: 'Oops! Tap beads to pick them up!'
+};
+/** In the Christmas village the "beads" are jingle bells that fell off a sleigh. */
+const BELLS: PickupStyle = {
+  keys: ['xmas-bell-a', 'xmas-bell-b', 'xmas-bell-c'], sound: 'jingle',
+  tip: 'Jingle bells fell off the sleigh! Tap them so Lyla does not trip!', picked: 'Jingle, jingle!', oops: 'Oops! Tap the bells to pick them up!'
+};
+
+interface ElfRuntime { img: Phaser.GameObjects.Image; cheer: string; hello: string; greeted: boolean }
 
 interface HazardRuntime {
   data: Hazard;
@@ -83,6 +98,9 @@ export class GameScene extends Phaser.Scene {
   private police?: Phaser.GameObjects.Image;
   private monster?: Phaser.GameObjects.Image;
   private bossStars: Phaser.GameObjects.Image[] = [];
+  private pickups: PickupStyle = BEADS;
+  private giftLid?: Phaser.GameObjects.Image;
+  private elves: ElfRuntime[] = [];
 
   private flowerCount = 0;
   private collected = new Set<string>();
@@ -110,7 +128,7 @@ export class GameScene extends Phaser.Scene {
 
   init(): void {
     this.flowers = []; this.beads = []; this.checkpoints = []; this.hazards = [];
-    this.triggerParts = []; this.bossStars = [];
+    this.triggerParts = []; this.bossStars = []; this.elves = []; this.giftLid = undefined;
     this.collected = new Set(); this.flags = new Set(); this.bumpCounts = new Map(); this.tipsShown = new Set();
     this.small = false; this.autoJumpFor = null; this.overlay = undefined; this.dangerBubble = undefined;
     this.monster = undefined; this.police = undefined; this.paintDoor = undefined; this.triggerMain = undefined;
@@ -134,6 +152,7 @@ export class GameScene extends Phaser.Scene {
     this.level = levels[this.levelIndex];
     this.layout = buildLayout(this.level);
     this.theme = THEMES[this.level.play.scene];
+    this.pickups = this.level.play.scene === 'christmas' ? BELLS : BEADS;
     this.progress = this.campaign.level ?? {
       levelIndex: this.levelIndex, promptResolved: false, checkpointX: null, flowers: 0, collected: [], flags: []
     };
@@ -141,8 +160,9 @@ export class GameScene extends Phaser.Scene {
     this.collected = new Set(this.progress.collected);
     this.flags = new Set(this.progress.flags);
 
-    // Late levels need the bow even if a run somehow skipped Level 18.
-    if (this.levelIndex >= 20 && !this.campaign.flags.includes('bow')) {
+    // Levels after "Finding the Bow" need the bow even if a run somehow skipped it.
+    const bowIndex = levels.findIndex(l => l.play.trigger.kind === 'bow');
+    if (bowIndex >= 0 && this.levelIndex > bowIndex && !this.campaign.flags.includes('bow')) {
       this.campaign = addCampaignFlag(this.campaign, this.levelIndex, 'bow');
     }
 
@@ -220,8 +240,8 @@ export class GameScene extends Phaser.Scene {
 
     L.beads.forEach((b, i) => {
       if (this.collected.has(b.id)) return;
-      const img = this.add.image(b.x, b.y, ['bead-a', 'bead-b', 'bead-c'][i % 3]).setDepth(13);
-      img.setInteractive(new Phaser.Geom.Circle(15, 15, 46), Phaser.Geom.Circle.Contains);
+      const img = this.add.image(b.x, b.y, this.pickups.keys[i % 3]).setDepth(13);
+      img.setInteractive(new Phaser.Geom.Circle(img.width / 2, img.height / 2, 46), Phaser.Geom.Circle.Contains);
       const entry = { data: b, img, picked: false };
       // One tap scoops up the whole little cluster of beads.
       img.on('pointerdown', () => {
@@ -238,6 +258,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const h of L.hazards) this.buildHazard(h);
     this.buildTrigger();
+    if (this.level.play.scene === 'christmas') this.buildChristmas();
 
     if (L.paintDoorX !== null) {
       const open = this.flags.has('paint-door');
@@ -295,6 +316,11 @@ export class GameScene extends Phaser.Scene {
           scale: { start: 0.5, end: 1.0 }, alpha: { start: 0, end: 1, ease: 'Sine.easeInOut' }, lifespan: 4000, frequency: 260,
           blendMode: Phaser.BlendModes.ADD };
         break;
+      case 'snow':
+        key = 'xmas-snowflake';
+        cfg = { ...common, y: -10, speedY: { min: 28, max: 60 }, speedX: { min: -24, max: 12 }, rotate: { min: 0, max: 360 },
+          scale: { min: 0.45, max: 1.1 }, alpha: { start: 0.95, end: 0.25 }, lifespan: 11000, frequency: 110, quantity: 1 };
+        break;
       case 'pollen': case 'mote':
         key = 'dot';
         cfg = { ...common, y: { min: 60, max: 460 }, speedX: { min: -14, max: 14 }, speedY: { min: -10, max: 6 },
@@ -309,7 +335,8 @@ export class GameScene extends Phaser.Scene {
     emitter.fastForward(6000);
     this.dust = this.add.particles(0, 0, 'dust', {
       lifespan: 520, speedX: { min: -70, max: -20 }, speedY: { min: -40, max: -10 }, scale: { start: 0.55, end: 1.2 },
-      alpha: { start: 0.75, end: 0 }, emitting: false, tint: this.theme.ground.style === 'cloud' ? 0xffffff : 0xf6efe6
+      alpha: { start: 0.75, end: 0 }, emitting: false,
+      tint: this.theme.ground.style === 'cloud' || this.theme.ground.style === 'icing' ? 0xffffff : 0xf6efe6
     }).setDepth(17);
   }
 
@@ -390,8 +417,16 @@ export class GameScene extends Phaser.Scene {
         this.triggerMain = this.add.image(x, GROUND_Y, 'phone-big').setOrigin(0.5, 1).setDepth(11);
         if (resolved) this.triggerMain.setTint(0x888899).setAngle(8);
         break;
+      case 'gift': {
+        // The elves' giant present: a box with its lid (and big bow) sitting on top.
+        this.triggerMain = this.add.image(x, GROUND_Y + 2, 'xmas-gift-box').setOrigin(0.5, 1).setDepth(11);
+        this.giftLid = this.add.image(x, GROUND_Y - 96, 'xmas-gift-lid').setOrigin(0.5, 1).setDepth(12);
+        if (resolved) this.openGift(false);
+        else this.tweens.add({ targets: this.giftLid, y: GROUND_Y - 104, duration: 240, yoyo: true, repeat: -1, repeatDelay: 1200, ease: 'Quad.easeOut' });
+        break;
+      }
       case 'heart':
-        // The Level 22 boss is built when Lyla reaches the arena.
+        // The final boss is built when Lyla reaches the arena.
         break;
     }
     if (this.triggerMain && !resolved && kind !== 'cage' && kind !== 'heart') {
@@ -399,6 +434,92 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: sparkle, angle: 360, scale: { from: 0.8, to: 1.4 }, duration: 1200, yoyo: true, repeat: -1 });
       this.triggerParts.push(sparkle);
     }
+  }
+
+  /** The Christmas village: welcome arch, Christmas trees, candy canes, a snowman and friendly elves. */
+  private buildChristmas(): void {
+    const L = this.layout;
+    const tx = L.trigger.x;
+    this.add.image(560, GROUND_Y + 4, 'xmas-arch').setOrigin(0.5, 1).setDepth(7);
+    // The big tree stands right behind the giant present; a little one waits by the portal.
+    this.add.image(tx + 10, GROUND_Y + 6, 'xmas-tree').setOrigin(0.5, 1).setDepth(6);
+    this.add.image(L.portalX - 250, GROUND_Y + 4, 'xmas-tree-small').setOrigin(0.5, 1).setDepth(6);
+
+    // Candy canes, little trees and a snowman in the open stretches, clear of everything else.
+    const blocked: Array<[number, number]> = [
+      ...L.obstacles.map((o): [number, number] => [o.x - 70, o.x + o.w + 70]),
+      ...L.platforms.map((p): [number, number] => [p.x - 40, p.x + p.w + 40]),
+      ...L.checkpoints.map((c): [number, number] => [c - 80, c + 90]),
+      ...L.beads.map((b): [number, number] => [b.x - 50, b.x + 60]),
+      [tx - 360, tx + 360]
+    ];
+    const decor = ['xmas-candycane', 'xmas-tree-small', 'xmas-candycane', 'xmas-snowman'];
+    let placed = 0;
+    for (let x = 860; x < L.portalX - 520; x += 30) {
+      if (blocked.some(([a, b]) => x > a && x < b)) continue;
+      this.add.image(x, GROUND_Y + 4, decor[placed++ % decor.length]).setOrigin(0.5, 1).setDepth(7);
+      x += 400;
+    }
+
+    // Elves: one under the arch, one beside the present, one near the portal.
+    const spots: Array<[number, number, string]> = [
+      [650, 0, 'Merry Christmas, Lyla!'],
+      [tx + 160, 1, 'A present for you, Lyla!'],
+      [L.portalX - 400, 0, 'Jingle all the way!']
+    ];
+    spots.forEach(([x, variant, hello], i) => {
+      const keys = ELF_KEYS[variant];
+      const cheering = i === 1 && this.progress.promptResolved;
+      this.add.image(x, GROUND_Y + 3, 'shadow').setScale(0.65, 0.7).setDepth(7);
+      const img = this.add.image(x, GROUND_Y + 2, cheering ? keys.cheer : keys.stand).setOrigin(0.5, 1).setDepth(8).setFlipX(i === 2);
+      this.tweens.add({ targets: img, y: GROUND_Y - 5, duration: 380 + i * 60, yoyo: true, repeat: -1, repeatDelay: 500 + i * 150, ease: 'Quad.easeOut' });
+      this.elves.push({ img, cheer: keys.cheer, hello, greeted: false });
+    });
+  }
+
+  /** Elves call out a greeting as Lyla runs up to them. */
+  private updateElves(): void {
+    for (const elf of this.elves) {
+      if (elf.greeted || this.lyla.x < elf.img.x - 300) continue;
+      elf.greeted = true;
+      if (this.lyla.x > elf.img.x + 150) continue; // already past (resumed from a checkpoint)
+      this.floatText(elf.img.x, GROUND_Y - 160, elf.hello, '#1f8a3e');
+      play('jingle');
+    }
+  }
+
+  /** The giant present opens: the lid pops off and flowers peek out (instantly when resuming). */
+  private openGift(animate: boolean): void {
+    const x = this.layout.trigger.x;
+    const lid = this.giftLid;
+    const restX = x - 250, restY = GROUND_Y + 8;
+    this.triggerMain?.setTexture('xmas-gift-box-open');
+    const peek = ['flower-b', 'flower', 'flower-c', 'flower'].map((key, i) =>
+      this.add.image(x - 48 + i * 32, GROUND_Y - 110, key).setOrigin(0.5, 1).setDepth(11.5).setScale(animate ? 0 : 1));
+    if (!animate) {
+      lid?.setPosition(restX, restY).setAngle(-10);
+      return;
+    }
+    if (lid) {
+      this.tweens.killTweensOf(lid);
+      this.tweens.chain({
+        targets: lid,
+        tweens: [
+          { x: x - 110, y: lid.y - 180, angle: -190, duration: 420, ease: 'Quad.easeOut' },
+          { x: restX, y: restY, angle: -370, duration: 520, ease: 'Bounce.easeOut' }
+        ]
+      });
+    }
+    this.tweens.add({ targets: peek, scale: 1, duration: 420, delay: this.tweens.stagger(90, {}), ease: 'Back.easeOut' });
+    for (let i = 0; i < 6; i++) {
+      const f = this.add.image(x, GROUND_Y - 120, ['flower', 'flower-b', 'flower-c'][i % 3]).setDepth(60).setScale(0.5);
+      const dx = (i - 2.5) * 60;
+      this.tweens.add({
+        targets: f, x: x + dx, y: GROUND_Y - 270 - (i % 2) * 40, scale: 1, angle: dx * 0.6, duration: 560, ease: 'Quad.easeOut',
+        onComplete: () => this.tweens.add({ targets: f, y: f.y - 30, alpha: 0, duration: 450, onComplete: () => f.destroy() })
+      });
+    }
+    for (const elf of this.elves) elf.img.setTexture(elf.cheer);
   }
 
   private buildLyla(): void {
@@ -612,6 +733,7 @@ export class GameScene extends Phaser.Scene {
     this.updateCheckpoints();
     this.updateHazards(time);
     this.updateTips();
+    if (this.elves.length) this.updateElves();
 
     const L = this.layout;
     if (L.paintDoorX !== null && !this.flags.has('paint-door') && this.lyla.x > L.paintDoorX - 90) {
@@ -736,13 +858,13 @@ export class GameScene extends Phaser.Scene {
     if (tapped && ['spelling', 'puzzle', 'paused', 'rescue', 'done'].includes(this.state)) return;
     entry.picked = true;
     this.collected.add(entry.data.id);
-    play('bead');
+    play(this.pickups.sound);
     entry.img.disableInteractive();
     this.tweens.add({ targets: entry.img, y: entry.img.y - 70, alpha: 0, scale: 1.6, duration: 380, onComplete: () => entry.img.destroy() });
     burst(this, entry.data.x, entry.data.y, 5, 'sparkle');
     if (tapped && !this.tipsShown.has('bead-yay')) {
       this.tipsShown.add('bead-yay');
-      this.floatText(entry.data.x, entry.data.y - 90, 'Bead picked up!', '#2f88c0');
+      this.floatText(entry.data.x, entry.data.y - 90, this.pickups.picked, '#2f88c0');
     }
   }
 
@@ -751,7 +873,7 @@ export class GameScene extends Phaser.Scene {
       if (b.picked) continue;
       if (!this.tipsShown.has('beads') && b.data.x - this.lyla.x < 560 && b.data.x > this.lyla.x) {
         this.tipsShown.add('beads');
-        this.showTip('beads', 'Tap the beads to pick them up so Lyla does not trip!', 480, 150, 3200);
+        this.showTip('beads', this.pickups.tip, 480, 150, 3200);
       }
       if (onGround && !this.small && body.right > b.data.x - 10 && body.x < b.data.x + 10 && this.time.now > this.graceUntil) {
         // Trip: a small stumble, never a penalty. The bead is cleared so it can't happen twice.
@@ -759,7 +881,7 @@ export class GameScene extends Phaser.Scene {
         this.bumpUntil = this.time.now + 380;
         body.setVelocity(-170, -200);
         play('bump');
-        this.floatText(this.lyla.x, this.lyla.y - 140, 'Oops! Tap beads to pick them up!', '#2f88c0');
+        this.floatText(this.lyla.x, this.lyla.y - 140, this.pickups.oops, '#2f88c0');
       }
     }
   }
@@ -1045,7 +1167,7 @@ export class GameScene extends Phaser.Scene {
       story: trig.story,
       badge: step.source === 'previous'
         ? `✨ Bonus review word from an earlier week · Level ${this.level.id}`
-        : `🌸 This week's word · Level ${this.level.id} of 22`,
+        : `🌸 This week's word · Level ${this.level.id} of ${CAMPAIGN_LEVEL_COUNT}`,
       successLine: trig.success,
       punctuation: punctuationInLists(),
       leaveLabel: '⏸ Save & leave',
@@ -1057,7 +1179,7 @@ export class GameScene extends Phaser.Scene {
           if (this.layout.trigger.kind === 'bow') {
             this.campaign = addCampaignFlag(this.campaign, this.levelIndex, 'bow');
           }
-          if (this.level.id === 12) this.flags.add('hands-napping');
+          if (this.level.play.napHands) this.flags.add('hands-napping');
           this.flowerCount += 3;
           this.saveProgress(resumeX);
           this.progress.promptResolved = true;
@@ -1121,6 +1243,12 @@ export class GameScene extends Phaser.Scene {
         this.floatText(x, GROUND_Y - 260, 'Tap targets to shoot arrows!', '#7445c5');
         delay = 1300;
         break;
+      case 'gift':
+        this.openGift(true);
+        play('jingle');
+        burst(this, x, GROUND_Y - 140, 14, 'sparkle-gold');
+        delay = 1300;
+        break;
       case 'phone':
         if (main) {
           this.tweens.add({ targets: main, angle: { from: -8, to: 8 }, duration: 70, yoyo: true, repeat: 8,
@@ -1136,7 +1264,7 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(delay, () => { if (this.state === 'cheer') this.resumeWorld(); });
   }
 
-  /** Level 12: spelling the word makes the remaining big hands lift up and nap. */
+  /** The Helping Hand Hall: spelling the word makes the remaining big hands lift up and nap. */
   private napHands(): void {
     for (const h of this.hazards) {
       if (h.data.type !== 'hand' || !h.actor) continue;

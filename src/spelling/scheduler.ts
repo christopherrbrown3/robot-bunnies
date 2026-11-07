@@ -13,7 +13,8 @@ export interface CampaignStep {
   optional?: boolean;
 }
 
-const CAMPAIGN_LEVELS = 22;
+/** Story levels in one full run (must match src/content/levels.json; checked by the tests). */
+export const CAMPAIGN_LEVELS = 23;
 
 /** Attempted but not yet secure (missed, helped, skipped, or one independent success). */
 function needsReview(stats?: WordProgress): boolean {
@@ -60,7 +61,7 @@ export function selectCurrentFocusWord(week: SpellingWeek, levelIndex: number): 
 }
 
 /**
- * Assign ONE spelling opportunity to each of 22 story levels.
+ * Assign ONE spelling opportunity to each story level (CAMPAIGN_LEVELS).
  *
  * Each school word appears at least once, regardless of whether a list has
  * 1, 10, 15 or 20 words. Spare levels repeat current tricky/less-practiced
@@ -85,7 +86,7 @@ export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignS
   };
 
   ordered.forEach((word, i) => {
-    // Spread the unique current-list words across the 22 places.
+    // Spread the unique current-list words across every level.
     const position = Math.floor((i + 0.5) * CAMPAIGN_LEVELS / ordered.length);
     useCurrent(position, word);
   });
@@ -112,7 +113,7 @@ export function createCampaignPlan(data: SpellingData, runNumber = 0): CampaignS
     previous.push(...previous.splice(0, offset));
   }
   // Current-week words are always the priority; older weeks reinforce only
-  // spare levels, at most four of the 22.
+  // spare levels, at most four per run.
   const previousQuota = currentWeekNeedsFocus(current)
     ? 0 : Math.min(previous.length, 4, Math.ceil(spareIndices.length / 3));
   const repeatedCurrent = [...currentWords];
