@@ -1,11 +1,11 @@
-/** After all 22 levels: celebrate, summarize this run gently, offer a fresh playthrough. */
+/** After the last level: celebrate, summarize this run gently, offer a fresh playthrough. */
 import Phaser from 'phaser';
 import { setupCamera } from '../game/hidpi';
 import { burst, makeButton, makePanel, textStyle } from '../game/ui';
 import { addGround, ensureThemeArt } from '../game/themes';
 import { prefersReducedMotion } from '../audio/prefs';
 import { PARENT_EVENT, startAdventure } from '../game/flow';
-import { coveredCurrentWords, peekCampaign } from '../spelling/campaign';
+import { CAMPAIGN_LEVEL_COUNT, coveredCurrentWords, peekCampaign } from '../spelling/campaign';
 import { getActiveWeek, loadSpellingData } from '../spelling/store';
 import { isSecure } from '../spelling/mastery';
 import { play } from '../audio/sfx';
@@ -33,7 +33,7 @@ export class FinaleScene extends Phaser.Scene {
       });
     }
     makePanel(this, 580, 236, 680, 300);
-    this.add.text(480, 52, 'You finished all 22 levels!', textStyle(42, '#7a2fb0', true, {
+    this.add.text(480, 52, `You finished all ${CAMPAIGN_LEVEL_COUNT} levels!`, textStyle(42, '#7a2fb0', true, {
       stroke: '#ffffff', strokeThickness: 10, shadow: { offsetX: 0, offsetY: 4, color: 'rgba(90,20,120,0.35)', blur: 8, fill: true, stroke: true }
     })).setOrigin(0.5);
     this.add.image(130, 472, 'shadow').setScale(1.7, 1.4);
@@ -58,7 +58,7 @@ export class FinaleScene extends Phaser.Scene {
     }
     this.add.text(580, 230, lines.join('\n\n'), textStyle(21, '#4a2a6a', true, { align: 'left', wordWrap: { width: 620 }, lineSpacing: 2 })).setOrigin(0.5);
 
-    makeButton(this, 560, 432, 330, 66, '▶ Play all 22 again', () => startAdventure(this), { color: 0x7445c5, fontSize: 25 });
+    makeButton(this, 560, 432, 330, 66, `▶ Play all ${CAMPAIGN_LEVEL_COUNT} again`, () => startAdventure(this), { color: 0x7445c5, fontSize: 25 });
     makeButton(this, 400, 505, 160, 52, '🏠 Home', () => this.scene.start('Title'), { color: 0x6a5080, fontSize: 20 });
     makeButton(this, 720, 505, 180, 52, 'Grown-ups', () => window.dispatchEvent(new Event(PARENT_EVENT)), { color: 0x8f53b5, fontSize: 20 });
   }

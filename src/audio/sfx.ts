@@ -49,7 +49,7 @@ function tone(freq: number, start: number, duration: number, type: OscillatorTyp
 }
 
 export type Sfx = 'jump' | 'flower' | 'bump' | 'shrink' | 'grow' | 'tile' | 'correct' | 'gentle' |
-  'portal' | 'whoosh' | 'arrow' | 'pop' | 'checkpoint' | 'bead' | 'tap' | 'rec-start' | 'rec-stop';
+  'portal' | 'whoosh' | 'arrow' | 'pop' | 'checkpoint' | 'bead' | 'jingle' | 'tap' | 'rec-start' | 'rec-stop';
 
 /** `force` plays even when the child's game sounds are off (used for grown-up recording cues). */
 export function play(name: Sfx, force = false): void {
@@ -58,6 +58,7 @@ export function play(name: Sfx, force = false): void {
     case 'jump': tone(380, 0, 0.18, 'triangle', 0.14, 760); break;
     case 'flower': tone(988, 0, 0.09, 'sine', 0.13); tone(1319, 0.07, 0.14, 'sine', 0.12); break;
     case 'bead': tone(1568, 0, 0.06, 'sine', 0.09); tone(2093, 0.05, 0.08, 'sine', 0.07); break;
+    case 'jingle': [2093, 2637, 2349, 2794, 2637].forEach((f, i) => tone(f, i * 0.045, 0.16, 'triangle', 0.05)); break;
     case 'bump': tone(180, 0, 0.16, 'triangle', 0.16, 110); break;
     case 'shrink': tone(900, 0, 0.25, 'sine', 0.12, 300); break;
     case 'grow': tone(300, 0, 0.25, 'sine', 0.12, 900); break;

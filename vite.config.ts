@@ -18,7 +18,7 @@ export default defineConfig(({ command, isPreview }) => ({
       manifest: {
         name: "Robot Bunnies: Lyla's Spelling Quest",
         short_name: 'Robot Bunnies',
-        description: 'A gentle 22-level bunny platformer for practicing weekly spelling words',
+        description: 'A gentle 23-level bunny platformer for practicing weekly spelling words',
         theme_color: '#8051d6',
         background_color: '#f7edff',
         display: 'standalone',

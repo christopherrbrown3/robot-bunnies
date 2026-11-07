@@ -43,12 +43,12 @@ export function makeTexture(scene: Phaser.Scene, key: string, w: number, h: numb
 
 // ------------------------------------------------------------------ helpers
 
-function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number, rot = 0): void {
+export function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number, rot = 0): void {
   ctx.beginPath();
   ctx.ellipse(x, y, Math.max(rx, 0.5), Math.max(ry, 0.5), rot, 0, Math.PI * 2);
 }
 
-function circle(ctx: Ctx, x: number, y: number, r: number): void {
+export function circle(ctx: Ctx, x: number, y: number, r: number): void {
   ctx.beginPath();
   ctx.arc(x, y, Math.max(r, 0.5), 0, Math.PI * 2);
 }
@@ -76,7 +76,7 @@ export function rad(ctx: Ctx, x: number, y: number, r: number, stops: Stops, fx 
   return g;
 }
 
-function fillStroke(ctx: Ctx, fill: string | CanvasGradient, stroke?: string, width = 2.5): void {
+export function fillStroke(ctx: Ctx, fill: string | CanvasGradient, stroke?: string, width = 2.5): void {
   ctx.fillStyle = fill;
   ctx.fill();
   if (stroke) {
@@ -101,7 +101,7 @@ export function noShadow(ctx: Ctx): void {
   ctx.shadowOffsetY = 0;
 }
 
-function star(ctx: Ctx, x: number, y: number, outer: number, inner: number, points = 5, rot = -Math.PI / 2): void {
+export function star(ctx: Ctx, x: number, y: number, outer: number, inner: number, points = 5, rot = -Math.PI / 2): void {
   ctx.beginPath();
   for (let i = 0; i < points * 2; i++) {
     const r = i % 2 === 0 ? outer : inner;
@@ -125,7 +125,7 @@ function rim(ctx: Ctx, x: number, y: number, r: number, from: number, to: number
 }
 
 /** Glossy spot highlight. */
-function gloss(ctx: Ctx, x: number, y: number, rx: number, ry: number, alpha = 0.75, rot = -0.5): void {
+export function gloss(ctx: Ctx, x: number, y: number, rx: number, ry: number, alpha = 0.75, rot = -0.5): void {
   ctx.save();
   ctx.globalAlpha = alpha;
   ellipse(ctx, x, y, rx, ry, rot);
@@ -626,7 +626,7 @@ function drawGate(ctx: Ctx, main: string, dark: string, style: GateStyle): void 
 
 // --------------------------------------------------- themed obstacles/platforms
 
-export type PropStyle = 'stone' | 'candy' | 'cloud' | 'pot' | 'stump' | 'crate' | 'rock' | 'crystal';
+export type PropStyle = 'stone' | 'candy' | 'cloud' | 'pot' | 'stump' | 'crate' | 'rock' | 'crystal' | 'gift';
 export interface PropColors { main: string; light: string; dark: string; accent: string }
 
 function drawProp(ctx: Ctx, w: number, h: number, style: PropStyle, c: PropColors): void {
@@ -723,8 +723,71 @@ function drawProp(ctx: Ctx, w: number, h: number, style: PropStyle, c: PropColor
       ctx.beginPath(); ctx.moveTo(w * 0.3, 6); ctx.lineTo(w * 0.32, h - 4); ctx.moveTo(w * 0.75, 10); ctx.lineTo(w * 0.7, h - 4); ctx.stroke();
       break;
     }
+    case 'gift': {
+      drawGiftBox(ctx, w, h, (w * 7 + h * 3) % GIFT_WRAPS.length);
+      break;
+    }
   }
   noShadow(ctx);
+}
+
+/** Wrapping paper and ribbon colours for presents: [paper, light, dark, ribbon, ribbon dark, pattern]. */
+const GIFT_WRAPS: Array<[string, string, string, string, string, 'dots' | 'stripes' | 'stars' | 'plain']> = [
+  ['#e8394d', '#ff8a96', '#9a1428', '#ffd84d', '#c99418', 'dots'],
+  ['#2fa65a', '#7fe09a', '#17663a', '#e8394d', '#9a1428', 'stripes'],
+  ['#3d7ee8', '#94c4ff', '#1f4a9a', '#f4f6ff', '#9aa8c8', 'stars'],
+  ['#ffd84d', '#fff1a0', '#c99418', '#e8394d', '#9a1428', 'plain'],
+  ['#a35ae8', '#d8b4ff', '#5a2a9a', '#ffe066', '#c9a020', 'dots'],
+  ['#f4f6ff', '#ffffff', '#b8c0d8', '#2fa65a', '#17663a', 'stripes']
+];
+
+/** A wrapped present filling a w×h box: lid, ribbon cross and a bow on top. */
+export function drawGiftBox(ctx: Ctx, w: number, h: number, wrap: number): void {
+  const [paper, light, dark, ribbon, ribbonDark, pattern] = GIFT_WRAPS[wrap % GIFT_WRAPS.length];
+  const top = Math.min(16, h * 0.24); // space for the bow
+  const lidH = Math.max(10, h * 0.2);
+  // Box.
+  roundRect(ctx, 5, top + lidH * 0.6, w - 10, h - top - lidH * 0.6 - 2, 4);
+  fillStroke(ctx, lin(ctx, 0, 0, w, 0, [[0, dark], [0.25, paper], [0.6, light], [1, dark]]), dark, 2.2);
+  noShadow(ctx);
+  ctx.save();
+  roundRect(ctx, 5, top + lidH * 0.6, w - 10, h - top - lidH * 0.6 - 2, 4); ctx.clip();
+  ctx.globalAlpha = 0.45;
+  if (pattern === 'dots') {
+    ctx.fillStyle = '#ffffff';
+    for (let y = top + lidH + 8, row = 0; y < h; y += 12, row++) for (let x = 12 + (row % 2) * 7; x < w - 6; x += 14) { circle(ctx, x, y, 2.4); ctx.fill(); }
+  } else if (pattern === 'stripes') {
+    ctx.fillStyle = '#ffffff';
+    for (let x = -h; x < w; x += 14) { ctx.beginPath(); ctx.moveTo(x, h); ctx.lineTo(x + 6, h); ctx.lineTo(x + 6 + h, 0); ctx.lineTo(x + h, 0); ctx.closePath(); ctx.fill(); }
+  } else if (pattern === 'stars') {
+    ctx.fillStyle = '#ffffff';
+    for (let y = top + lidH + 9, row = 0; y < h; y += 15, row++) for (let x = 13 + (row % 2) * 8; x < w - 6; x += 17) { star(ctx, x, y, 3.6, 1.5); ctx.fill(); }
+  }
+  ctx.restore();
+  // Vertical ribbon down the front.
+  const rw = Math.max(7, w * 0.16);
+  ctx.fillStyle = lin(ctx, w / 2 - rw / 2, 0, w / 2 + rw / 2, 0, [[0, ribbonDark], [0.45, ribbon], [1, ribbonDark]]);
+  ctx.fillRect(w / 2 - rw / 2, top + lidH, rw, h - top - lidH - 2);
+  // Lid with its own ribbon band.
+  softShadow(ctx, 3, 2, 'rgba(40,10,30,0.3)');
+  roundRect(ctx, 2, top, w - 4, lidH, 4);
+  fillStroke(ctx, lin(ctx, 0, top, 0, top + lidH, [[0, light], [0.5, paper], [1, dark]]), dark, 2.2);
+  noShadow(ctx);
+  ctx.fillStyle = lin(ctx, w / 2 - rw / 2, 0, w / 2 + rw / 2, 0, [[0, ribbonDark], [0.45, ribbon], [1, ribbonDark]]);
+  ctx.fillRect(w / 2 - rw / 2, top, rw, lidH);
+  roundRect(ctx, 6, top + 2, w - 12, 3, 1.5); ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fill();
+  // Bow: two loops and two tails.
+  const bx = w / 2, by = top + 1, loop = Math.max(8, Math.min(16, w * 0.17));
+  ctx.fillStyle = ribbon; ctx.strokeStyle = ribbonDark; ctx.lineWidth = 1.6;
+  for (const dir of [-1, 1]) {
+    ctx.beginPath(); ctx.moveTo(bx, by);
+    ctx.bezierCurveTo(bx + dir * loop * 1.3, by - loop * 1.1, bx + dir * loop * 1.5, by + loop * 0.2, bx, by);
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + dir * loop * 0.7, by + lidH * 0.9); ctx.lineTo(bx + dir * loop * 0.25, by + lidH * 0.75); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  circle(ctx, bx, by, Math.max(3, loop * 0.32)); fillStroke(ctx, rad(ctx, bx, by, loop * 0.32, [[0, '#ffffff'], [0.4, ribbon], [1, ribbonDark]], bx - 1, by - 1), ribbonDark, 1.4);
+  gloss(ctx, w * 0.25, top + lidH + 10, Math.min(8, w * 0.1), 3, 0.5, 0);
 }
 
 /** A themed obstacle texture keyed by theme, style and size. */
@@ -735,7 +798,7 @@ export function blockTexture(scene: Phaser.Scene, theme: string, w: number, h: n
   return key;
 }
 
-export type PlatformStyle = 'wood' | 'cloud' | 'stone' | 'candy' | 'crystal' | 'leaf';
+export type PlatformStyle = 'wood' | 'cloud' | 'stone' | 'candy' | 'crystal' | 'leaf' | 'candycane';
 
 function drawPlatform(ctx: Ctx, w: number, style: PlatformStyle, c: PropColors): void {
   softShadow(ctx, 5, 3, 'rgba(30,10,50,0.25)');
@@ -787,6 +850,25 @@ function drawPlatform(ctx: Ctx, w: number, style: PlatformStyle, c: PropColors):
       for (let x = 10; x < w - 6; x += 18) { ellipse(ctx, x, 8, 8, 4, -0.3); ctx.fill(); }
       for (let x = 22; x < w - 6; x += 40) { circle(ctx, x, 6, 3); ctx.fillStyle = c.accent; ctx.fill(); ctx.fillStyle = c.light; }
       break;
+    case 'candycane': {
+      // A candy cane lying on its side, with its hook curling down at the right end.
+      ctx.save();
+      ctx.lineCap = 'butt';
+      ctx.beginPath(); ctx.moveTo(10, 15); ctx.lineTo(w - 22, 15); ctx.arc(w - 22, 23, 8, -Math.PI / 2, 0.3);
+      ctx.strokeStyle = c.dark; ctx.lineWidth = 15; ctx.stroke();
+      noShadow(ctx);
+      ctx.strokeStyle = c.light; ctx.lineWidth = 11; ctx.stroke();
+      ctx.setLineDash([7, 7]); ctx.strokeStyle = c.main; ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+      circle(ctx, 10, 15, 5.5); ctx.fillStyle = c.light; ctx.fill(); ctx.strokeStyle = c.dark; ctx.lineWidth = 2; ctx.stroke();
+      roundRect(ctx, 12, 10, w - 40, 3, 1.5); ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.fill();
+      // Holly sprig in the middle.
+      const hx = w * 0.45;
+      ctx.fillStyle = lin(ctx, 0, 0, 0, 12, [[0, '#5fd17a'], [1, '#1f7a3a']]);
+      for (const dir of [-1, 1]) { ellipse(ctx, hx + dir * 8, 7, 8, 3.6, dir * 0.35); ctx.fill(); }
+      for (const [dx, dy] of [[-2.5, 6], [2.5, 6], [0, 2.5]]) { circle(ctx, hx + dx, dy, 2.6); ctx.fillStyle = c.accent; ctx.fill(); }
+      break;
+    }
   }
   noShadow(ctx);
 }

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { setupCamera } from '../game/hidpi';
 import { makeBubble, makeButton, textStyle } from '../game/ui';
 import { PARENT_EVENT, hasActiveList, levels, refreshOnDataChange, startAdventure } from '../game/flow';
-import { peekCampaign } from '../spelling/campaign';
+import { CAMPAIGN_LEVEL_COUNT, peekCampaign } from '../spelling/campaign';
 import { loadPrefs, prefersReducedMotion, savePrefs } from '../audio/prefs';
 import { generateTitleArt } from '../game/sceneArt';
 
@@ -59,7 +59,7 @@ export class TitleScene extends Phaser.Scene {
     let playLabel = '▶  PLAY';
     if (ready) {
       const saved = peekCampaign();
-      if (saved && saved.nextLevelIndex > 0 && saved.nextLevelIndex < 22) {
+      if (saved && saved.nextLevelIndex > 0 && saved.nextLevelIndex < CAMPAIGN_LEVEL_COUNT) {
         playLabel = `▶  CONTINUE · Level ${saved.nextLevelIndex + 1}`;
       } else if (saved?.level) {
         playLabel = '▶  CONTINUE · Level 1';

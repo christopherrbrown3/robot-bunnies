@@ -204,6 +204,27 @@ export class CutsceneScene extends Phaser.Scene {
         [380, 500, 620, 740].forEach((x, i) => { const b = this.img(x, 345, i % 2 ? 'lyla-cheer' : 'lyla-stand', 0.95); this.bob(b, 16, 300 + i * 60); });
         break;
       }
+      case 'christmas-village': {
+        this.backdrop('christmas');
+        this.img(250, 352, 'xmas-tree', 1, false, false);
+        this.img(712, 350, 'xmas-candycane', 1, false, false);
+        this.img(820, 348, 'xmas-snowman', 1);
+        // Stand Lyla against the green trees, not the white snowman in the backdrop.
+        const l = this.img(572, 342, 'lyla-cheer', 1.5); this.bob(l, 14, 420);
+        this.label(480, 70, 'Merry Christmas!', 42, '#e8394d');
+        break;
+      }
+      case 'christmas-elves': {
+        this.backdrop('christmas');
+        this.img(560, 350, 'xmas-gift-box', 1, false, false);
+        const lid = this.add.image(560, 254, 'xmas-gift-lid').setOrigin(0.5, 1); this.stage.add(lid);
+        this.tweens.add({ targets: lid, y: 246, duration: 240, yoyo: true, repeat: -1, repeatDelay: 900, ease: 'Quad.easeOut' });
+        const a = this.img(400, 345, 'xmas-elf-cheer', 1.15); this.bob(a, 10, 380);
+        const b = this.img(720, 345, 'xmas-elf-b', 1.15, true); this.bob(b, 8, 460);
+        this.img(220, 342, 'lyla-stand', 1.2);
+        for (const [x, k] of [[110, 'xmas-bell-a'], [310, 'xmas-bell-b'], [840, 'xmas-bell-c']] as const) this.img(x, 352, k, 1.3, false, false);
+        break;
+      }
       case 'flowers-home': {
         this.backdrop('garden');
         for (let x = 90; x < 900; x += 60) this.img(x, 348, ['flower', 'flower-b', 'flower-c'][(x / 60) % 3 | 0], 1.2, false, false);

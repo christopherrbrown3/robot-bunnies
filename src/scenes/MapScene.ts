@@ -1,9 +1,9 @@
-/** The 22-level adventure map: progress, level info and the Play button. */
+/** The adventure map: progress, level info and the Play button. */
 import Phaser from 'phaser';
 import { setupCamera } from '../game/hidpi';
 import { burst, makeButton, makePanel, textStyle } from '../game/ui';
 import { PARENT_EVENT, levels, refreshOnDataChange, startAdventure } from '../game/flow';
-import { getOrStartCampaign, type SavedCampaign } from '../spelling/campaign';
+import { CAMPAIGN_LEVEL_COUNT, getOrStartCampaign, type SavedCampaign } from '../spelling/campaign';
 import { getActiveWeek, loadSpellingData } from '../spelling/store';
 import { loadPrefs, prefersReducedMotion } from '../audio/prefs';
 import { generateMapArt, mapNodePositions } from '../game/sceneArt';
@@ -31,7 +31,7 @@ export class MapScene extends Phaser.Scene {
       return;
     }
     const week = getActiveWeek(loadSpellingData());
-    const current = Math.min(campaign.nextLevelIndex, 21);
+    const current = Math.min(campaign.nextLevelIndex, CAMPAIGN_LEVEL_COUNT - 1);
 
     generateMapArt(this);
     this.add.image(480, 270, 'map-bg');
@@ -46,7 +46,7 @@ export class MapScene extends Phaser.Scene {
     const calm = prefersReducedMotion();
     positions.forEach(([x, y], i) => {
       const done = i < campaign.nextLevelIndex;
-      const isCurrent = i === current && campaign.nextLevelIndex < 22;
+      const isCurrent = i === current && campaign.nextLevelIndex < CAMPAIGN_LEVEL_COUNT;
       const node = this.add.image(x, y, done ? 'node-done' : isCurrent ? 'node-current' : 'node-locked').setScale(isCurrent ? 1.12 : 0.95);
       node.setInteractive(new Phaser.Geom.Circle(42, 42, 40), Phaser.Geom.Circle.Contains);
       const num = this.add.text(x, y, String(i + 1), textStyle(isCurrent ? 26 : 22, done || isCurrent ? '#ffffff' : '#7a5a94', true,
@@ -55,7 +55,8 @@ export class MapScene extends Phaser.Scene {
         num.setY(y + 14).setFontSize(15);
         this.add.image(x, y - 6, 'flower-icon').setScale(0.7);
       }
-      if (i === 21) this.add.text(x, y + 46, 'Monster!', textStyle(14, '#7a2fb0', true, { stroke: '#ffffff', strokeThickness: 4 })).setOrigin(0.5);
+      if (i === CAMPAIGN_LEVEL_COUNT - 1) this.add.text(x, y + 46, 'Monster!', textStyle(14, '#7a2fb0', true, { stroke: '#ffffff', strokeThickness: 4 })).setOrigin(0.5);
+      if (levels[i].play.scene === 'christmas') this.add.text(x, y + 46, 'Christmas!', textStyle(14, '#c81e3a', true, { stroke: '#ffffff', strokeThickness: 4 })).setOrigin(0.5);
       if (i === 0) this.add.text(x, y + 48, 'Castle', textStyle(14, '#c0307a', true, { stroke: '#ffffff', strokeThickness: 4 })).setOrigin(0.5);
       if (isCurrent) {
         if (!calm) this.tweens.add({ targets: node, scale: 1.2, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });

@@ -1,7 +1,8 @@
 /**
  * Deterministic level layouts generated from levels.json `play` parameters.
- * The same level always looks the same (seeded by level id), so a saved
- * checkpoint x and collected-object IDs stay meaningful after a reload.
+ * The same level always looks the same (seeded by its layout seed, normally
+ * the level id), so a saved checkpoint x and collected-object IDs stay
+ * meaningful after a reload.
  *
  * Platforming is deliberately easy: no pits, no lives, wide spacing,
  * obstacles you can land on, and hazards placed in clear zones so the
@@ -98,7 +99,8 @@ export function placeAlong(free: Span[], count: number, width: number, gap: numb
 
 export function buildLayout(level: LevelOutline): LevelLayout {
   const play = level.play;
-  const rnd = mulberry32(level.id * 7919 + 17);
+  const seed = play.layoutSeed ?? level.id;
+  const rnd = mulberry32(seed * 7919 + 17);
   const length = play.length;
   const portalX = length - 230;
   const reserved: Span[] = [[0, 720], [portalX - 480, length]];
@@ -136,7 +138,7 @@ export function buildLayout(level: LevelOutline): LevelLayout {
   }
 
   // Obstacles spread evenly across the free ground.
-  const maxH = Math.min(46 + level.id * 2.7, 104);
+  const maxH = Math.min(46 + seed * 2.7, 104);
   const obstacles: Obstacle[] = [];
   const obstacleSpots = placeAlong(freeIntervals(720, portalX - 480, reserved, 40), play.obstacles, 84, 300, rnd);
   obstacleSpots.forEach((x, i) => {

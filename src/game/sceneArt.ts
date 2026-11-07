@@ -1,6 +1,7 @@
 /** Painted backdrops for the title screen and adventure map (original Canvas 2D art). */
 import Phaser from 'phaser';
 import { lin, makeTexture, noShadow, rad, roundRect, softShadow } from './art';
+import { CAMPAIGN_LEVEL_COUNT } from '../spelling/campaign';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -102,13 +103,13 @@ export function generateTitleArt(scene: Phaser.Scene): void {
   makeTexture(scene, 'title-cloud', 160, 90, ctx => cloudShape(ctx, 34, 56, 1));
 }
 
-/** Node positions on the adventure map (8 / 7 / 7 snake). */
+/** Node positions on the adventure map: a snake of 8 / 8 / 7 for the 23 levels. */
 export function mapNodePositions(): Array<[number, number]> {
   const positions: Array<[number, number]> = [];
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < CAMPAIGN_LEVEL_COUNT; i++) {
     if (i < 8) positions.push([90 + i * 111, 158]);
-    else if (i < 15) positions.push([835 - (i - 8) * 120, 270]);
-    else positions.push([115 + (i - 15) * 120, 382]);
+    else if (i < 16) positions.push([867 - (i - 8) * 111, 270]);
+    else positions.push([115 + (i - 16) * 120, 382]);
   }
   return positions;
 }
@@ -144,11 +145,20 @@ export function generateMapArt(scene: Phaser.Scene): void {
         }
       } else if (kind === 'tree') {
         ctx.fillStyle = '#7a5230'; ctx.fillRect(-3, -20, 6, 20); circle(ctx, 0, -28, 16); ctx.fillStyle = rad(ctx, 0, -28, 16, [[0, '#8fe08a'], [1, '#3f9a52']], -5, -34); ctx.fill();
+      } else if (kind === 'xmas') {
+        // A little Christmas tree with a star, by the Christmas level.
+        ctx.fillStyle = '#7a5230'; ctx.fillRect(-3, -8, 6, 8);
+        ctx.fillStyle = lin(ctx, -18, 0, 18, 0, [[0, '#5fc46a'], [1, '#1f7a3a']]);
+        for (const [y0, y1, hw] of [[-50, -30, 10], [-40, -18, 14], [-30, -6, 18]]) { ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(hw, y1); ctx.lineTo(-hw, y1); ctx.closePath(); ctx.fill(); }
+        for (const [x, y, c] of [[-6, -24, '#ff4f6a'], [7, -16, '#ffd84d'], [-9, -11, '#5fb3ff'], [4, -32, '#ff4f6a']] as const) { circle(ctx, x, y, 2.4); ctx.fillStyle = c; ctx.fill(); }
+        ctx.fillStyle = '#ffd84d'; ctx.beginPath();
+        for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 2.6 : 6; ctx.lineTo(Math.cos(a) * r, -52 + Math.sin(a) * r); }
+        ctx.closePath(); ctx.fill();
       }
       ctx.restore();
     };
-    mark(200, 120, 'rainbow'); mark(36, 470, 'castle'); mark(920, 228, 'palm'); mark(760, 232, 'palm');
-    mark(400, 232, 'tree'); mark(60, 344, 'tower'); mark(178, 342, 'tower'); mark(916, 344, 'flowers'); mark(620, 344, 'tree');
+    mark(200, 120, 'rainbow'); mark(36, 470, 'castle'); mark(811, 232, 'palm'); mark(700, 232, 'palm');
+    mark(589, 232, 'xmas'); mark(367, 232, 'tree'); mark(146, 338, 'tower'); mark(257, 338, 'tower'); mark(916, 344, 'flowers'); mark(655, 344, 'tree');
     // The winding road connecting the levels.
     const pts = mapNodePositions();
     const road = (width: number, color: string | CanvasGradient, dash?: number[]): void => {

@@ -28,18 +28,18 @@ Research reviewed November 2026. This document guides the actual game loop, not 
 ## Game mapping
 
 - Lyla remains a white bunny with a pink fanny pack. Correct spelling retrieves flowers, reveals clues, frees companions, opens gates and moves toward the purple/blue portal.
-- **One spelling prompt per level**, across all 22 levels in a playthrough. Guarantee every current-list word appears at least once (10–20 words, or fewer if school assigns fewer), fill remaining stages by reinforcing hard or untested current-week words; older-week words only appear once all current-week words show sufficient independent success. Check again after new misses. These 22 levels are *storybook geography*, not 22 school weeks.
+- **One spelling prompt per level**, across all 23 levels in a playthrough. Guarantee every current-list word appears at least once (10–20 words, or fewer if school assigns fewer), fill remaining stages by reinforcing hard or untested current-week words; older-week words only appear once all current-week words show sufficient independent success. Check again after new misses. These 23 levels are *storybook geography*, not 23 school weeks.
 - A week list can be practiced repeatedly. New lists can be loaded whenever a teacher issues them. Previously saved weeks remain available.
 - Make breaks optional and allow seamless resumption, rather than ending after a fixed number of words or minutes. Avoid punishing errors, speed bonuses, mastery fireworks for a single correct attempt, or character distress.
 - Use the tiger/Ridensee rescue story and skippable cutscenes; no academic quizzes involving math.
 
 ## Evidence caveats
 
-Evidence for a particular touch interface, 22-question campaign, automatic mastery threshold, or iPad modality is not established by the cited studies. Treat these as hypotheses to improve through observation. Actual school tests may be written by hand, and typing accuracy is not identical to handwriting-based spelling transfer; periodically have Zoey say or write words on paper too.
+Evidence for a particular touch interface, 23-question campaign, automatic mastery threshold, or iPad modality is not established by the cited studies. Treat these as hypotheses to improve through observation. Actual school tests may be written by hand, and typing accuracy is not identical to handwriting-based spelling transfer; periodically have Zoey say or write words on paper too.
 
 ## Current implementation vs future work
 
-**Built in code:** weekly list editor (1–20 words); local history with the two-independent-success secure rule, regression and date evidence; 22 playable platform levels with in-world freeze-and-resume spelling triggers; a full-alphabet letter-tile composer; immediate correction, hidden retry, hint and skip; parent recordings ahead of TTS, with a Peek fallback; full-list mock test; flower rewards; captioned cutscenes.
+**Built in code:** weekly list editor (1–20 words); local history with the two-independent-success secure rule, regression and date evidence; 23 playable platform levels with in-world freeze-and-resume spelling triggers; a full-alphabet letter-tile composer; immediate correction, hidden retry, hint and skip; parent recordings ahead of TTS, with a Peek fallback; full-list mock test; flower rewards; captioned cutscenes.
 
 **Not yet built:** phoneme-grapheme feedback; on-paper practice options; reliable offline pronunciation on every target device (recordings help); real-iPad validation.
 

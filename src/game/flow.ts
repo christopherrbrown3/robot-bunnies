@@ -16,7 +16,7 @@ export function hasActiveList(): boolean {
   }
 }
 
-/** Continue the saved 22-level run (or start one), showing the level's story first if it is fresh. */
+/** Continue the saved run (or start one), showing the level's story first if it is fresh. */
 export function startAdventure(scene: Phaser.Scene): void {
   if (!hasActiveList()) {
     window.dispatchEvent(new Event(PARENT_EVENT));

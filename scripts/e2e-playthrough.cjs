@@ -1,5 +1,5 @@
 /**
- * Optional browser smoke test: plays all 22 levels of the production build.
+ * Optional browser smoke test: plays every level of the production build.
  *
  *   npm run build && npm run preview          # in one terminal
  *   npm run e2e                               # in another (needs Playwright + Chromium)
@@ -34,7 +34,8 @@ const week = { schemaVersion: 2, activeWeekId: 'w1', weeks: [{ id: 'w1', label: 
 
   await page.evaluate(() => window.__rbGame.scene.getScenes(true)[0].scene.start('Map'));
   await page.waitForTimeout(500);
-  for (let lvl = 1; lvl <= 22; lvl++) {
+  const LEVELS = require('../src/content/levels.json').length;
+  for (let lvl = 1; lvl <= LEVELS; lvl++) {
     await page.evaluate(() => window.__rbGame.scene.getScenes(true)[0].scene.start('Game'));
     for (let i = 0; i < 100; i++) { await page.waitForTimeout(100); if (await G('return g.level ? g.level.id : 0') === lvl) break; }
     if (lvl !== 1) {
@@ -68,7 +69,7 @@ const week = { schemaVersion: 2, activeWeekId: 'w1', weeks: [{ id: 'w1', label: 
       }
       await page.waitForTimeout(120);
     }
-    await page.waitForTimeout(lvl === 22 ? 4000 : 1500);
+    await page.waitForTimeout(lvl === LEVELS ? 4000 : 1500);
     await G('g.lyla.body.reset(a, 470);', (await G('return g.layout.portalX;')) - 200);
     let done = false;
     for (let i = 0; i < 120 && !done; i++) { await page.waitForTimeout(150); done = (await campaign()).nextLevelIndex >= lvl; }
@@ -79,7 +80,7 @@ const week = { schemaVersion: 2, activeWeekId: 'w1', weeks: [{ id: 'w1', label: 
   const c = await campaign();
   const covered = new Set(c.steps.filter((s, i) => c.results[i] && s.source === 'current').map(s => s.word));
   const missing = words.filter(w => !covered.has(w));
-  console.log(missing.length ? `Missing words: ${missing.join(', ')}` : 'Every weekly word was covered in the 22-level run.');
+  console.log(missing.length ? `Missing words: ${missing.join(', ')}` : `Every weekly word was covered in the ${LEVELS}-level run.`);
   if (missing.length || errors.length) process.exitCode = 1;
   console.log(errors.length ? `Page errors:\n${errors.join('\n')}` : 'No page errors.');
   await browser.close();

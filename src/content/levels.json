@@ -341,6 +341,35 @@
   {
     "id": 12,
     "slug": "level-12",
+    "title": "A Very Bunny Christmas",
+    "setting": "Snowy Christmas village",
+    "theme": "christmas",
+    "provenance": "proposed",
+    "story": "Lyla tumbles out of the portal into a snowy Christmas village. Friendly elves are wrapping presents, jingle bells have fallen off a sleigh, and a giant present waits under the big Christmas tree.",
+    "mechanic": "Hop over wrapped gifts and candy-cane platforms; tap the fallen jingle bells",
+    "developmentStatus": "playable",
+    "spellingChallenge": "Spell a word to untie the ribbon on the elves' giant present",
+    "play": {
+      "scene": "christmas",
+      "length": 7400,
+      "obstacles": 7,
+      "platforms": 4,
+      "hazards": [],
+      "beads": 4,
+      "targets": 0,
+      "trigger": {
+        "kind": "gift",
+        "at": 0.6,
+        "title": "Open the giant present!",
+        "story": "The elves wrapped a giant present for Lyla! Spell the word to untie the ribbon.",
+        "success": "Ta-da! The present pops open and magic flowers tumble out!"
+      },
+      "cutscene": "christmas"
+    }
+  },
+  {
+    "id": 13,
+    "slug": "level-13",
     "title": "The Helping Hand Hall",
     "setting": "Enchanted hall",
     "theme": "castle",
@@ -372,12 +401,14 @@
         "title": "Stop the bouncing hand!",
         "story": "Spell the word to make the big hands take a nap!",
         "success": "The big hands take a nap. Shhh!"
-      }
+      },
+      "napHands": true,
+      "layoutSeed": 12
     }
   },
   {
-    "id": 13,
-    "slug": "level-13",
+    "id": 14,
+    "slug": "level-14",
     "title": "Orchard of Clues",
     "setting": "Sunny orchard",
     "theme": "orchard",
@@ -400,12 +431,13 @@
         "title": "Choose the orchard path!",
         "story": "A clue sign has a word lock. Spell the word to find the right path!",
         "success": "The orchard path opens up!"
-      }
+      },
+      "layoutSeed": 13
     }
   },
   {
-    "id": 14,
-    "slug": "level-14",
+    "id": 15,
+    "slug": "level-15",
     "title": "Skybridge Stories",
     "setting": "Rainbow skybridge",
     "theme": "rainbow",
@@ -429,12 +461,13 @@
         "story": "Spell the word to unroll the rainbow skybridge!",
         "success": "The skybridge rolls out like a ribbon!"
       },
-      "paintDoor": 0.34
+      "paintDoor": 0.34,
+      "layoutSeed": 14
     }
   },
   {
-    "id": 15,
-    "slug": "level-15",
+    "id": 16,
+    "slug": "level-16",
     "title": "Clock Tower Mystery",
     "setting": "Old tower",
     "theme": "town",
@@ -457,12 +490,13 @@
         "title": "Open the clock tower!",
         "story": "The clock tower door has a secret word lock.",
         "success": "Tick-tock! The clock tower door opens!"
-      }
+      },
+      "layoutSeed": 15
     }
   },
   {
-    "id": 16,
-    "slug": "level-16",
+    "id": 17,
+    "slug": "level-17",
     "title": "The Robot Workshop",
     "setting": "Secret workshop",
     "theme": "town",
@@ -491,12 +525,13 @@
         "story": "A secret message about the king is locked away. Spell the word to read it!",
         "success": "The message says: the king's phone controls the robot bunnies!"
       },
-      "cutscene": "workshop"
+      "cutscene": "workshop",
+      "layoutSeed": 16
     }
   },
   {
-    "id": 17,
-    "slug": "level-17",
+    "id": 18,
+    "slug": "level-18",
     "title": "The Flower Vault",
     "setting": "Money-flower vault",
     "theme": "town",
@@ -519,12 +554,13 @@
         "title": "Unlock the flower vault!",
         "story": "The king hid flowers in this vault. Spell the word to unlock it!",
         "success": "The vault opens and flowers spill out!"
-      }
+      },
+      "layoutSeed": 17
     }
   },
   {
-    "id": 18,
-    "slug": "level-18",
+    "id": 19,
+    "slug": "level-19",
     "title": "Finding the Bow",
     "setting": "Training meadow",
     "theme": "meadow",
@@ -548,12 +584,13 @@
         "story": "A magic bow rests on a stand. Spell the word to earn it!",
         "success": "Lyla found a magic bow and arrows!"
       },
-      "cutscene": "bow"
+      "cutscene": "bow",
+      "layoutSeed": 18
     }
   },
   {
-    "id": 19,
-    "slug": "level-19",
+    "id": 20,
+    "slug": "level-20",
     "title": "Returning to the Castle",
     "setting": "Hot pink castle garden",
     "theme": "castle",
@@ -585,12 +622,13 @@
         "title": "Unlock the castle gate!",
         "story": "Lyla is back at the hot pink castle. Spell the word to open the gate!",
         "success": "The castle gate creaks open!"
-      }
+      },
+      "layoutSeed": 19
     }
   },
   {
-    "id": 20,
-    "slug": "level-20",
+    "id": 21,
+    "slug": "level-21",
     "title": "The King's Phone",
     "setting": "Control room",
     "theme": "castle",
@@ -622,12 +660,13 @@
         "title": "Jam the king's phone!",
         "story": "The king's giant phone controls the robot bunnies. Spell the word to jam it!",
         "success": "Buzz! The king's phone gets all jumbled!"
-      }
+      },
+      "layoutSeed": 20
     }
   },
   {
-    "id": 21,
-    "slug": "level-21",
+    "id": 22,
+    "slug": "level-22",
     "title": "The Monster's Garden",
     "setting": "Giant flower garden",
     "theme": "garden",
@@ -659,12 +698,13 @@
         "title": "Get ready for the monster!",
         "story": "A brave flower helps Lyla get ready. Spell its word!",
         "success": "Lyla feels brave and ready!"
-      }
+      },
+      "layoutSeed": 21
     }
   },
   {
-    "id": 22,
-    "slug": "level-22",
+    "id": 23,
+    "slug": "level-23",
     "title": "The Giant Monster",
     "setting": "Final flower clearing",
     "theme": "final",
@@ -689,7 +729,8 @@
         "success": "The rainbow arrow glows with power!"
       },
       "cutscene": "monster",
-      "boss": true
+      "boss": true,
+      "layoutSeed": 22
     }
   }
 ]

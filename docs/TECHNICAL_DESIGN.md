@@ -8,7 +8,7 @@
 - **Devices:** older iPads, touch first, landscape 4:3/16:9 screens, aim for acceptable performance on iPadOS 15+ (actual minimum TBD after device testing).
 - **Stack:** Phaser 3, TypeScript, Vite, vite-plugin-pwa/Workbox.
 - **No backend:** no authentication, child account, remote telemetry or externally stored learning history. No mandatory network after first app cache.
-- **Scope now:** the full 22-level platformer with in-world spelling triggers, a letter-tile composer, parent recordings, two-success mastery, storybook cutscenes, an adventure map and Parent Corner. All art and sound are generated in code (Canvas 2D and Web Audio), so there are no asset files to license or download.
+- **Scope now:** the full 23-level platformer with in-world spelling triggers, a letter-tile composer, parent recordings, two-success mastery, storybook cutscenes, an adventure map and Parent Corner. All art and sound are generated in code (Canvas 2D and Web Audio), so there are no asset files to license or download.
 
 ## Source layout
 
@@ -18,14 +18,15 @@ src/
   scenes/
     BootScene.ts          # generates all character/object textures
     TitleScene.ts         # Play/Continue, Map, Grown-ups, sound toggle
-    MapScene.ts           # 22-node adventure map, level info, Storybook replays
+    MapScene.ts           # 23-node adventure map, level info, Storybook replays
     CutsceneScene.ts      # captioned, narrated, skippable storybook panels
     GameScene.ts          # one level: run/jump/shrink, hazards, rescue, paint door, spelling trigger, boss, portal
     FinaleScene.ts        # end-of-run celebration and gentle word summary
   game/
     hidpi.ts              # retina rendering: RES (2× on high-density screens), per-scene camera setup
     art.ts                # Canvas 2D drawings (shaded characters, objects, themed props/platforms, buttons, panels)
-    themes.ts             # 13 visual themes: painted skies, parallax layers, ground, foreground, ambient particles
+    christmasArt.ts       # Level 12 art: elves, Christmas trees, candy canes, bells, snowman, arch, giant present, snowflakes
+    themes.ts             # 14 visual themes: painted skies, parallax layers, ground, foreground, ambient particles
     sceneArt.ts           # title-screen castle scene, adventure-map road and nodes, storybook frame
     levelPlan.ts          # deterministic layout generator from levels.json `play` parameters
     cutscenes.ts          # storybook panel captions
@@ -34,7 +35,7 @@ src/
     mastery.ts            # two-independent-success model, regression, distinct dates (pure functions)
     store.ts              # schema v2 weekly lists + per-word history (migrates v1)
     scheduler.ts          # all active words first; weak current words in spare slots; old weeks only when all secure
-    campaign.ts           # 22-stage assignment, cursor, per-level checkpoint/flags/outcome, run flowers
+    campaign.ts           # per-level assignment, cursor, checkpoint/flags/outcome, run flowers, migration when levels are added
   audio/
     sfx.ts                # synthesized Web Audio sound effects
     speech.ts             # TTS with failure detection
@@ -46,15 +47,15 @@ src/
     PracticeSession.ts    # optional tricky-word review and full mock test
     ParentCorner.ts       # lists, mastery summary, recordings, backups
   content/
-    levels.json           # 22 story locations + gameplay parameters and trigger text
+    levels.json           # 23 story locations + gameplay parameters and trigger text
     types.ts
 public/icons/             # SVG + 180/192/512 PNG icons
 scripts/
-  validate-content.mjs    # 22 levels, canon anchors, play config
+  validate-content.mjs    # 23 levels, canon anchors, play config
   test-campaign.mjs       # coverage for 1–20 words, priority, resume, in-level saves
   test-mastery.mjs        # §9 criteria 2 and 4, migration, source-week recording
   test-layouts.mjs        # every layout jumpable, deterministic, hazard/trigger zones clear
-  e2e-playthrough.cjs     # optional Playwright run of all 22 levels (`npm run e2e`)
+  e2e-playthrough.cjs     # optional Playwright run of all 23 levels (`npm run e2e`)
   e2e-recording.cjs       # optional Parent Corner recording-cue check with a fake mic (`npm run e2e:recording`)
 ```
 
@@ -67,7 +68,7 @@ scripts/
 - 60 fps aspirational; 30 fps acceptable with transparent fallbacks. Use compact atlases, reuse sprites, pool particles, cap effects and support reduced motion. Avoid large video backgrounds or heavy libraries.
 - HTML title description and optional ARIA accessible controls can be added as overlays later. Phaser canvas alone is not inherently screen-reader accessible.
 - Start with a fully drawn but asset-light level using shapes. Later replace with original sprites/atlasses.
-- Separate content/progression data from physics scene code, so new levels aren't 22 copies of a script.
+- Separate content/progression data from physics scene code, so new levels aren't copies of one script.
 - Prefer very large hit targets and forgiving physics. Prioritize predictable feeling over precise simulation.
 
 ## Input state machine
@@ -79,7 +80,7 @@ Spelling triggers pause physics, character velocity, enemy movement, timers and 
 ## Save system
 
 - `robot-bunnies.spelling.v1` (localStorage, schema v2; v1 data migrates on load): weekly lists and per-word history. Each word records attempts, misses, independent and assisted successes, skips, independent streak, streak dates and success dates. Results are recorded against the word's **source week**.
-- `robot-bunnies.campaign.v2`: the frozen 22-stage word assignment, run number, `nextLevelIndex`, each level's outcome, the run's flowers, run flags (`bow`), and the current level's progress: `promptResolved`, `checkpointX`, flowers, collected object IDs and level flags (such as `tiger-gone` or `paint-door`). The prompt is saved as resolved before any celebration, and resolving twice keeps the first result. Spare stages are re-evaluated just before each prompt, never after it is resolved. Editing lists, switching weeks or importing a backup starts a new assignment.
+- `robot-bunnies.campaign.v2`: the frozen word assignment (one step per level), run number, `nextLevelIndex`, each level's outcome, the run's flowers, run flags (`bow`), and the current level's progress: `promptResolved`, `checkpointX`, flowers, collected object IDs and level flags (such as `tiger-gone` or `paint-door`). The prompt is saved as resolved before any celebration, and resolving twice keeps the first result. Spare stages are re-evaluated just before each prompt, never after it is resolved. Editing lists, switching weeks or importing a backup starts a new assignment. When a level is added (`ADDED_LEVEL_INDEXES` in `campaign.ts`), an older saved run gets a spare step at that position on load: finished levels keep their results, and the player's place moves up one if it was at or past the new level.
 - `robot-bunnies.prefs.v1`: sound, story voice, and which cutscenes have been seen.
 - IndexedDB `robot-bunnies-audio`: parent recordings keyed by exact word, stored as ArrayBuffers because old Safari can't reliably store Blobs. They have their own JSON backup format.
 - The word-list backup does **not** include the in-progress campaign position or recordings. Clearing Safari data loses everything that hasn't been backed up, and nothing syncs to a server.
@@ -99,7 +100,7 @@ No third-party analytics, external font loading, tracking, cookies, ads, in-app 
 
 ## Validation
 
-- `npm run validate`: check exactly 22 unique levels, contiguous IDs, story anchors, and required content.
+- `npm run validate`: check exactly 23 unique levels, contiguous IDs, story anchors, and required content.
 - `npm run build`: TypeScript + production bundle; run on GitHub Actions and locally.
 - Manual iPad matrix: iPadOS 15 / Safari, home-screen launch, cold install, offline reopen, 4:3 landscape, portrait recovery, keyboard dev mode, PWA update, safe-area spacing, parent gate, and long-term data migration (as features land).
 - Never claim browser-device performance until tested on real hardware.

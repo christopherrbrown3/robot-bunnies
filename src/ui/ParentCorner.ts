@@ -4,7 +4,7 @@ import {
 } from '../spelling/store';
 import type { SpellingData, SpellingWeek } from '../spelling/store';
 import { isSecure, isSecureAcrossDays, wordStatus } from '../spelling/mastery';
-import { coveredCurrentWords, peekCampaign } from '../spelling/campaign';
+import { CAMPAIGN_LEVEL_COUNT, coveredCurrentWords, peekCampaign } from '../spelling/campaign';
 import {
   deleteRecording, eraseRecordings, exportRecordings, importRecordings,
   listRecordedWords, recordingsSupported, saveRecording
@@ -74,7 +74,7 @@ export function initializeParentCorner(): void {
               <ul id="week-stats" aria-label="Word practice progress"></ul>
               <p id="record-note" class="small-note">🎙 Optional: record your own voice for any word the iPad says wrong. Recordings stay on this iPad and play instead of the robot voice.</p>
               <div class="action-row">
-                <button type="button" class="purple-btn" id="start-practice">Play 22-level adventure</button>
+                <button type="button" class="purple-btn" id="start-practice">Play ${CAMPAIGN_LEVEL_COUNT}-level adventure</button>
                 <button type="button" class="outline-btn" id="start-review">Practice tricky words</button>
                 <button type="button" class="outline-btn" id="start-test">Full spelling test</button>
               </div>
@@ -461,12 +461,12 @@ export function initializeParentCorner(): void {
   get<HTMLButtonElement>('week-save').addEventListener('click', () => {
     try {
       const before = peekCampaign();
-      const midRun = !!before && (before.nextLevelIndex > 0 || !!before.level) && before.nextLevelIndex < 22;
+      const midRun = !!before && (before.nextLevelIndex > 0 || !!before.level) && before.nextLevelIndex < CAMPAIGN_LEVEL_COUNT;
       const week = saveWeek(weekName.value, parseWords(wordsInput.value), selectedWeekId);
       refresh(week.id);
       setMessage(midRun
-        ? 'Saved! Because the word list changed, the next play starts a fresh 22-level adventure with this list. Practice history for each word is kept.'
-        : 'Saved on this iPad! Every word on this list will appear across the 22 levels.');
+        ? `Saved! Because the word list changed, the next play starts a fresh ${CAMPAIGN_LEVEL_COUNT}-level adventure with this list. Practice history for each word is kept.`
+        : `Saved on this iPad! Every word on this list will appear across the ${CAMPAIGN_LEVEL_COUNT} levels.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to save list.', true);
     }

@@ -47,12 +47,12 @@ Zoey specified that the king is revealed as evil **when the key is given**, not 
 
 ### Giant final monster (confirmed)
 
-- Appears in **Level 22**, fought with a **bow and arrows**.
+- Appears in the **final level** (Zoey's Level 22; Level 23 since the Christmas level was added), fought with a **bow and arrows**.
 - Design, name, visual appearance, attack behavior, and victory condition need proposal/review.
 
 ## Established world elements
 
-- **22 levels**, becoming gradually harder; first level easiest.
+- **22 levels**, becoming gradually harder; first level easiest. (A Christmas level was added as Level 12 in November 2026 at the project owner's request, making 23; see [DECISIONS.md](DECISIONS.md).)
 - **Level 1**: begins **inside** the hot pink castle, in a cage, followed by escape.
 - **Level 2**: takes place **inside a rainbow** (how rainbow traversal works is not decided).
 - **Other levels**: zoo animals **jump down to catch bunnies carrying flowers**; beads on the ground must be picked up/cleared to prevent tripping; an obstacle involving a hand; a paint-splatter/rainbow-door puzzle.

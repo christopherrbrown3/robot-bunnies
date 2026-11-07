@@ -1,8 +1,20 @@
-import { createCampaignPlan, currentWeekNeedsFocus, selectCurrentFocusWord, selectPreviousReviewWord, type CampaignStep } from './scheduler';
+import {
+  CAMPAIGN_LEVELS, createCampaignPlan, currentWeekNeedsFocus, selectCurrentFocusWord, selectPreviousReviewWord,
+  type CampaignStep
+} from './scheduler';
 import { CAMPAIGN_STORAGE_KEYS, loadSpellingData, type SpellingData } from './store';
 
 const STORAGE_KEY = 'robot-bunnies.campaign.v2';
-export const CAMPAIGN_LEVEL_COUNT = 22;
+export const CAMPAIGN_LEVEL_COUNT = CAMPAIGN_LEVELS;
+
+/**
+ * Levels added to the adventure after release, oldest first, as the index each
+ * one was inserted at. A run saved before an addition is migrated when loaded
+ * (see migrateRun), so nobody loses an adventure in progress.
+ */
+export const ADDED_LEVEL_INDEXES: readonly number[] = [
+  11 // Level 12, "A Very Bunny Christmas" (November 2026): the original 22 levels became 23.
+];
 
 export type PromptResult = 'independent' | 'assisted' | 'skipped';
 
@@ -26,7 +38,7 @@ export interface SavedCampaign {
   activeWeekId: string;
   wordListSignature: string;
   runNumber: number;
-  /** The level being played (or next to play). 22 means the run is complete. */
+  /** The level being played (or next to play). CAMPAIGN_LEVEL_COUNT means the run is complete. */
   nextLevelIndex: number;
   steps: CampaignStep[];
   startedAt: string;
@@ -66,7 +78,7 @@ function validSavedPlan(input: unknown, data: SpellingData): input is SavedCampa
   if (value.schemaVersion !== 2 || value.activeWeekId !== data.activeWeekId ||
       value.wordListSignature !== campaignSignature(data) ||
       !Number.isInteger(value.nextLevelIndex) || (value.nextLevelIndex ?? -1) < 0 ||
-      (value.nextLevelIndex ?? 23) > CAMPAIGN_LEVEL_COUNT ||
+      (value.nextLevelIndex ?? CAMPAIGN_LEVEL_COUNT + 1) > CAMPAIGN_LEVEL_COUNT ||
       !Number.isSafeInteger(value.runNumber) || (value.runNumber ?? -1) < 0 ||
       !Array.isArray(value.steps) || value.steps.length !== CAMPAIGN_LEVEL_COUNT ||
       !Array.isArray(value.results) || value.results.length !== CAMPAIGN_LEVEL_COUNT ||
@@ -92,13 +104,57 @@ function validSavedPlan(input: unknown, data: SpellingData): input is SavedCampa
   return current.words.every(word => encountered.has(word));
 }
 
+/**
+ * Insert a spare spelling step for a newly added level at `index`. Finished
+ * levels keep their results. A player who has not reached the new level yet
+ * will play it when they get there; one already partway through the level now
+ * after it keeps their place there (and their checkpoint) instead.
+ */
+function insertLevel(run: SavedCampaign, index: number, data: SpellingData): SavedCampaign {
+  const current = data.weeks.find(week => week.id === run.activeWeekId);
+  const words = current?.words ?? [];
+  if (!current || !words.length) return run;
+  const spare: CampaignStep = {
+    levelId: index + 1, weekId: current.id,
+    word: words[(index + run.runNumber) % words.length],
+    source: 'current', optional: true
+  };
+  const steps = [...run.steps];
+  steps.splice(index, 0, spare);
+  const results = [...run.results];
+  results.splice(index, 0, null);
+  const level = run.level ?? null;
+  const shift = run.nextLevelIndex > index || (run.nextLevelIndex === index && level !== null);
+  return {
+    ...run,
+    steps: steps.map((step, i) => ({ ...step, levelId: i + 1 })),
+    results,
+    nextLevelIndex: shift ? run.nextLevelIndex + 1 : run.nextLevelIndex,
+    level: level && shift ? { ...level, levelIndex: level.levelIndex + 1 } : level
+  };
+}
+
+/** Bring a run saved before one or more levels were added up to the current level count. */
+function migrateRun(input: unknown, data: SpellingData): unknown {
+  if (input === null || typeof input !== 'object') return input;
+  const run = input as SavedCampaign;
+  if (!Array.isArray(run.steps) || !Array.isArray(run.results) || run.steps.length !== run.results.length ||
+      !Number.isInteger(run.nextLevelIndex) || !Number.isSafeInteger(run.runNumber)) return input;
+  const missing = CAMPAIGN_LEVEL_COUNT - run.steps.length;
+  if (missing <= 0 || missing > ADDED_LEVEL_INDEXES.length || run.nextLevelIndex > run.steps.length) return input;
+  return ADDED_LEVEL_INDEXES.slice(-missing).reduce((migrated, index) => insertLevel(migrated, index, data), run);
+}
+
 function loadSaved(data: SpellingData): SavedCampaign | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as unknown;
+    const stored = JSON.parse(raw) as unknown;
+    const parsed = migrateRun(stored, data);
     if (!validSavedPlan(parsed, data)) return null;
-    return { ...parsed, level: parsed.level ?? null };
+    const campaign = { ...parsed, level: parsed.level ?? null };
+    if (parsed !== stored) store(campaign);
+    return campaign;
   } catch {
     return null;
   }
@@ -114,7 +170,7 @@ export function peekCampaign(data = loadSpellingData()): SavedCampaign | null {
   return data.activeWeekId ? loadSaved(data) : null;
 }
 
-/** Continue from the last completed level, or begin a new 22-level run. */
+/** Continue from the last completed level, or begin a new full run. */
 export function getOrStartCampaign(data = loadSpellingData()): SavedCampaign {
   if (!data.activeWeekId) throw new Error('Please add weekly spelling words in Parent Corner.');
   const existing = loadSaved(data);
@@ -234,7 +290,7 @@ export function addCampaignFlag(campaign: SavedCampaign, levelIndex: number, fla
 
 /**
  * Finish the level at its portal. Leaving immediately afterwards resumes at
- * the next level; finishing all 22 lets the next play start a fresh run.
+ * the next level; finishing every level lets the next play start a fresh run.
  */
 export function markCampaignLevelComplete(campaign: SavedCampaign, levelIndex: number, levelFlowers?: number): SavedCampaign {
   const saved = loadMatching(campaign, levelIndex);
