@@ -52,6 +52,7 @@
 
 - [x] Implement all 22 story levels using current weekly words (automated browser playthrough: `npm run e2e`).
 - [x] Add the Christmas level as Level 12 (23 levels in all), with saved runs migrated and the renumbered levels' layouts unchanged.
+- [x] Easy updates: new versions download in the background and wait; an Update button on the title screen and map, plus version, Check for updates and Update now in Parent Corner. No automatic reload mid-level.
 - [x] Zoo animals, bead hazards, hand obstacles, rainbow paint doors, find bow, final giant monster.
 - [x] Add original art (drawn in code), readable screens, captions, reduced-motion handling, and 180px/192px/512px PWA PNG icons.
 - [ ] QA: intermittent/no network, older iPad home-screen mode, storage export/import, school spelling changes, lists with 10, 15 and 20 words, no previous weeks, many previous weeks, missed words, changed active lists, complete campaign replay and interrupted sessions.

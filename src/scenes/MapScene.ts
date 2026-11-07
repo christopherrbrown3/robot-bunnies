@@ -2,7 +2,7 @@
 import Phaser from 'phaser';
 import { setupCamera } from '../game/hidpi';
 import { burst, makeButton, makePanel, textStyle } from '../game/ui';
-import { PARENT_EVENT, levels, refreshOnDataChange, startAdventure } from '../game/flow';
+import { PARENT_EVENT, addUpdateButton, levels, refreshOnDataChange, startAdventure } from '../game/flow';
 import { CAMPAIGN_LEVEL_COUNT, getOrStartCampaign, type SavedCampaign } from '../spelling/campaign';
 import { getActiveWeek, loadSpellingData } from '../spelling/store';
 import { loadPrefs, prefersReducedMotion } from '../audio/prefs';
@@ -80,6 +80,7 @@ export class MapScene extends Phaser.Scene {
     const label = campaign.level ? `▶ Continue Level ${current + 1}` : `▶ Play Level ${current + 1}`;
     makeButton(this, 735, 506, 360, 58, label, () => startAdventure(this), { color: 0x7445c5, fontSize: 26 });
     if (campaign.nextLevelIndex === 0 && !campaign.level && campaign.runNumber > 0) burst(this, 90, 130, 10, 'sparkle-gold');
+    addUpdateButton(this, 590, 42, 270);
   }
 
   private showInfo(i: number, campaign: SavedCampaign): void {

@@ -56,6 +56,16 @@ GitHub Pages is set to **GitHub Actions** with the custom domain **[robotbunnies
 
 On an iPad, open in Safari, then **Share → Add to Home Screen**. After an initial connected visit, the service-worker cache can help make the app available offline. **Speech synthesis may still need device voices or network** on older iPads.
 
+### Updating the game on the iPad
+
+The installed game checks for a new version when it opens, whenever it comes back on screen, and every 30 minutes while it is open. A new version downloads in the background and **waits**: the game never reloads by itself, so a level, a spelling answer or a voice recording is never cut off. When it is ready:
+
+- The title screen and the adventure map show a green **✨ New version! Update** button (never during a level). Tapping it restarts the game into the new version, and the title screen says "Robot Bunnies is up to date!". Progress, word lists and recordings are all kept.
+- **Parent Corner → Game version** shows which version is installed (for example `v0.1.0 · f9eafe9 · Nov 7, 2026`: package version, commit and build date; the title screen shows it in the top-left corner too), with **Check for updates** and **Update now** buttons.
+- If nobody taps Update, the new version starts the next time the game is fully closed and reopened.
+
+The first time an iPad gets this update system, it arrives that last way: the older version already on the iPad downloads it quietly, and it takes over after the game is closed (swipe it away in the app switcher) and opened again.
+
 ## Scope
 
 This is **not** a general first-grade literacy and math application anymore. Spellings supplied by school are the learning target. The game world remains Zoey's original invention, but any educational interaction should directly support spelling retrieval, corrective feedback or later review.

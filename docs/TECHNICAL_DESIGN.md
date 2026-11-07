@@ -15,6 +15,7 @@
 ```text
 src/
   main.ts                 # Phaser config (960×540 FIT, Arcade physics, windowEvents off), audio unlock
+  updates.ts              # service-worker updates: background checks, Update button/Parent Corner install, version label
   scenes/
     BootScene.ts          # generates all character/object textures
     TitleScene.ts         # Play/Continue, Map, Grown-ups, sound toggle
@@ -89,6 +90,8 @@ Spelling triggers pause physics, character velocity, enemy movement, timers and 
 
 - The production `base` must match where Pages serves the site. The deploy workflow passes `BASE_PATH` from `actions/configure-pages` (`/` for the custom domain, `/robot-bunnies/` for github.io). A wrong base makes every script and stylesheet 404, so `index.html` contains an inline boot-status message that names any file that fails to load.
 - PWA manifest `start_url` and `scope` relative to build base. Cache emitted JS/CSS/fonts/images/HTML using Workbox in `vite-plugin-pwa`.
+- Updates (`src/updates.ts`): `registerType: 'prompt'`, so a new service worker installs and waits instead of taking over and reloading mid-level. The app calls `registration.update()` every 30 minutes while visible and when it becomes visible again (at most every 5 minutes), and watches `updatefound` itself because `registerSW` only reports the first update found shortly after start-up. When one is waiting, the title screen and map show an Update button (`addUpdateButton` in `flow.ts`, never in a level) and Parent Corner shows **Update now**; installing sends `SKIP_WAITING` and reloads on `controllerchange` (or after 4 s). Parent Corner's **Check for updates** reports newest, downloading, ready or offline.
+- Version shown to grown-ups: `vite.config.ts` defines `__APP_VERSION__` (package version), `__APP_COMMIT__` (`GITHUB_SHA` in the deploy workflow, else `local`) and `__APP_BUILT__` (build time).
 - Reopening offline works **only after** service worker installation and asset cache completion while online.
 - Initial icon is SVG only. For reliable older iPad install appearance, produce a **180×180 PNG apple-touch-icon** plus 192/512 PNGs in the asset phase and reference them in `index.html`/manifest. Until then, home-screen icon appearance may vary.
 - HTTPS on GitHub Pages is required for service workers. Development PWA/offline behavior is not identical to production; test preview and actual Pages URL.
