@@ -14,9 +14,10 @@ import Phaser from 'phaser';
 import levelsJson from '../content/levels.json';
 import type { LevelOutline } from '../content/types';
 import { buildLayout, GROUND_Y, LYLA_START_X, type Collectible, type Hazard, type LevelLayout } from '../game/levelPlan';
-import { THEMES, ensureThemeArt, type Theme } from '../game/themes';
+import { ParallaxLayer, THEMES, addGround, ensureThemeArt, type Ambient, type Theme } from '../game/themes';
 import { blockTexture, gateTexture, platformTexture } from '../game/art';
-import { burst, makeBubble, makeButton, pinToScreen, textStyle } from '../game/ui';
+import { burst, makeBubble, makeButton, makePanel, pinToScreen, textStyle } from '../game/ui';
+import { setupCamera } from '../game/hidpi';
 import {
   CAMPAIGN_LEVEL_COUNT, addCampaignFlag, getOrStartCampaign, markCampaignLevelComplete,
   prioritizeCurrentWeek, resolveCampaignPrompt, saveLevelProgress, type LevelProgress, type SavedCampaign
@@ -35,6 +36,8 @@ const RUN_SPEED = 215;
 const DANGER_SPEED = 125;
 const JUMP_VELOCITY = -760;
 const SMALL_SCALE = 0.36;
+/** Lyla's position on screen while the camera follows her (logical px from the left). */
+const FOLLOW_X = 310;
 
 interface HazardRuntime {
   data: Hazard;
@@ -57,8 +60,15 @@ export class GameScene extends Phaser.Scene {
   private state: State = 'intro';
   private stateBeforePause: State = 'running';
   private lyla!: Phaser.Physics.Arcade.Sprite;
-  private far!: Phaser.GameObjects.TileSprite;
-  private mid!: Phaser.GameObjects.TileSprite;
+  private far!: ParallaxLayer;
+  private mid!: ParallaxLayer;
+  private fg!: ParallaxLayer;
+  private shadow!: Phaser.GameObjects.Image;
+  private dust?: Phaser.GameObjects.Particles.ParticleEmitter;
+  /** Camera scroll target while locked (boss arena); null follows Lyla. */
+  private camLockX: number | null = null;
+  private wasOnGround = true;
+  private lastDustAt = 0;
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
   private platformGroup!: Phaser.Physics.Arcade.StaticGroup;
 
@@ -105,6 +115,7 @@ export class GameScene extends Phaser.Scene {
     this.small = false; this.autoJumpFor = null; this.overlay = undefined; this.dangerBubble = undefined;
     this.monster = undefined; this.police = undefined; this.paintDoor = undefined; this.triggerMain = undefined;
     this.graceUntil = 0; this.bumpUntil = 0; this.jumpRequestedAt = -9999; this.flowerCount = 0;
+    this.camLockX = null; this.wasOnGround = true; this.lastDustAt = 0; this.dust = undefined;
     this.state = 'intro';
   }
 
@@ -137,14 +148,14 @@ export class GameScene extends Phaser.Scene {
 
     this.physics.world.setBounds(0, 0, this.layout.length, 540);
     this.physics.world.gravity.y = 1500;
-    this.cameras.main.setBounds(0, 0, this.layout.length, 540);
-    this.cameras.main.setBackgroundColor(this.theme.sky[1]);
+    setupCamera(this).setBackgroundColor(this.theme.sky[2]);
 
     this.buildBackground();
     this.buildWorld();
     this.buildLyla();
     this.buildHud();
     this.bindInput();
+    this.updateCamera(0, true);
 
     document.addEventListener('visibilitychange', this.visibilityHandler);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -161,9 +172,13 @@ export class GameScene extends Phaser.Scene {
 
   private buildBackground(): void {
     const art = ensureThemeArt(this, this.level.play.scene);
-    this.far = this.add.tileSprite(480, 270, 960, 540, art.far).setScrollFactor(0).setDepth(-30);
-    this.mid = this.add.tileSprite(480, GROUND_Y - 100, 960, 260, art.mid).setScrollFactor(0).setDepth(-20);
-    this.add.tileSprite(this.layout.length / 2, GROUND_Y + 45, this.layout.length, 90, art.ground).setDepth(5);
+    this.far = new ParallaxLayer(this, art.far, 270, -30);
+    this.mid = new ParallaxLayer(this, art.mid, GROUND_Y - 100, -20);
+    addGround(this, art.ground, this.layout.length / 2, GROUND_Y + 45, this.layout.length).setDepth(5);
+    // Soft contact shadow where the ground meets the world above it.
+    this.add.rectangle(this.layout.length / 2, GROUND_Y - 3, this.layout.length, 6, 0x000000, 0.06).setDepth(4);
+    this.fg = new ParallaxLayer(this, art.fg, 540 - 35, 45);
+    this.buildAmbient(this.theme.ambient, this.theme.ambientTint);
     const ground = this.add.zone(this.layout.length / 2, GROUND_Y + 45, this.layout.length, 90);
     this.physics.add.existing(ground, true);
     this.groundZone = ground;
@@ -177,7 +192,7 @@ export class GameScene extends Phaser.Scene {
 
     this.obstacleGroup = this.physics.add.staticGroup();
     for (const o of L.obstacles) {
-      const key = blockTexture(this, o.w, o.h, this.theme.block);
+      const key = blockTexture(this, this.level.play.scene, o.w, o.h, this.theme.prop.style, this.theme.prop.colors);
       const img = this.obstacleGroup.create(o.x + o.w / 2, GROUND_Y - o.h / 2, key) as Phaser.Physics.Arcade.Image;
       img.setDepth(10).setData('id', o.id);
       img.refreshBody();
@@ -185,7 +200,7 @@ export class GameScene extends Phaser.Scene {
 
     this.platformGroup = this.physics.add.staticGroup();
     for (const p of L.platforms) {
-      const key = platformTexture(this, p.w, ...this.theme.platform);
+      const key = platformTexture(this, this.level.play.scene, p.w, this.theme.platform.style, this.theme.platform.colors);
       const img = this.platformGroup.create(p.x + p.w / 2, p.y + 15, key) as Phaser.Physics.Arcade.Image;
       img.setDepth(9);
       img.refreshBody();
@@ -238,7 +253,14 @@ export class GameScene extends Phaser.Scene {
       img.on('pointerdown', () => this.shootTarget(t, img, pole));
     }
 
+    this.portalGlow = this.add.image(L.portalX, GROUND_Y - 95, 'portal-glow').setDepth(7).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: this.portalGlow, alpha: { from: 0.65, to: 1 }, scale: { from: 0.95, to: 1.12 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.portal = this.add.image(L.portalX, GROUND_Y - 95, 'portal').setDepth(8);
+    this.portalSparks = this.add.particles(L.portalX, GROUND_Y - 95, 'sparkle', {
+      emitZone: { type: 'edge', source: new Phaser.Geom.Circle(0, 0, 72), quantity: 24 },
+      lifespan: 1100, speed: { min: 6, max: 24 }, scale: { start: 0.55, end: 0 }, alpha: { start: 1, end: 0 },
+      frequency: prefersReducedMotion() ? 600 : 140, tint: [0xffffff, 0xbfe4ff, 0xd8c8ff], blendMode: Phaser.BlendModes.ADD
+    }).setDepth(9);
     this.tweens.add({ targets: this.portal, angle: 360, duration: 4000, repeat: -1 });
     this.tweens.add({ targets: this.portal, scale: 1.08, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.portalLabel = this.add.text(L.portalX, GROUND_Y - 205, 'PORTAL', textStyle(18, '#5b2bd1')).setOrigin(0.5).setDepth(8);
@@ -246,7 +268,59 @@ export class GameScene extends Phaser.Scene {
       // The finale portal appears only after the monster is befriended.
       this.portal.setVisible(false);
       this.portalLabel.setVisible(false);
+      this.portalGlow.setVisible(false);
+      this.portalSparks.stop();
     }
+  }
+
+  private portalGlow!: Phaser.GameObjects.Image;
+  private portalSparks!: Phaser.GameObjects.Particles.ParticleEmitter;
+
+  /** Gentle theme particles drifting across the screen (petals, fireflies, sparkles…). */
+  private buildAmbient(kind: Ambient, tint: number): void {
+    if (prefersReducedMotion()) return;
+    const common = { x: { min: -20, max: 980 }, lifespan: 9000, alpha: { start: 0.9, end: 0 }, tint };
+    let cfg: Phaser.Types.GameObjects.Particles.ParticleEmitterConfig;
+    let key = 'sparkle';
+    switch (kind) {
+      case 'petal': case 'blossom': case 'leaf':
+        key = kind === 'leaf' ? 'leaf' : 'petal';
+        cfg = { ...common, y: -10, speedY: { min: 22, max: 46 }, speedX: { min: -30, max: 10 }, rotate: { min: 0, max: 360 },
+          scale: { min: 0.6, max: 1.1 }, frequency: 650, quantity: 1,
+          tint: kind === 'blossom' ? 0xffffff : tint };
+        break;
+      case 'firefly':
+        key = 'firefly';
+        cfg = { ...common, y: { min: 180, max: 470 }, speedX: { min: -12, max: 12 }, speedY: { min: -14, max: 6 },
+          scale: { start: 0.5, end: 1.0 }, alpha: { start: 0, end: 1, ease: 'Sine.easeInOut' }, lifespan: 4000, frequency: 260,
+          blendMode: Phaser.BlendModes.ADD };
+        break;
+      case 'pollen': case 'mote':
+        key = 'dot';
+        cfg = { ...common, y: { min: 60, max: 460 }, speedX: { min: -14, max: 14 }, speedY: { min: -10, max: 6 },
+          scale: { min: 0.25, max: 0.6 }, alpha: { start: 0.85, end: 0 }, lifespan: 6000, frequency: 260 };
+        break;
+      default:
+        key = 'sparkle';
+        cfg = { ...common, y: { min: 40, max: 440 }, speedX: { min: -8, max: 8 }, speedY: { min: -8, max: 4 },
+          scale: { start: 0.15, end: 0.6 }, alpha: { start: 1, end: 0 }, lifespan: 2600, frequency: 220, blendMode: Phaser.BlendModes.ADD };
+    }
+    const emitter = this.add.particles(0, 0, key, cfg).setScrollFactor(0).setDepth(30);
+    emitter.fastForward(6000);
+    this.dust = this.add.particles(0, 0, 'dust', {
+      lifespan: 520, speedX: { min: -70, max: -20 }, speedY: { min: -40, max: -10 }, scale: { start: 0.55, end: 1.2 },
+      alpha: { start: 0.75, end: 0 }, emitting: false, tint: this.theme.ground.style === 'cloud' ? 0xffffff : 0xf6efe6
+    }).setDepth(17);
+  }
+
+  /** Smoothly follow Lyla (or a locked target), clamped to the level. */
+  private updateCamera(delta: number, snap = false): void {
+    const cam = this.cameras.main;
+    const max = Math.max(0, this.layout.length - 960);
+    const target = Phaser.Math.Clamp(this.camLockX ?? this.lyla.x - FOLLOW_X, 0, max);
+    if (snap) cam.scrollX = target;
+    else cam.scrollX += (target - cam.scrollX) * (1 - Math.pow(0.85, Math.min(delta, 50) / 16.67));
+    cam.scrollY = 0;
   }
 
   private buildHazard(h: Hazard): void {
@@ -334,6 +408,7 @@ export class GameScene extends Phaser.Scene {
     let startX = LYLA_START_X;
     if (this.progress.checkpointX !== null) startX = this.progress.checkpointX;
     else if (this.layout.trigger.kind === 'cage') startX = this.layout.trigger.x;
+    this.shadow = this.add.image(startX, GROUND_Y + 2, 'shadow').setDepth(16);
     this.lyla = this.physics.add.sprite(startX, GROUND_Y, 'lyla-stand').setOrigin(0.5, 1).setDepth(18);
     const body = this.lyla.body as Phaser.Physics.Arcade.Body;
     body.setSize(46, 76);
@@ -346,16 +421,11 @@ export class GameScene extends Phaser.Scene {
 
     this.dangerRing = this.add.circle(startX, GROUND_Y - 50, 70).setStrokeStyle(5, 0xff4fa8, 0.9).setDepth(17).setVisible(false);
     this.tweens.add({ targets: this.dangerRing, scale: { from: 0.85, to: 1.15 }, alpha: { from: 1, to: 0.5 }, duration: 420, yoyo: true, repeat: -1 });
-
-    this.cameras.main.startFollow(this.lyla, true, 0.15, 0);
-    this.cameras.main.setFollowOffset(-170, 0);
   }
 
   private buildHud(): void {
     const depth = 500;
-    const pill = this.add.graphics().setScrollFactor(0).setDepth(depth);
-    pill.fillStyle(0xffffff, 0.92).fillRoundedRect(14, 12, 132, 50, 25);
-    pill.lineStyle(3, 0xff7ac0, 1).strokeRoundedRect(14, 12, 132, 50, 25);
+    this.add.image(80, 37, 'hud-pill').setScrollFactor(0).setDepth(depth);
     const icon = this.add.image(42, 37, 'flower-icon').setScrollFactor(0).setDepth(depth + 1);
     const flowers = this.add.text(66, 37, String(this.flowerCount), textStyle(28, '#c0307a')).setOrigin(0, 0.5).setScrollFactor(0).setDepth(depth + 1);
 
@@ -365,9 +435,7 @@ export class GameScene extends Phaser.Scene {
     })).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(depth);
 
     const barX = 330, barW = 300;
-    const bar = this.add.graphics().setScrollFactor(0).setDepth(depth);
-    bar.fillStyle(0xffffff, 0.85).fillRoundedRect(barX - 6, 40, barW + 12, 16, 8);
-    bar.fillStyle(0xd9c6ef, 1).fillRoundedRect(barX, 44, barW, 8, 4);
+    this.add.image(barX + barW / 2, 48, 'hud-bar').setScrollFactor(0).setDepth(depth);
     const tx = barX + (this.layout.trigger.x / this.layout.length) * barW;
     this.add.image(tx, 48, 'sparkle-gold').setScale(0.8).setScrollFactor(0).setDepth(depth + 1);
     this.add.image(barX + barW, 48, 'portal').setScale(0.14).setScrollFactor(0).setDepth(depth + 1);
@@ -475,11 +543,17 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(time: number): void {
+  update(time: number, delta: number): void {
     if (!this.lyla) return;
+    this.updateCamera(delta);
     const cam = this.cameras.main;
-    this.far.tilePositionX = cam.scrollX * 0.15;
-    this.mid.tilePositionX = cam.scrollX * 0.45;
+    this.far.set(cam.scrollX * 0.15);
+    this.mid.set(cam.scrollX * 0.45);
+    this.fg.set(cam.scrollX * 1.25);
+    // Contact shadow shrinks and fades as Lyla rises.
+    const height = Math.max(0, GROUND_Y - this.lyla.y);
+    const k = Phaser.Math.Clamp(1 - height / 260, 0.25, 1) * Math.abs(this.lyla.scaleX);
+    this.shadow.setPosition(this.lyla.x - 2, GROUND_Y + 2).setScale(k * 0.9, k).setAlpha(this.lyla.visible ? this.lyla.alpha * (0.4 + 0.6 * k) : 0);
     this.hud.marker.x = this.hud.barX + Phaser.Math.Clamp(this.lyla.x / this.layout.length, 0, 1) * this.hud.barW;
     this.dangerRing.setPosition(this.lyla.x, this.lyla.y - 46 * this.lyla.scaleY);
 
@@ -507,6 +581,15 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (body.blocked.right && !bumped) this.bump();
+
+    // Landing squash, take-off stretch and running dust.
+    if (onGround && !this.wasOnGround) this.landFx();
+    if (!onGround && this.wasOnGround && body.velocity.y < -200) this.squash(0.9, 1.12, 160);
+    this.wasOnGround = onGround;
+    if (onGround && !this.small && time - this.lastDustAt > 230) {
+      this.lastDustAt = time;
+      this.dust?.emitParticleAt(this.lyla.x - 20, this.lyla.y - 4, 1);
+    }
 
     // Visuals.
     if (!onGround) {
@@ -547,6 +630,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   // --------------------------------------------------------------- movement
+
+  private landFx(): void {
+    if (this.small) return;
+    this.squash(1.14, 0.86, 140);
+    this.dust?.emitParticleAt(this.lyla.x - 10, this.lyla.y - 4, 3);
+    this.dust?.emitParticleAt(this.lyla.x + 14, this.lyla.y - 4, 2);
+  }
+
+  /** Brief squash-and-stretch that never fights the shrink tween. */
+  private squash(sx: number, sy: number, ms: number): void {
+    if (this.small || this.shrinkTween?.isPlaying() || prefersReducedMotion()) return;
+    this.tweens.killTweensOf(this.lyla);
+    this.lyla.setScale(sx, sy);
+    this.tweens.add({ targets: this.lyla, scaleX: 1, scaleY: 1, duration: ms, ease: 'Back.easeOut' });
+  }
 
   private bump(): void {
     const now = this.time.now;
@@ -1061,9 +1159,7 @@ export class GameScene extends Phaser.Scene {
     const root = this.add.container(0, 0).setScrollFactor(0).setDepth(800);
     this.overlay = root;
     const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.55).setInteractive();
-    const panel = this.add.graphics();
-    panel.fillStyle(0xfff6ff, 1).fillRoundedRect(60, 60, 840, 430, 26);
-    panel.lineStyle(5, 0xf2bde4, 1).strokeRoundedRect(60, 60, 840, 430, 26);
+    const panel = makePanel(this, 480, 275, 840, 430);
     const title = this.add.text(480, 100, 'Rainbow Paint Door!', textStyle(34, '#6e3b9d')).setOrigin(0.5);
     const instruction = 'Tap the paints in rainbow order: red, orange, yellow, green, blue, purple.';
     const help = this.add.text(560, 150, instruction, textStyle(20, '#4f3761', true, { align: 'center', wordWrap: { width: 600 } })).setOrigin(0.5, 0);
@@ -1137,8 +1233,7 @@ export class GameScene extends Phaser.Scene {
     body.setVelocityX(0);
     this.lyla.anims.stop();
     this.lyla.setTexture('lyla-stand');
-    this.cameras.main.stopFollow();
-    this.cameras.main.pan(arena - 60 + 480, 270, 700, 'Sine.easeInOut');
+    this.camLockX = arena - 60;
     this.hideDangerBubble();
 
     const mx = arena + 700;
@@ -1226,6 +1321,8 @@ export class GameScene extends Phaser.Scene {
             this.floatText(mx - 180, GROUND_Y - 200, 'Thank you! I feel so much better!', '#6d43d1');
             this.portal.setVisible(true).setAlpha(0);
             this.portalLabel?.setVisible(true);
+            this.portalGlow.setVisible(true);
+            this.portalSparks.start();
             this.tweens.add({ targets: this.portal, alpha: 1, duration: 600 });
             this.tweens.add({ targets: m, y: GROUND_Y - 40, duration: 260, yoyo: true, repeat: 3, ease: 'Quad.easeOut',
               onComplete: () => this.tweens.add({ targets: m, x: m.x + 600, duration: 1600 }) });
@@ -1242,8 +1339,7 @@ export class GameScene extends Phaser.Scene {
       this.saveProgress(null);
       this.addFlowers(0);
       this.time.delayedCall(2600, () => {
-        this.cameras.main.startFollow(this.lyla, true, 0.15, 0);
-        this.cameras.main.setFollowOffset(-170, 0);
+        this.camLockX = null;
         this.resumeWorld();
       });
     });
@@ -1279,9 +1375,7 @@ export class GameScene extends Phaser.Scene {
   private showLevelComplete(last: boolean): void {
     const root = this.add.container(0, 0).setScrollFactor(0).setDepth(900);
     const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.5).setInteractive();
-    const panel = this.add.graphics();
-    panel.fillStyle(0xfff6ff, 1).fillRoundedRect(190, 80, 580, 380, 28);
-    panel.lineStyle(5, 0xf2bde4, 1).strokeRoundedRect(190, 80, 580, 380, 28);
+    const panel = makePanel(this, 480, 270, 580, 380);
     const title = this.add.text(480, 135, `Level ${this.level.id} complete!`, textStyle(38, '#6e3b9d')).setOrigin(0.5);
     const lyla = this.add.image(330, 290, 'lyla-cheer').setScale(1.1);
     const icon = this.add.image(510, 250, 'flower-icon').setScale(1.4);
@@ -1325,9 +1419,7 @@ export class GameScene extends Phaser.Scene {
     const root = this.add.container(0, 0).setScrollFactor(0).setDepth(950);
     this.overlay = root;
     const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.6).setInteractive();
-    const panel = this.add.graphics();
-    panel.fillStyle(0xfff6ff, 1).fillRoundedRect(250, 90, 460, 370, 28);
-    panel.lineStyle(5, 0xf2bde4, 1).strokeRoundedRect(250, 90, 460, 370, 28);
+    const panel = makePanel(this, 480, 275, 460, 370);
     const title = this.add.text(480, 140, 'Paused', textStyle(40, '#6e3b9d')).setOrigin(0.5);
     const note = this.add.text(480, 182, 'Take a break any time. Your adventure is saved.', textStyle(17, '#6a5080', false)).setOrigin(0.5);
     root.add([dim, panel, title, note]);

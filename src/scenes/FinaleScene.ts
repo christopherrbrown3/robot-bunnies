@@ -1,6 +1,9 @@
 /** After all 22 levels: celebrate, summarize this run gently, offer a fresh playthrough. */
 import Phaser from 'phaser';
-import { burst, makeButton, textStyle } from '../game/ui';
+import { setupCamera } from '../game/hidpi';
+import { burst, makeButton, makePanel, textStyle } from '../game/ui';
+import { addGround, ensureThemeArt } from '../game/themes';
+import { prefersReducedMotion } from '../audio/prefs';
 import { PARENT_EVENT, startAdventure } from '../game/flow';
 import { coveredCurrentWords, peekCampaign } from '../spelling/campaign';
 import { getActiveWeek, loadSpellingData } from '../spelling/store';
@@ -13,12 +16,27 @@ export class FinaleScene extends Phaser.Scene {
   }
 
   create(): void {
+    setupCamera(this);
     this.cameras.main.setBackgroundColor('#ffe6f6');
     const campaign = peekCampaign();
     const week = getActiveWeek(loadSpellingData());
-    const g = this.add.graphics();
-    [0xff5a5a, 0xff9f43, 0xffd84d, 0x4fd17a, 0x4fb3ff, 0x9b6bff].forEach((c, i) => { g.lineStyle(18, c, 0.8).beginPath(); g.arc(480, 560, 460 - i * 18, Math.PI, 0); g.strokePath(); });
-    this.add.text(480, 60, 'You finished all 22 levels!', textStyle(42, '#7a2fb0', true, { stroke: '#ffffff', strokeThickness: 9 })).setOrigin(0.5);
+    const art = ensureThemeArt(this, 'rainbow');
+    this.add.image(480, 270, art.far);
+    this.add.image(480, 370, art.mid);
+    addGround(this, art.ground, 480, 515, 960);
+    if (!prefersReducedMotion()) {
+      // Confetti shower.
+      this.add.particles(0, 0, 'confetti', {
+        x: { min: 0, max: 960 }, y: -10, lifespan: 5200, speedY: { min: 60, max: 130 }, speedX: { min: -40, max: 40 },
+        rotate: { min: 0, max: 360 }, scale: { min: 0.8, max: 1.4 }, frequency: 70,
+        tint: [0xff6fb5, 0xffd84d, 0x5fdc8a, 0x5fbfff, 0xa37bff, 0xff9f43]
+      });
+    }
+    makePanel(this, 580, 236, 680, 300);
+    this.add.text(480, 52, 'You finished all 22 levels!', textStyle(42, '#7a2fb0', true, {
+      stroke: '#ffffff', strokeThickness: 10, shadow: { offsetX: 0, offsetY: 4, color: 'rgba(90,20,120,0.35)', blur: 8, fill: true, stroke: true }
+    })).setOrigin(0.5);
+    this.add.image(130, 472, 'shadow').setScale(1.7, 1.4);
     const lyla = this.add.image(130, 470, 'lyla-cheer').setOrigin(0.5, 1).setScale(1.6);
     this.tweens.add({ targets: lyla, y: 440, duration: 380, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
     play('portal');
@@ -40,7 +58,7 @@ export class FinaleScene extends Phaser.Scene {
     }
     this.add.text(580, 230, lines.join('\n\n'), textStyle(21, '#4a2a6a', true, { align: 'left', wordWrap: { width: 620 }, lineSpacing: 2 })).setOrigin(0.5);
 
-    makeButton(this, 560, 430, 330, 66, '▶ Play all 22 again', () => startAdventure(this), { color: 0x7445c5, fontSize: 25 });
+    makeButton(this, 560, 432, 330, 66, '▶ Play all 22 again', () => startAdventure(this), { color: 0x7445c5, fontSize: 25 });
     makeButton(this, 400, 505, 160, 52, '🏠 Home', () => this.scene.start('Title'), { color: 0x6a5080, fontSize: 20 });
     makeButton(this, 720, 505, 180, 52, 'Grown-ups', () => window.dispatchEvent(new Event(PARENT_EVENT)), { color: 0x8f53b5, fontSize: 20 });
   }

@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
+import { setupCamera } from '../game/hidpi';
 import { makeBubble, makeButton, textStyle } from '../game/ui';
 import { PARENT_EVENT, hasActiveList, levels, refreshOnDataChange, startAdventure } from '../game/flow';
 import { peekCampaign } from '../spelling/campaign';
-import { loadPrefs, savePrefs } from '../audio/prefs';
+import { loadPrefs, prefersReducedMotion, savePrefs } from '../audio/prefs';
+import { generateTitleArt } from '../game/sceneArt';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -10,42 +12,48 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    setupCamera(this);
     refreshOnDataChange(this);
-    const g = this.add.graphics();
-    // Sky, rainbow and the hot pink castle.
-    const bands = 24;
-    for (let i = 0; i < bands; i++) {
-      const c = Phaser.Display.Color.Interpolate.ColorWithColor(
-        Phaser.Display.Color.ValueToColor(0xa8dcff), Phaser.Display.Color.ValueToColor(0xffe0f4), bands, i);
-      g.fillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b)).fillRect(0, (540 / bands) * i, 960, 540 / bands + 1);
+    generateTitleArt(this);
+    const calm = prefersReducedMotion();
+    this.add.image(480, 270, 'title-bg');
+    // Drifting clouds.
+    for (const [x, y, sc, ms] of [[140, 120, 0.9, 52000], [560, 60, 0.7, 70000], [860, 150, 1.1, 60000]] as const) {
+      const c = this.add.image(x, y, 'title-cloud').setScale(sc).setAlpha(0.95);
+      if (!calm) this.tweens.add({ targets: c, x: x + 1100, duration: ms, repeat: -1, onRepeat: () => { c.x = -120; } });
     }
-    const rainbow = [0xff5a5a, 0xff9f43, 0xffd84d, 0x4fd17a, 0x4fb3ff, 0x9b6bff];
-    rainbow.forEach((c, i) => { g.lineStyle(16, c, 0.75).beginPath(); g.arc(480, 520, 430 - i * 16, Math.PI, 0); g.strokePath(); });
-    g.fillStyle(0xffffff, 0.9);
-    for (const [x, y, s] of [[120, 110, 1], [800, 90, 1.2], [640, 170, 0.8]] as const) {
-      g.fillCircle(x, y, 26 * s).fillCircle(x + 30 * s, y - 12 * s, 32 * s).fillCircle(x + 62 * s, y, 26 * s);
+    // Sparkles drifting around the rainbow.
+    if (!calm) {
+      this.add.particles(0, 0, 'sparkle', {
+        x: { min: 120, max: 920 }, y: { min: 80, max: 420 }, lifespan: 2400, frequency: 260,
+        scale: { start: 0.2, end: 0.7 }, alpha: { start: 1, end: 0 }, speedY: { min: -10, max: 4 },
+        blendMode: Phaser.BlendModes.ADD
+      });
     }
-    // Castle.
-    g.fillStyle(0xff7cc0).fillRect(40, 250, 230, 230);
-    g.fillStyle(0xff9fd2).fillRect(30, 190, 60, 290).fillRect(220, 190, 60, 290);
-    g.fillStyle(0xf25aa9).fillTriangle(22, 196, 60, 130, 98, 196).fillTriangle(212, 196, 250, 130, 288, 196);
-    g.fillStyle(0x9a2f6c).fillRoundedRect(128, 380, 56, 100, { tl: 28, tr: 28, bl: 0, br: 0 });
-    g.fillStyle(0xffe066).fillRect(52, 230, 16, 22).fillRect(242, 230, 16, 22);
-    // Ground.
-    g.fillStyle(0x58b96a).fillRect(0, 478, 960, 62);
-    g.fillStyle(0x7fd08a);
-    for (let x = 0; x < 960; x += 24) g.fillCircle(x + 12, 480, 12);
+    for (const [x, y, key] of [[330, 486, 'flower'], [372, 492, 'flower-b'], [612, 488, 'flower-c'], [890, 492, 'flower'], [930, 486, 'flower-b']] as const) {
+      const f = this.add.image(x, y, key);
+      if (!calm) this.tweens.add({ targets: f, y: y - 6, angle: { from: -4, to: 4 }, duration: 800 + x, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    const shadow = this.add.image(760, 500, 'shadow').setScale(1.6, 1.4);
+    const lyla = this.add.image(760, 500, 'lyla-cheer').setOrigin(0.5, 1).setScale(1.5);
+    if (!calm) {
+      this.tweens.add({ targets: lyla, y: 466, duration: 420, yoyo: true, repeat: -1, ease: 'Quad.easeOut', repeatDelay: 600 });
+      this.tweens.add({ targets: shadow, scaleX: 1.1, scaleY: 1, alpha: 0.6, duration: 420, yoyo: true, repeat: -1, ease: 'Quad.easeOut', repeatDelay: 600 });
+    }
 
-    for (const [x, key] of [[330, 'flower'], [372, 'flower-b'], [612, 'flower-c'], [890, 'flower'], [930, 'flower-b']] as const) {
-      const f = this.add.image(x, 466, key);
-      this.tweens.add({ targets: f, y: 460, duration: 800 + x, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    }
-    const lyla = this.add.image(760, 480, 'lyla-cheer').setOrigin(0.5, 1).setScale(1.5);
-    this.tweens.add({ targets: lyla, y: 450, duration: 420, yoyo: true, repeat: -1, ease: 'Quad.easeOut', repeatDelay: 600 });
-
-    this.add.text(480, 66, 'ROBOT BUNNIES', textStyle(68, '#ffffff', true, { stroke: '#7a2fb0', strokeThickness: 12 })).setOrigin(0.5);
-    this.add.text(480, 128, "Lyla's Spelling Quest", textStyle(32, '#7a2fb0', true, { stroke: '#ffffff', strokeThickness: 8 })).setOrigin(0.5);
-    this.add.text(480, 168, 'Story and characters by Zoey', textStyle(18, '#6a387c', true, { stroke: '#ffffff', strokeThickness: 5 })).setOrigin(0.5);
+    const logo = this.add.text(480, 66, 'ROBOT BUNNIES', textStyle(70, '#ffffff', true, {
+      stroke: '#ffffff', strokeThickness: 14, shadow: { offsetX: 0, offsetY: 6, color: 'rgba(90,20,120,0.45)', blur: 10, fill: true, stroke: true }
+    })).setOrigin(0.5);
+    const grad = logo.context.createLinearGradient(0, 0, 0, logo.height);
+    grad.addColorStop(0.15, '#ff5fb0');
+    grad.addColorStop(0.55, '#a347e6');
+    grad.addColorStop(0.9, '#6a2fd0');
+    logo.setFill(grad);
+    if (!calm) this.tweens.add({ targets: logo, scale: 1.03, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.add.text(480, 130, "Lyla's Spelling Quest", textStyle(32, '#7a2fb0', true, {
+      stroke: '#ffffff', strokeThickness: 9, shadow: { offsetX: 0, offsetY: 3, color: 'rgba(90,20,120,0.3)', blur: 6, fill: true, stroke: true }
+    })).setOrigin(0.5);
+    this.add.text(480, 170, 'Story and characters by Zoey', textStyle(18, '#6a387c', true, { stroke: '#ffffff', strokeThickness: 6 })).setOrigin(0.5);
 
     const ready = hasActiveList();
     let playLabel = '▶  PLAY';

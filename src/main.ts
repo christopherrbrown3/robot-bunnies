@@ -11,6 +11,7 @@ import { initializePracticeSession } from './ui/PracticeSession';
 import { unlockAudio } from './audio/sfx';
 import { unlockSpeech } from './audio/speech';
 import { unlockWordAudio } from './audio/wordAudio';
+import { LOGICAL_HEIGHT, LOGICAL_WIDTH, RES } from './game/hidpi';
 import './style.css';
 
 initializeParentCorner();
@@ -31,8 +32,9 @@ for (const type of ['touchend', 'click', 'keydown']) document.addEventListener(t
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'app',
-  width: 960,
-  height: 540,
+  // Logical 960×540, rendered at 2× on retina screens (each scene's camera zooms by RES).
+  width: LOGICAL_WIDTH * RES,
+  height: LOGICAL_HEIGHT * RES,
   backgroundColor: '#f7edff',
   scale: {
     mode: Phaser.Scale.FIT,
