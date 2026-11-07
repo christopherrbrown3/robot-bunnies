@@ -879,6 +879,21 @@ export function generateCoreArt(scene: Phaser.Scene): void {
     ctx.fill();
   });
 
+  // Rescue scene backdrop (small, drawn soft, displayed full screen).
+  makeTexture(scene, 'rescue-bg', 480, 270, ctx => {
+    ctx.fillStyle = lin(ctx, 0, 0, 0, 270, [[0, '#ffe2f2'], [0.6, '#ffc2e3'], [1, '#f79ccd']]); ctx.fillRect(0, 0, 480, 270);
+    ctx.save(); ctx.globalAlpha = 0.25;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath(); ctx.moveTo(240, -20); ctx.lineTo(i * 96 - 40, 270); ctx.lineTo(i * 96 + 8, 270); ctx.closePath();
+      ctx.fillStyle = '#ffffff'; ctx.fill();
+    }
+    ctx.restore();
+    circle(ctx, 240, 120, 150); ctx.fillStyle = rad(ctx, 240, 120, 150, [[0, 'rgba(255,255,255,0.7)'], [1, 'rgba(255,255,255,0)']]); ctx.fill();
+    ctx.fillStyle = lin(ctx, 0, 220, 0, 270, [[0, '#e86aac'], [1, '#c8408c']]); ctx.fillRect(0, 222, 480, 48);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(0, 222, 480, 3);
+    for (let i = 0; i < 18; i++) { star(ctx, (i * 131) % 480, 20 + ((i * 53) % 180), 3 + (i % 3), 1.2, 4); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill(); }
+  });
+
   // HUD pieces.
   makeTexture(scene, 'hud-pill', 140, 58, ctx => {
     softShadow(ctx, 6, 2, 'rgba(60,10,50,0.3)');

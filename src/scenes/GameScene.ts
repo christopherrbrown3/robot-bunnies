@@ -932,7 +932,7 @@ export class GameScene extends Phaser.Scene {
 
     const cam = this.cameras.main;
     const root = this.add.container(0, 0).setScrollFactor(0).setDepth(900);
-    const bg = this.add.rectangle(480, 270, 960, 540, 0xffc2e3).setAlpha(0);
+    const bg = this.add.image(480, 270, 'rescue-bg').setDisplaySize(960, 540).setAlpha(0);
     root.add(bg);
     let finished = false;
     const finish = (): void => {
@@ -959,7 +959,7 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => {
         const cage = this.add.image(480, 430, 'cage').setOrigin(0.5, 1);
         const trapped = this.add.image(480, 420, 'lyla-stand').setOrigin(0.5, 1).setScale(0.9);
-        const caption = this.add.text(480, 70, 'Oh no! Lyla is back in the cage...', textStyle(30, '#6a1f4c')).setOrigin(0.5);
+        const caption = this.add.text(480, 70, 'Oh no! Lyla is back in the cage...', textStyle(32, '#6a1f4c', true, { stroke: '#ffffff', strokeThickness: 8 })).setOrigin(0.5);
         const skip = this.add.text(940, 520, 'Tap to skip ⏭', textStyle(18, '#6a1f4c')).setOrigin(1, 1);
         root.add([trapped, cage, caption, skip]);
         const ridensee = this.add.image(-120, 430, 'ridensee-run0').setOrigin(0.5, 1);
