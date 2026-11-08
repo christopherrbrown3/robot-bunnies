@@ -15,7 +15,7 @@ import levelsJson from '../content/levels.json';
 import type { LevelOutline } from '../content/types';
 import { buildLayout, GROUND_Y, LYLA_START_X, type Collectible, type Hazard, type LevelLayout } from '../game/levelPlan';
 import { ParallaxLayer, THEMES, addGround, ensureThemeArt, type Ambient, type Theme } from '../game/themes';
-import { BUNNY_HEADROOM, blockTexture, gateTexture, platformTexture } from '../game/art';
+import { BUNNY_HEADROOM, PAINT_DOOR_PAD, blockTexture, gateTexture, platformTexture } from '../game/art';
 import { ELF_KEYS } from '../game/christmasArt';
 import { burst, makeBubble, makeButton, makePanel, pinToScreen, textStyle } from '../game/ui';
 import { COVER_HEIGHT, EXTRA_HEIGHT, LOGICAL_HEIGHT, setupCamera } from '../game/hidpi';
@@ -1287,6 +1287,12 @@ export class GameScene extends Phaser.Scene {
   private openPaintDoor(): void {
     this.state = 'puzzle';
     this.freeze();
+    // freeze() pauses the whole tween manager, which would also stop the puzzle's own
+    // animations (splats flying into the door, wrong-pot wiggles). Hold the world's
+    // tweens individually instead, and let new ones play.
+    const worldTweens = this.tweens.getTweens();
+    for (const t of worldTweens) t.pause();
+    this.tweens.resumeAll();
     const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
     const order = [3, 0, 5, 2, 4, 1]; // fixed shuffle for a consistent layout
     const root = this.add.container(0, EXTRA_HEIGHT / 2).setScrollFactor(0).setDepth(800);
@@ -1317,8 +1323,8 @@ export class GameScene extends Phaser.Scene {
           pots.forEach(p => p.clearTint());
           const splat = this.add.image(pot.x, pot.y, `splat-${ci}`).setScale(0.6).setScrollFactor(0);
           root.add(splat);
-          // Door slots sit at y = 46 + i*38 inside the 270px-tall door texture (scaled 0.8).
-          const slotY = door.y - 135 * 0.8 + (46 + ci * 38) * 0.8;
+          // Door slots sit at y = 46 + i*38 inside the door drawing (texture padded by PAINT_DOOR_PAD, scaled 0.8).
+          const slotY = door.y + (PAINT_DOOR_PAD + 46 + ci * 38 - door.height / 2) * 0.8;
           this.tweens.add({ targets: splat, x: door.x, y: slotY, scale: 0.42, duration: 320, ease: 'Quad.easeOut' });
           pot.setAlpha(0.35).disableInteractive();
           next++;
@@ -1351,6 +1357,7 @@ export class GameScene extends Phaser.Scene {
         this.overlay = undefined;
         this.paintDoor?.setAlpha(0.25);
         this.hud.flowers.setText(String(this.flowerCount));
+        for (const t of worldTweens) t.resume();
         if (this.state === 'puzzle') this.resumeWorld();
       });
     };
