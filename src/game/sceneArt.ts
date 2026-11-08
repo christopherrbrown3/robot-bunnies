@@ -1,6 +1,7 @@
 /** Painted backdrops for the title screen and adventure map (original Canvas 2D art). */
 import Phaser from 'phaser';
 import { lin, makeTexture, noShadow, rad, roundRect, softShadow } from './art';
+import { EXTRA_HEIGHT } from './hidpi';
 import { CAMPAIGN_LEVEL_COUNT } from '../spelling/campaign';
 
 type Ctx = CanvasRenderingContext2D;
@@ -74,7 +75,14 @@ function castle(ctx: Ctx, x: number, baseY: number): void {
 }
 
 export function generateTitleArt(scene: Phaser.Scene): void {
-  makeTexture(scene, 'title-bg', 960, 540, ctx => {
+  // Centred on taller screens: half the extra height is sky above, half is grass below.
+  const band = EXTRA_HEIGHT / 2;
+  makeTexture(scene, 'title-bg', 960, 540 + EXTRA_HEIGHT, ctx => {
+    ctx.translate(0, band);
+    if (band > 0) { ctx.fillStyle = '#7fc8ff'; ctx.fillRect(0, -band, 960, band + 1); }
+    // The scene is painted for a 540-tall screen: keep it (e.g. the rainbow's ends) out of the grass below.
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, -band, 960, 540 + band); ctx.clip();
     ctx.fillStyle = lin(ctx, 0, 0, 0, 540, [[0, '#7fc8ff'], [0.5, '#c4e8ff'], [1, '#ffe2f2']]); ctx.fillRect(0, 0, 960, 540);
     circle(ctx, 880, 70, 180); ctx.fillStyle = rad(ctx, 880, 70, 180, [[0, 'rgba(255,250,210,0.75)'], [1, 'rgba(255,250,210,0)']]); ctx.fill();
     // Rainbow with a soft glow.
@@ -99,8 +107,15 @@ export function generateTitleArt(scene: Phaser.Scene): void {
     for (let x = 4; x < 960; x += 9) { ctx.beginPath(); ctx.moveTo(x, 540); ctx.quadraticCurveTo(x + 2, 528, x + (x % 2 ? 4 : -2), 518 + (x % 3) * 4); ctx.stroke(); }
     const flowerCols = ['#ff7ac0', '#ffffff', '#b48aff', '#ffb347'];
     for (let i = 0; i < 26; i++) flowerDot(ctx, 310 + ((i * 97) % 640), 488 + ((i * 37) % 44), 3.2, flowerCols[i % 4]);
+    ctx.restore();
+    if (band > 0) {
+      // More grass below, with the castle path running on down.
+      ctx.fillStyle = '#4fa85a'; ctx.fillRect(0, 539.5, 960, band + 1);
+      ctx.beginPath(); ctx.moveTo(160, 539); ctx.lineTo(150, 540 + band); ctx.lineTo(226, 540 + band); ctx.lineTo(230, 539); ctx.closePath();
+      ctx.fillStyle = '#e0c090'; ctx.fill();
+    }
   });
-  makeTexture(scene, 'title-cloud', 160, 90, ctx => cloudShape(ctx, 34, 56, 1));
+  makeTexture(scene, 'title-cloud', 160, 90, ctx => cloudShape(ctx, 44, 56, 1));
 }
 
 /** Node positions on the adventure map: a snake of 8 / 8 / 7 for the 23 levels. */

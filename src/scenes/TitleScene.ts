@@ -82,7 +82,7 @@ export class TitleScene extends Phaser.Scene {
     }, { color: 0x6a5080, fontSize: 26 });
 
     // Which version is installed, and an Update button once a new one has downloaded.
-    this.add.text(12, 10, versionLabel(), textStyle(13, '#5a2a7a', true)).setAlpha(0.7);
+    this.add.text(12, 10, versionLabel(), textStyle(13, '#5a2a7a', true)).setAlpha(0.7).setScrollFactor(0);
     addUpdateButton(this, 160, 500, 270);
     if (consumeJustUpdated()) {
       const done = makeBubble(this, 480, 200, 'Robot Bunnies is up to date! ✨', 420, false).setDepth(50);

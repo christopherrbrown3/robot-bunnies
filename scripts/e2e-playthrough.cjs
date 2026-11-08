@@ -27,7 +27,9 @@ const week = { schemaVersion: 2, activeWeekId: 'w1', weeks: [{ id: 'w1', label: 
   await page.reload();
   await page.waitForTimeout(1200);
   const box = await page.locator('canvas').boundingBox();
-  const tap = async (x, y) => page.mouse.click(box.x + x * box.width / 960, box.y + y * box.height / 540);
+  // The canvas is 960 logical px wide and as tall as the screen's shape needs (720 on this 4:3 window).
+  const H = await page.evaluate(() => { const s = window.__rbGame.scale; return 960 * s.height / s.width; });
+  const tap = async (x, y) => page.mouse.click(box.x + x * box.width / 960, box.y + y * box.height / H);
   const G = (body, arg) => page.evaluate(([b, a]) => new Function('g', 'a', b)(window.__rbGame.scene.getScene('Game'), a), [body, arg]);
   const panelOpen = () => page.evaluate(() => { const p = document.querySelector('#spell-panel'); return !!p && !p.hidden; });
   const campaign = () => page.evaluate(() => JSON.parse(localStorage.getItem('robot-bunnies.campaign.v2')));
@@ -49,9 +51,10 @@ const week = { schemaVersion: 2, activeWeekId: 'w1', weeks: [{ id: 'w1', label: 
       if (state === 'puzzle' && !puzzled) {
         puzzled = true;
         const order = [3, 0, 5, 2, 4, 1];
-        for (let ci = 0; ci < 6; ci++) { await tap(330 + order.indexOf(ci) * 92, 330); await page.waitForTimeout(120); }
+        // Screen-fixed overlays are centred: their 540-tall layout starts (H - 540) / 2 down.
+        for (let ci = 0; ci < 6; ci++) { await tap(330 + order.indexOf(ci) * 92, 330 + (H - 540) / 2); await page.waitForTimeout(120); }
       } else if (state === 'boss' && !(await panelOpen())) {
-        const stars = await G('const s = g.cameras.main.scrollX; return g.bossStars.filter(x => x.active && x.input && x.input.enabled).map(st => [st.x - s, st.y]);');
+        const stars = await G('const c = g.cameras.main; return g.bossStars.filter(x => x.active && x.input && x.input.enabled).map(st => [st.x - c.scrollX, st.y - c.scrollY]);');
         for (const [x, y] of stars) { await tap(x, y); await page.waitForTimeout(500); }
       }
       if (await panelOpen()) {

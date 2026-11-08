@@ -1,6 +1,6 @@
 /** The adventure map: progress, level info and the Play button. */
 import Phaser from 'phaser';
-import { setupCamera } from '../game/hidpi';
+import { COVER_HEIGHT, fillScreenBands, setupCamera } from '../game/hidpi';
 import { burst, makeButton, makePanel, textStyle } from '../game/ui';
 import { PARENT_EVENT, addUpdateButton, levels, refreshOnDataChange, startAdventure } from '../game/flow';
 import { CAMPAIGN_LEVEL_COUNT, getOrStartCampaign, type SavedCampaign } from '../spelling/campaign';
@@ -35,6 +35,7 @@ export class MapScene extends Phaser.Scene {
 
     generateMapArt(this);
     this.add.image(480, 270, 'map-bg');
+    fillScreenBands(this, 0xffeaf7, 0xa6dca0);
 
     this.add.text(30, 28, "Lyla's Adventure Map", textStyle(30, '#6e3b9d', true, { stroke: '#ffffff', strokeThickness: 6 })).setOrigin(0, 0.5);
     this.add.text(30, 58, `${week?.label ?? ''} · Adventure #${campaign.runNumber + 1}`, textStyle(16, '#7a5a94', false)).setOrigin(0, 0.5);
@@ -95,7 +96,7 @@ export class MapScene extends Phaser.Scene {
     const seen = loadPrefs().seenCutscenes;
     const root = this.add.container(0, 0).setDepth(100);
     this.overlay = root;
-    const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.6).setInteractive();
+    const dim = this.add.rectangle(480, 270, 960, COVER_HEIGHT, 0x1e1238, 0.6).setInteractive();
     const panel = makePanel(this, 480, 270, 600, 440);
     root.add([dim, panel, this.add.text(480, 92, '📖 Storybook', textStyle(32, '#6e3b9d')).setOrigin(0.5)]);
     const available = STORYBOOK_ORDER.filter(id => seen.includes(id));

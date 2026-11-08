@@ -5,7 +5,7 @@
  * textures are freed, to stay within older iPads' GPU memory.
  */
 import Phaser from 'phaser';
-import { RES } from './hidpi';
+import { EXTRA_HEIGHT, RES } from './hidpi';
 import {
   freeThemeProps, lin, makeTexture, noShadow, rad, roundRect, softShadow,
   type PlatformStyle, type PropColors, type PropStyle
@@ -266,16 +266,34 @@ function lightRays(ctx: Ctx, fromX: number, n: number, color: string, h: number)
 
 // ------------------------------------------------------------ far layers
 
-function paintFar(ctx: Ctx, t: Theme): void {
+/**
+ * The far backdrop is painted for a 960×540 screen. On taller screens it is
+ * drawn `extra` px lower in a taller texture, and the sky (plus stars at night
+ * and the castle wall indoors) continues up into the space above.
+ */
+function paintFar(ctx: Ctx, t: Theme, extra: number): void {
   const H = 540;
+  const top = -extra;
   const rand = rng(t.painter.length * 977 + 11);
+  if (extra > 0) {
+    ctx.fillStyle = t.sky[0]; ctx.fillRect(0, top, W, extra + 1);
+    if (t.painter === 'night' || t.painter === 'christmas') {
+      const bandRand = rng(extra * 31 + 7);
+      for (let i = 0; i < extra * 0.4; i++) {
+        const r = bandRand() < 0.1 ? 1.8 : 0.6 + bandRand() * 0.9;
+        ctx.globalAlpha = 0.35 + bandRand() * 0.65; circle(ctx, bandRand() * W, top + bandRand() * extra, r); ctx.fillStyle = '#ffffff'; ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
   skyGradient(ctx, H, t);
   switch (t.painter) {
     case 'castle': case 'control': {
       const control = t.painter === 'control';
       // Back wall diamond pattern.
       ctx.save(); ctx.globalAlpha = 0.12; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-      for (let x = -540; x < W + 540; x += 48) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 540, H); ctx.moveTo(x + 540, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      const span = H - top;
+      for (let x = -span; x < W + span; x += 48) { ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x + span, H); ctx.moveTo(x + span, top); ctx.lineTo(x, H); ctx.stroke(); }
       ctx.restore();
       for (const cx of [160, 480, 800]) {
         // Arched window (or glowing screen in the control room).
@@ -305,8 +323,8 @@ function paintFar(ctx: Ctx, t: Theme): void {
       for (const cx of [0, 320, 640]) {
         wrap(cx, 50, x => {
           ctx.fillStyle = lin(ctx, x - 34, 0, x + 34, 0, [[0, control ? '#9a52c8' : '#e45aa6'], [0.45, control ? '#e6c6ff' : '#ffc4e4'], [1, control ? '#7a3aa0' : '#c8408c']]);
-          ctx.fillRect(x - 34, 70, 68, H);
-          roundRect(ctx, x - 46, 60, 92, 26, 6); ctx.fillStyle = control ? '#c99af0' : '#ff9fd2'; ctx.fill();
+          ctx.fillRect(x - 34, top + 70, 68, H - top);
+          roundRect(ctx, x - 46, top + 60, 92, 26, 6); ctx.fillStyle = control ? '#c99af0' : '#ff9fd2'; ctx.fill();
           // Banner with a heart emblem.
           ctx.beginPath(); ctx.moveTo(x - 22, 110); ctx.lineTo(x + 22, 110); ctx.lineTo(x + 22, 210); ctx.lineTo(x, 194); ctx.lineTo(x - 22, 210); ctx.closePath();
           ctx.fillStyle = lin(ctx, 0, 110, 0, 210, [[0, '#ffe680'], [1, '#e8a91c']]); ctx.fill();
@@ -316,9 +334,9 @@ function paintFar(ctx: Ctx, t: Theme): void {
         });
       }
       // Crown molding along the top.
-      ctx.fillStyle = lin(ctx, 0, 0, 0, 56, [[0, control ? '#b07ae0' : '#f27ab8'], [1, control ? '#e2c4ff' : '#ffd0ea']]); ctx.fillRect(0, 0, W, 56);
+      ctx.fillStyle = lin(ctx, 0, top, 0, top + 56, [[0, control ? '#b07ae0' : '#f27ab8'], [1, control ? '#e2c4ff' : '#ffd0ea']]); ctx.fillRect(0, top, W, 56);
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      for (let x = 12; x < W; x += 24) { circle(ctx, x, 50, 5); ctx.fill(); }
+      for (let x = 12; x < W; x += 24) { circle(ctx, x, top + 50, 5); ctx.fill(); }
       break;
     }
     case 'rainbow': {
@@ -936,7 +954,8 @@ export function ensureThemeArt(scene: Phaser.Scene, key: ThemeKey): ThemeArt {
   }
   freeThemeProps(scene, key);
   if (key === 'christmas') ensureChristmasArt(scene); else freeChristmasArt(scene);
-  makeTexture(scene, far, 960, 540, ctx => paintFar(ctx, t));
+  // Taller screens: the far backdrop is EXTRA_HEIGHT taller, with the extra sky at the top.
+  makeTexture(scene, far, 960, 540 + EXTRA_HEIGHT, ctx => { ctx.translate(0, EXTRA_HEIGHT); paintFar(ctx, t, EXTRA_HEIGHT); });
   makeTexture(scene, mid, 960, 260, ctx => paintMid(ctx, t));
   makeTexture(scene, ground, 128, 90, ctx => paintGround(ctx, t), true);
   makeTexture(scene, fg, 960, 70, ctx => paintForeground(ctx, t));

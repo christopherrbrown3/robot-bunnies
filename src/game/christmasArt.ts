@@ -379,15 +379,18 @@ export const ELF_KEYS = [
 ] as const;
 
 export function ensureChristmasArt(scene: Phaser.Scene): void {
-  makeTexture(scene, `${PREFIX}tree`, 220, 330, ctx => {
+  // Trees get room above for the star and its glow; sprites are anchored at the base.
+  makeTexture(scene, `${PREFIX}tree`, 220, 346, ctx => {
+    ctx.translate(0, 16);
     drawChristmasTree(ctx, 110, 322, 316, 210);
     // Presents under the tree.
     ctx.save(); ctx.translate(30, 282); drawGiftBox(ctx, 52, 46, 0); ctx.restore();
     ctx.save(); ctx.translate(134, 290); drawGiftBox(ctx, 46, 38, 2); ctx.restore();
     ctx.save(); ctx.translate(84, 300); drawGiftBox(ctx, 40, 28, 1); ctx.restore();
   });
-  makeTexture(scene, `${PREFIX}tree-small`, 120, 180, ctx => drawChristmasTree(ctx, 60, 178, 176, 116, false));
-  makeTexture(scene, `${PREFIX}candycane`, 60, 130, ctx => {
+  makeTexture(scene, `${PREFIX}tree-small`, 120, 194, ctx => { ctx.translate(0, 14); drawChristmasTree(ctx, 60, 178, 176, 116, false); });
+  makeTexture(scene, `${PREFIX}candycane`, 68, 130, ctx => {
+    ctx.translate(4, 0); // room for the shadow
     ellipse(ctx, 38, 126, 20, 5); ctx.fillStyle = 'rgba(220,228,250,0.95)'; ctx.fill();
     softShadow(ctx, 4, 2, 'rgba(40,10,30,0.3)');
     ctx.beginPath(); ctx.moveTo(38, 126); ctx.lineTo(38, 34); ctx.arc(24, 34, 14, 0, Math.PI, true); ctx.lineTo(10, 46);
@@ -407,9 +410,9 @@ export function ensureChristmasArt(scene: Phaser.Scene): void {
   makeTexture(scene, `${PREFIX}arch`, 300, 330, drawArch);
   makeTexture(scene, `${PREFIX}gift-box`, 170, 130, ctx => drawGiantBox(ctx, false));
   makeTexture(scene, `${PREFIX}gift-box-open`, 170, 130, ctx => drawGiantBox(ctx, true));
-  makeTexture(scene, `${PREFIX}gift-lid`, 190, 80, drawGiantLid);
+  makeTexture(scene, `${PREFIX}gift-lid`, 202, 80, ctx => { ctx.translate(6, 0); drawGiantLid(ctx); }); // room for the shadow
   for (const [key, metal, bow] of [['bell-a', GOLD, '#e8394d'], ['bell-b', SILVER, '#2fa65a'], ['bell-c', RUBY, '#2fa65a']] as const) {
-    makeTexture(scene, `${PREFIX}${key}`, 32, 34, ctx => bell(ctx, 16, 3, 1.1, metal, bow));
+    makeTexture(scene, `${PREFIX}${key}`, 36, 34, ctx => bell(ctx, 18, 3, 1.1, metal, bow));
   }
   makeTexture(scene, `${PREFIX}snowflake`, 18, 18, ctx => {
     circle(ctx, 9, 9, 8); ctx.fillStyle = rad(ctx, 9, 9, 8, [[0, 'rgba(255,255,255,0.55)'], [1, 'rgba(255,255,255,0)']]); ctx.fill();
