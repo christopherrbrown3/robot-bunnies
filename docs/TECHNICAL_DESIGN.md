@@ -14,7 +14,7 @@
 
 ```text
 src/
-  main.ts                 # Phaser config (960×540 FIT, Arcade physics, windowEvents off), audio unlock
+  main.ts                 # Phaser config (960 wide × screen-shaped height, FIT, Arcade physics, windowEvents off), audio unlock
   updates.ts              # service-worker updates: background checks, Update button/Parent Corner install, version label
   scenes/
     BootScene.ts          # generates all character/object textures
@@ -24,7 +24,7 @@ src/
     GameScene.ts          # one level: run/jump/shrink, hazards, rescue, paint door, spelling trigger, boss, portal
     FinaleScene.ts        # end-of-run celebration and gentle word summary
   game/
-    hidpi.ts              # retina rendering: RES (2× on high-density screens), per-scene camera setup
+    hidpi.ts              # screen size (fills 4:3 iPads), retina rendering (RES), per-scene camera setup
     art.ts                # Canvas 2D drawings (shaded characters, objects, themed props/platforms, buttons, panels)
     christmasArt.ts       # Level 12 art: elves, Christmas trees, candy canes, bells, snowman, arch, giant present, snowflakes
     themes.ts             # 14 visual themes: painted skies, parallax layers, ground, foreground, ambient particles
@@ -77,6 +77,10 @@ scripts/
 `RUNNING` (auto-run / high single jump) ↔ `SHRUNK` (only after tap on Lyla in DANGER_WINDOW) → `RECOVERING` (automatic regrowth), and `CAPTURED` → `RIDENSEE_RESCUE` → `RUNNING`.
 
 Spelling triggers pause physics, character velocity, enemy movement, timers and game input; restore the saved world and resume after success, error-corrected success or skip, with short collision grace. The tile composer must be touch-first and accessible. Pause/cutscene/puzzle states stop movement and disable conflicting input. A tap on the on-screen Jump button must not bubble through into the shrink-tap handler. Explicitly test single-touch, accidental second taps, resume after backgrounding, orientation changes, and audio unlock gestures.
+
+## Screen size
+
+Scenes are laid out in a 960×540 (16:9) design area. The canvas is 960 wide and as tall as the screen's landscape shape needs (`LOGICAL_HEIGHT` in `hidpi.ts`: 540 on 16:9, 720 on a 4:3 iPad, so the game fills the iPad with no bars; wider screens such as phones keep 540 with side bars). In levels the design area sits at the bottom and the extra room is sky: the camera scrolls up by `EXTRA_HEIGHT`, the HUD stays at the top of the screen, and the far backdrop is painted taller. Menus are centred, with their backdrops continued above and below; screen-fixed overlays (pause, paint door, rescue, level complete) are centred with full-screen dimmers. Character drawings keep headroom (`BUNNY_HEADROOM`) so long ears are never clipped.
 
 ## Save system
 

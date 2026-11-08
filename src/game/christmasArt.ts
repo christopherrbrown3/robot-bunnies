@@ -379,14 +379,16 @@ export const ELF_KEYS = [
 ] as const;
 
 export function ensureChristmasArt(scene: Phaser.Scene): void {
-  makeTexture(scene, `${PREFIX}tree`, 220, 330, ctx => {
+  // Trees get room above for the star and its glow; sprites are anchored at the base.
+  makeTexture(scene, `${PREFIX}tree`, 220, 346, ctx => {
+    ctx.translate(0, 16);
     drawChristmasTree(ctx, 110, 322, 316, 210);
     // Presents under the tree.
     ctx.save(); ctx.translate(30, 282); drawGiftBox(ctx, 52, 46, 0); ctx.restore();
     ctx.save(); ctx.translate(134, 290); drawGiftBox(ctx, 46, 38, 2); ctx.restore();
     ctx.save(); ctx.translate(84, 300); drawGiftBox(ctx, 40, 28, 1); ctx.restore();
   });
-  makeTexture(scene, `${PREFIX}tree-small`, 120, 180, ctx => drawChristmasTree(ctx, 60, 178, 176, 116, false));
+  makeTexture(scene, `${PREFIX}tree-small`, 120, 194, ctx => { ctx.translate(0, 14); drawChristmasTree(ctx, 60, 178, 176, 116, false); });
   makeTexture(scene, `${PREFIX}candycane`, 60, 130, ctx => {
     ellipse(ctx, 38, 126, 20, 5); ctx.fillStyle = 'rgba(220,228,250,0.95)'; ctx.fill();
     softShadow(ctx, 4, 2, 'rgba(40,10,30,0.3)');

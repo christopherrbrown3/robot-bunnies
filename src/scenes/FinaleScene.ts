@@ -1,6 +1,6 @@
 /** After the last level: celebrate, summarize this run gently, offer a fresh playthrough. */
 import Phaser from 'phaser';
-import { setupCamera } from '../game/hidpi';
+import { EXTRA_HEIGHT, fillScreenBands, setupCamera } from '../game/hidpi';
 import { burst, makeButton, makePanel, textStyle } from '../game/ui';
 import { addGround, ensureThemeArt } from '../game/themes';
 import { prefersReducedMotion } from '../audio/prefs';
@@ -21,13 +21,14 @@ export class FinaleScene extends Phaser.Scene {
     const campaign = peekCampaign();
     const week = getActiveWeek(loadSpellingData());
     const art = ensureThemeArt(this, 'rainbow');
-    this.add.image(480, 270, art.far);
+    this.add.image(480, 540, art.far).setOrigin(0.5, 1); // taller on taller screens (extra sky on top)
+    fillScreenBands(this, 0xfff1fa, 0x6a4bd0);
     this.add.image(480, 370, art.mid);
     addGround(this, art.ground, 480, 515, 960);
     if (!prefersReducedMotion()) {
       // Confetti shower.
       this.add.particles(0, 0, 'confetti', {
-        x: { min: 0, max: 960 }, y: -10, lifespan: 5200, speedY: { min: 60, max: 130 }, speedX: { min: -40, max: 40 },
+        x: { min: 0, max: 960 }, y: -10 - EXTRA_HEIGHT / 2, lifespan: 5200, speedY: { min: 60, max: 130 }, speedX: { min: -40, max: 40 },
         rotate: { min: 0, max: 360 }, scale: { min: 0.8, max: 1.4 }, frequency: 70,
         tint: [0xff6fb5, 0xffd84d, 0x5fdc8a, 0x5fbfff, 0xa37bff, 0xff9f43]
       });

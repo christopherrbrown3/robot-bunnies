@@ -81,7 +81,8 @@ export class CutsceneScene extends Phaser.Scene {
   /** Paint a level theme's sky, scenery and ground into the storybook frame. */
   private backdrop(theme: ThemeKey): void {
     const art = ensureThemeArt(this, theme);
-    this.stage.add(this.add.image(480, 140, art.far));
+    // Bottom-anchored: the far backdrop is taller on taller screens (extra sky at the top).
+    this.stage.add(this.add.image(480, 410, art.far).setOrigin(0.5, 1));
     this.stage.add(this.add.image(480, 230, art.mid));
     this.stage.add(addGround(this, art.ground, 480, 385, 880));
   }

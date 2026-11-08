@@ -165,6 +165,15 @@ export const POLICE: BunnyLook = {
 
 type BunnyPose = 'run0' | 'run1' | 'run2' | 'run3' | 'jump' | 'stand' | 'cheer';
 
+/**
+ * Bunny textures are 120×(122 + BUNNY_HEADROOM): the long ears reach up to ~10px
+ * above the 120×122 drawing box (most in the jump pose), so the drawing is moved
+ * down to keep the ear tips from being cut off. Sprites use origin (0.5, 1), so
+ * the feet stay where they were; physics offsets add BUNNY_HEADROOM.
+ */
+export const BUNNY_HEADROOM = 12;
+const BUNNY_H = 122 + BUNNY_HEADROOM;
+
 /** Side-view bunny facing right in a 120×122 box, feet on y≈116. */
 function drawBunny(ctx: Ctx, look: BunnyLook, pose: BunnyPose): void {
   const o = look.outline;
@@ -939,12 +948,14 @@ export function panelTexture(scene: Phaser.Scene, w: number, h: number): string 
 /** Characters and shared objects used by every scene. */
 export function generateCoreArt(scene: Phaser.Scene): void {
   const poses: BunnyPose[] = ['run0', 'run1', 'run2', 'run3', 'jump', 'stand', 'cheer'];
-  for (const pose of poses) makeTexture(scene, `lyla-${pose}`, 120, 122, ctx => drawBunny(ctx, LYLA, pose));
+  const bunny = (key: string, draw: (ctx: Ctx) => void): void =>
+    makeTexture(scene, key, 120, BUNNY_H, ctx => { ctx.translate(0, BUNNY_HEADROOM); draw(ctx); });
+  for (const pose of poses) bunny(`lyla-${pose}`, ctx => drawBunny(ctx, LYLA, pose));
   for (const pose of ['run0', 'run1', 'run2', 'run3', 'stand', 'cheer'] as BunnyPose[]) {
-    makeTexture(scene, `ridensee-${pose}`, 120, 122, ctx => drawBunny(ctx, RIDENSEE, pose));
+    bunny(`ridensee-${pose}`, ctx => drawBunny(ctx, RIDENSEE, pose));
   }
-  makeTexture(scene, 'police', 120, 122, ctx => { drawBunny(ctx, POLICE, 'stand'); drawPoliceHat(ctx); });
-  makeTexture(scene, 'police-cheer', 120, 122, ctx => { drawBunny(ctx, POLICE, 'cheer'); drawPoliceHat(ctx); });
+  bunny('police', ctx => { drawBunny(ctx, POLICE, 'stand'); drawPoliceHat(ctx); });
+  bunny('police-cheer', ctx => { drawBunny(ctx, POLICE, 'cheer'); drawPoliceHat(ctx); });
   makeTexture(scene, 'tiger', 170, 120, ctx => drawTiger(ctx, false));
   makeTexture(scene, 'tiger-leap', 170, 120, ctx => drawTiger(ctx, true));
   makeTexture(scene, 'monkey', 100, 110, ctx => drawMonkey(ctx, false));
@@ -993,10 +1004,11 @@ export function generateCoreArt(scene: Phaser.Scene): void {
     ctx.fillStyle = lin(ctx, 10, 0, 310, 0, [[0, '#ffc2e3'], [0.5, '#d9c6ef'], [1, '#b8a6ff']]); ctx.fill();
   });
 
-  makeTexture(scene, 'flower', 44, 52, ctx => drawFlower(ctx, '#ff6fb8', '#ffd2ea', 44));
-  makeTexture(scene, 'flower-b', 44, 52, ctx => drawFlower(ctx, '#9b72ff', '#e2d6ff', 44));
-  makeTexture(scene, 'flower-c', 44, 52, ctx => drawFlower(ctx, '#ffa53d', '#ffe3b8', 44));
-  makeTexture(scene, 'flower-icon', 40, 40, ctx => { ctx.translate(0, -2); drawFlower(ctx, '#ff6fb8', '#ffd2ea', 40, false); });
+  // Flowers are drawn a little lower so the top petal isn't cut off.
+  makeTexture(scene, 'flower', 44, 52, ctx => { ctx.translate(0, 3); drawFlower(ctx, '#ff6fb8', '#ffd2ea', 44); });
+  makeTexture(scene, 'flower-b', 44, 52, ctx => { ctx.translate(0, 3); drawFlower(ctx, '#9b72ff', '#e2d6ff', 44); });
+  makeTexture(scene, 'flower-c', 44, 52, ctx => { ctx.translate(0, 3); drawFlower(ctx, '#ffa53d', '#ffe3b8', 44); });
+  makeTexture(scene, 'flower-icon', 40, 46, ctx => { ctx.translate(0, 3.5); drawFlower(ctx, '#ff6fb8', '#ffd2ea', 40, false); });
   makeTexture(scene, 'magic-flower', 150, 190, ctx => {
     circle(ctx, 75, 70, 75);
     ctx.fillStyle = rad(ctx, 75, 70, 75, [[0, 'rgba(255,240,170,0.8)'], [0.5, 'rgba(255,170,220,0.35)'], [1, 'rgba(255,170,220,0)']]); ctx.fill();
@@ -1088,7 +1100,8 @@ export function generateCoreArt(scene: Phaser.Scene): void {
       circle(ctx, x, y, 2); ctx.fillStyle = '#ffe066'; ctx.fill();
     }
   });
-  makeTexture(scene, 'tree', 180, 330, ctx => {
+  makeTexture(scene, 'tree', 200, 340, ctx => {
+    ctx.translate(10, 10); // canopy room on the left, right and top; trunk centre and base unchanged
     softShadow(ctx, 6, 3, 'rgba(40,20,0,0.25)');
     roundRect(ctx, 74, 120, 32, 210, 10); fillStroke(ctx, lin(ctx, 74, 0, 106, 0, [[0, '#6a4220'], [0.45, '#b07a44'], [1, '#5a3a1a']]), '#4a2e12', 2.5);
     noShadow(ctx);
@@ -1159,7 +1172,8 @@ export function generateCoreArt(scene: Phaser.Scene): void {
     });
     gloss(ctx, 40, 34, 12, 6, 0.75, -0.6);
   });
-  makeTexture(scene, 'phone-big', 150, 250, ctx => {
+  makeTexture(scene, 'phone-big', 180, 265, ctx => {
+    ctx.translate(15, 15); // room for the glow; base and centre unchanged
     softShadow(ctx, 14, 0, 'rgba(110,220,255,0.75)');
     roundRect(ctx, 4, 4, 142, 242, 22); fillStroke(ctx, lin(ctx, 0, 0, 150, 0, [[0, '#1a1a28'], [0.5, '#3a3a52'], [1, '#14141e']]), '#0a0a12', 4);
     noShadow(ctx);
@@ -1185,6 +1199,7 @@ export function generateCoreArt(scene: Phaser.Scene): void {
       gloss(ctx, 24, 54, 4, 12, 0.6, 0);
     });
     makeTexture(scene, `splat-${i}`, 64, 64, ctx => {
+      ctx.translate(32, 32); ctx.scale(0.9, 0.9); ctx.translate(-32, -32); // keep the outer blobs inside
       ctx.fillStyle = rad(ctx, 32, 32, 30, [[0, light], [0.5, c], [1, c]], 26, 26);
       circle(ctx, 32, 32, 20); ctx.fill();
       for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2 + i; circle(ctx, 32 + Math.cos(a) * 22, 32 + Math.sin(a) * 22, 7 + (k % 3) * 2); ctx.fill(); }

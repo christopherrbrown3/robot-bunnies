@@ -15,10 +15,10 @@ import levelsJson from '../content/levels.json';
 import type { LevelOutline } from '../content/types';
 import { buildLayout, GROUND_Y, LYLA_START_X, type Collectible, type Hazard, type LevelLayout } from '../game/levelPlan';
 import { ParallaxLayer, THEMES, addGround, ensureThemeArt, type Ambient, type Theme } from '../game/themes';
-import { blockTexture, gateTexture, platformTexture } from '../game/art';
+import { BUNNY_HEADROOM, blockTexture, gateTexture, platformTexture } from '../game/art';
 import { ELF_KEYS } from '../game/christmasArt';
 import { burst, makeBubble, makeButton, makePanel, pinToScreen, textStyle } from '../game/ui';
-import { setupCamera } from '../game/hidpi';
+import { COVER_HEIGHT, EXTRA_HEIGHT, LOGICAL_HEIGHT, setupCamera } from '../game/hidpi';
 import {
   CAMPAIGN_LEVEL_COUNT, addCampaignFlag, getOrStartCampaign, markCampaignLevelComplete,
   prioritizeCurrentWeek, resolveCampaignPrompt, saveLevelProgress, type LevelProgress, type SavedCampaign
@@ -168,7 +168,8 @@ export class GameScene extends Phaser.Scene {
 
     this.physics.world.setBounds(0, 0, this.layout.length, 540);
     this.physics.world.gravity.y = 1500;
-    setupCamera(this).setBackgroundColor(this.theme.sky[2]);
+    // On taller screens (4:3 iPads) the level sits at the bottom and the extra room is sky.
+    setupCamera(this, 'bottom').setBackgroundColor(this.theme.sky[2]);
 
     this.buildBackground();
     this.buildWorld();
@@ -192,12 +193,14 @@ export class GameScene extends Phaser.Scene {
 
   private buildBackground(): void {
     const art = ensureThemeArt(this, this.level.play.scene);
-    this.far = new ParallaxLayer(this, art.far, 270, -30);
-    this.mid = new ParallaxLayer(this, art.mid, GROUND_Y - 100, -20);
+    // Screen-fixed backdrop layers sit EXTRA_HEIGHT lower to line up with the world; the far
+    // layer is that much taller, so its sky reaches the top of the screen.
+    this.far = new ParallaxLayer(this, art.far, (540 + EXTRA_HEIGHT) / 2, -30);
+    this.mid = new ParallaxLayer(this, art.mid, GROUND_Y - 100 + EXTRA_HEIGHT, -20);
     addGround(this, art.ground, this.layout.length / 2, GROUND_Y + 45, this.layout.length).setDepth(5);
     // Soft contact shadow where the ground meets the world above it.
     this.add.rectangle(this.layout.length / 2, GROUND_Y - 3, this.layout.length, 6, 0x000000, 0.06).setDepth(4);
-    this.fg = new ParallaxLayer(this, art.fg, 540 - 35, 45);
+    this.fg = new ParallaxLayer(this, art.fg, 540 - 35 + EXTRA_HEIGHT, 45);
     this.buildAmbient(this.theme.ambient, this.theme.ambientTint);
     const ground = this.add.zone(this.layout.length / 2, GROUND_Y + 45, this.layout.length, 90);
     this.physics.add.existing(ground, true);
@@ -331,7 +334,9 @@ export class GameScene extends Phaser.Scene {
         cfg = { ...common, y: { min: 40, max: 440 }, speedX: { min: -8, max: 8 }, speedY: { min: -8, max: 4 },
           scale: { start: 0.15, end: 0.6 }, alpha: { start: 1, end: 0 }, lifespan: 2600, frequency: 220, blendMode: Phaser.BlendModes.ADD };
     }
-    const emitter = this.add.particles(0, 0, key, cfg).setScrollFactor(0).setDepth(30);
+    // Falling things start at the top of the screen; drifting ones stay level with the world.
+    const falls = kind === 'petal' || kind === 'blossom' || kind === 'leaf' || kind === 'snow';
+    const emitter = this.add.particles(0, falls ? 0 : EXTRA_HEIGHT, key, cfg).setScrollFactor(0).setDepth(30);
     emitter.fastForward(6000);
     this.dust = this.add.particles(0, 0, 'dust', {
       lifespan: 520, speedX: { min: -70, max: -20 }, speedY: { min: -40, max: -10 }, scale: { start: 0.55, end: 1.2 },
@@ -347,7 +352,7 @@ export class GameScene extends Phaser.Scene {
     const target = Phaser.Math.Clamp(this.camLockX ?? this.lyla.x - FOLLOW_X, 0, max);
     if (snap) cam.scrollX = target;
     else cam.scrollX += (target - cam.scrollX) * (1 - Math.pow(0.85, Math.min(delta, 50) / 16.67));
-    cam.scrollY = 0;
+    cam.scrollY = -EXTRA_HEIGHT;
   }
 
   private buildHazard(h: Hazard): void {
@@ -533,7 +538,7 @@ export class GameScene extends Phaser.Scene {
     this.lyla = this.physics.add.sprite(startX, GROUND_Y, 'lyla-stand').setOrigin(0.5, 1).setDepth(18);
     const body = this.lyla.body as Phaser.Physics.Arcade.Body;
     body.setSize(46, 76);
-    body.setOffset(37, 42);
+    body.setOffset(37, 42 + BUNNY_HEADROOM);
     body.setMaxVelocityY(1200);
     this.lyla.setCollideWorldBounds(true);
     this.physics.add.collider(this.lyla, this.groundZone);
@@ -606,9 +611,9 @@ export class GameScene extends Phaser.Scene {
     this.state = 'intro';
     const resumed = this.progress.checkpointX !== null;
     const label = resumed ? 'Welcome back! 🌸' : `Level ${this.level.id}`;
-    const banner = this.add.text(480, 230, label, textStyle(52, '#ffffff', true, { stroke: '#7445c5', strokeThickness: 10 }))
+    const banner = this.add.text(480, 230 + EXTRA_HEIGHT / 2, label, textStyle(52, '#ffffff', true, { stroke: '#7445c5', strokeThickness: 10 }))
       .setOrigin(0.5).setScrollFactor(0).setDepth(600).setScale(0.6).setAlpha(0);
-    const sub = this.add.text(480, 292, resumed ? 'Picking up where you left off' : this.level.title, textStyle(28, '#ffffff', true, { stroke: '#7445c5', strokeThickness: 7 }))
+    const sub = this.add.text(480, 292 + EXTRA_HEIGHT / 2, resumed ? 'Picking up where you left off' : this.level.title, textStyle(28, '#ffffff', true, { stroke: '#7445c5', strokeThickness: 7 }))
       .setOrigin(0.5).setScrollFactor(0).setDepth(600).setAlpha(0);
     this.tweens.add({ targets: banner, scale: 1, alpha: 1, duration: 350, ease: 'Back.easeOut' });
     this.tweens.add({ targets: sub, alpha: 1, duration: 350, delay: 150 });
@@ -1053,8 +1058,8 @@ export class GameScene extends Phaser.Scene {
     this.saveProgress(null);
 
     const cam = this.cameras.main;
-    const root = this.add.container(0, 0).setScrollFactor(0).setDepth(900);
-    const bg = this.add.image(480, 270, 'rescue-bg').setDisplaySize(960, 540).setAlpha(0);
+    const root = this.add.container(0, EXTRA_HEIGHT / 2).setScrollFactor(0).setDepth(900);
+    const bg = this.add.image(480, 270, 'rescue-bg').setDisplaySize(Math.max(960, LOGICAL_HEIGHT * 16 / 9), LOGICAL_HEIGHT).setAlpha(0);
     root.add(bg);
     let finished = false;
     const finish = (): void => {
@@ -1284,9 +1289,9 @@ export class GameScene extends Phaser.Scene {
     this.freeze();
     const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
     const order = [3, 0, 5, 2, 4, 1]; // fixed shuffle for a consistent layout
-    const root = this.add.container(0, 0).setScrollFactor(0).setDepth(800);
+    const root = this.add.container(0, EXTRA_HEIGHT / 2).setScrollFactor(0).setDepth(800);
     this.overlay = root;
-    const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.55).setInteractive();
+    const dim = this.add.rectangle(480, 270, 960, COVER_HEIGHT, 0x1e1238, 0.55).setInteractive();
     const panel = makePanel(this, 480, 275, 840, 430);
     const title = this.add.text(480, 100, 'Rainbow Paint Door!', textStyle(34, '#6e3b9d')).setOrigin(0.5);
     const instruction = 'Tap the paints in rainbow order: red, orange, yellow, green, blue, purple.';
@@ -1501,8 +1506,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private showLevelComplete(last: boolean): void {
-    const root = this.add.container(0, 0).setScrollFactor(0).setDepth(900);
-    const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.5).setInteractive();
+    const root = this.add.container(0, EXTRA_HEIGHT / 2).setScrollFactor(0).setDepth(900);
+    const dim = this.add.rectangle(480, 270, 960, COVER_HEIGHT, 0x1e1238, 0.5).setInteractive();
     const panel = makePanel(this, 480, 270, 580, 380);
     const title = this.add.text(480, 135, `Level ${this.level.id} complete!`, textStyle(38, '#6e3b9d')).setOrigin(0.5);
     const lyla = this.add.image(330, 290, 'lyla-cheer').setScale(1.1);
@@ -1544,9 +1549,9 @@ export class GameScene extends Phaser.Scene {
     this.time.paused = true;
     stopSpeech();
 
-    const root = this.add.container(0, 0).setScrollFactor(0).setDepth(950);
+    const root = this.add.container(0, EXTRA_HEIGHT / 2).setScrollFactor(0).setDepth(950);
     this.overlay = root;
-    const dim = this.add.rectangle(480, 270, 960, 540, 0x1e1238, 0.6).setInteractive();
+    const dim = this.add.rectangle(480, 270, 960, COVER_HEIGHT, 0x1e1238, 0.6).setInteractive();
     const panel = makePanel(this, 480, 275, 460, 370);
     const title = this.add.text(480, 140, 'Paused', textStyle(40, '#6e3b9d')).setOrigin(0.5);
     const note = this.add.text(480, 182, 'Take a break any time. Your adventure is saved.', textStyle(17, '#6a5080', false)).setOrigin(0.5);
